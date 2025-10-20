@@ -11,8 +11,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
-import { useAuthStore } from '../../../store';
+import apiService from '../../services/api';
+import { useAuthStore } from '../../store';
 
 export default function WalletScreen() {
   const [wallet, setWallet] = useState<any>(null);

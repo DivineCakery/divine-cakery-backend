@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { useCartStore } from '../../../store';
+import { useCartStore } from '../../store';
 
 export default function CartScreen() {
   const router = useRouter();

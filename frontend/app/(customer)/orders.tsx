@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
+import apiService from '../../services/api';
 
 const STATUS_COLORS: any = {
   pending: '#FFA500',

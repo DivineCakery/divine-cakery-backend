@@ -12,8 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
-import { useCartStore } from '../../../store';
+import apiService from '../../services/api';
+import { useCartStore } from '../../store';
 
 const CATEGORIES = ['All', 'Bread', 'Cakes', 'Muffins', 'Brownies', 'Cookies', 'Donuts'];
 

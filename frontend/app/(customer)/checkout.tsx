@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
-import { useCartStore, useAuthStore } from '../../../store';
+import apiService from '../../services/api';
+import { useCartStore, useAuthStore } from '../../store';
 
 export default function CheckoutScreen() {
   const router = useRouter();
