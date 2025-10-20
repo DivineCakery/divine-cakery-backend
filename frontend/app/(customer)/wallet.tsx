@@ -150,21 +150,33 @@ export default function WalletScreen() {
                 style={[styles.addButton, addingMoney && styles.addButtonDisabled]}
                 onPress={handleAddMoney}
                 disabled={addingMoney}
-          >
-            {addingMoney ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="add-circle" size={24} color="#fff" />
-                <Text style={styles.addButtonText}>Add Money via UPI</Text>
-              </>
-            )}
-          </TouchableOpacity>
+              >
+                {addingMoney ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="add-circle" size={24} color="#fff" />
+                    <Text style={styles.addButtonText}>Add Money via UPI</Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
-          <Text style={styles.paymentNote}>
-            Note: UPI payment integration (Razorpay) will be activated when credentials are provided.
-          </Text>
-        </View>
+              <Text style={styles.paymentNote}>
+                Note: UPI payment integration (Razorpay) will be activated when credentials are provided.
+              </Text>
+            </View>
+          </>
+        )}
+        
+        {user?.can_topup_wallet === false && (
+          <View style={styles.restrictedCard}>
+            <Ionicons name="lock-closed" size={40} color="#666" />
+            <Text style={styles.restrictedTitle}>Wallet Top-up Restricted</Text>
+            <Text style={styles.restrictedText}>
+              Your account does not have access to wallet top-up facility. Please contact Divine Cakery admin for assistance.
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.infoSection}>
