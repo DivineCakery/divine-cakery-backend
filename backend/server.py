@@ -520,6 +520,7 @@ async def create_user_by_admin(
         "business_name": user_data.business_name,
         "address": user_data.address,
         "wallet_balance": 0.0,
+        "can_topup_wallet": user_data.can_topup_wallet,
         "hashed_password": hashed_password,
         "created_at": datetime.utcnow(),
         "is_active": True
