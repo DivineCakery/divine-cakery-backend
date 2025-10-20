@@ -202,6 +202,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
     padding: 20,
     paddingTop: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 100,
+    height: 50,
+    marginRight: 10,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 28,
