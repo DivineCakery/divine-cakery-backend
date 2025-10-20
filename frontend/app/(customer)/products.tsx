@@ -199,9 +199,6 @@ const styles = StyleSheet.create({
     padding: 12,
     paddingTop: 45,
   },
-  headerTextContainer: {
-    flex: 1,
-  },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
