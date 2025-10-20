@@ -66,9 +66,34 @@ export default function ProductsScreen() {
     setFilteredProducts(filtered);
   };
 
+  const getQuantity = (productId: string) => {
+    return quantities[productId] || 1;
+  };
+
+  const increaseQuantity = (productId: string) => {
+    setQuantities(prev => ({
+      ...prev,
+      [productId]: (prev[productId] || 1) + 1
+    }));
+  };
+
+  const decreaseQuantity = (productId: string) => {
+    setQuantities(prev => ({
+      ...prev,
+      [productId]: Math.max(1, (prev[productId] || 1) - 1)
+    }));
+  };
+
   const handleAddToCart = (product: any) => {
-    addItem(product, 1);
-    Alert.alert('Success', `${product.name} added to cart`);
+    const quantity = getQuantity(product.id);
+    addItem(product, quantity);
+    Alert.alert('Success', `${quantity} x ${product.name} added to cart`);
+    // Reset quantity after adding
+    setQuantities(prev => {
+      const newQuantities = { ...prev };
+      delete newQuantities[product.id];
+      return newQuantities;
+    });
   };
 
   const onRefresh = () => {
