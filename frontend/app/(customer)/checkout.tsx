@@ -27,6 +27,19 @@ export default function CheckoutScreen() {
 
   const totalAmount = getTotalAmount();
 
+  // Calculate delivery date (1 day from now)
+  const getDeliveryDate = () => {
+    const today = new Date();
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(today.getDate() + 1);
+    return deliveryDate.toLocaleDateString('en-IN', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   useEffect(() => {
     fetchWallet();
   }, []);
