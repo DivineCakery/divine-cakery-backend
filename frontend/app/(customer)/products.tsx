@@ -138,31 +138,33 @@ export default function ProductsScreen() {
         />
       </View>
 
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={CATEGORIES}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.categoryChip,
-              selectedCategory === item && styles.categoryChipActive,
-            ]}
-            onPress={() => setSelectedCategory(item)}
-          >
-            <Text
+      <View style={styles.categoriesWrapper}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={CATEGORIES}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
               style={[
-                styles.categoryText,
-                selectedCategory === item && styles.categoryTextActive,
+                styles.categoryChip,
+                selectedCategory === item && styles.categoryChipActive,
               ]}
+              onPress={() => setSelectedCategory(item)}
             >
-              {item}
-            </Text>
-          </TouchableOpacity>
-        )}
-        style={styles.categoriesContainer}
-      />
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === item && styles.categoryTextActive,
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )}
+          style={styles.categoriesContainer}
+        />
+      </View>
 
       <FlatList
         data={filteredProducts}
