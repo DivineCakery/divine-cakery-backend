@@ -200,28 +200,28 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#8B4513',
-    padding: 20,
-    paddingTop: 50,
+    padding: 12,
+    paddingTop: 45,
     flexDirection: 'row',
     alignItems: 'center',
   },
   logo: {
-    width: 100,
-    height: 50,
+    width: 80,
+    height: 40,
     marginRight: 10,
   },
   headerTextContainer: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#FFF8DC',
-    marginTop: 5,
+    marginTop: 2,
   },
   searchContainer: {
     flexDirection: 'row',
