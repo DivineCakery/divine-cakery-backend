@@ -64,31 +64,51 @@ export default function DashboardScreen() {
 
       <View style={styles.statsContainer}>
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: '#4CAF50' }]}>
+          <TouchableOpacity 
+            style={[styles.statCard, { backgroundColor: '#4CAF50' }]}
+            onPress={() => router.push('/(admin)/manage-users')}
+            activeOpacity={0.7}
+          >
             <MaterialCommunityIcons name="account-group" size={40} color="#fff" />
             <Text style={styles.statNumber}>{stats?.total_users || 0}</Text>
             <Text style={styles.statLabel}>Total Customers</Text>
-          </View>
+            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+          </TouchableOpacity>
 
-          <View style={[styles.statCard, { backgroundColor: '#2196F3' }]}>
+          <TouchableOpacity 
+            style={[styles.statCard, { backgroundColor: '#2196F3' }]}
+            onPress={() => router.push('/(admin)/manage-products')}
+            activeOpacity={0.7}
+          >
             <MaterialCommunityIcons name="bread-slice" size={40} color="#fff" />
             <Text style={styles.statNumber}>{stats?.total_products || 0}</Text>
             <Text style={styles.statLabel}>Products</Text>
-          </View>
+            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: '#FF9800' }]}>
+          <TouchableOpacity 
+            style={[styles.statCard, { backgroundColor: '#FF9800' }]}
+            onPress={() => router.push('/(admin)/manage-orders')}
+            activeOpacity={0.7}
+          >
             <MaterialCommunityIcons name="clipboard-text" size={40} color="#fff" />
             <Text style={styles.statNumber}>{stats?.total_orders || 0}</Text>
             <Text style={styles.statLabel}>Total Orders</Text>
-          </View>
+            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+          </TouchableOpacity>
 
-          <View style={[styles.statCard, { backgroundColor: '#f44336' }]}>
+          <TouchableOpacity 
+            style={[styles.statCard, { backgroundColor: '#f44336' }]}
+            onPress={() => router.push('/(admin)/manage-orders')}
+            activeOpacity={0.7}
+          >
             <Ionicons name="time" size={40} color="#fff" />
             <Text style={styles.statNumber}>{stats?.pending_orders || 0}</Text>
             <Text style={styles.statLabel}>Pending Orders</Text>
-          </View>
+            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+          </TouchableOpacity>
         </View>
 
         <View style={[styles.revenueCard, { backgroundColor: '#8B4513' }]}>
@@ -97,6 +117,7 @@ export default function DashboardScreen() {
           <Text style={styles.revenueAmount}>
             ₹{stats?.total_revenue?.toFixed(2) || '0.00'}
           </Text>
+          <Text style={styles.revenueSubtext}>From all completed orders</Text>
         </View>
       </View>
 
