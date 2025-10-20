@@ -8,11 +8,13 @@ import {
   RefreshControl,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { DIVINE_LOGO } from '../../constants/logo';
+import { useAuthStore } from '../../store';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -20,6 +22,25 @@ export default function DashboardScreen() {
   const [dailyRevenue, setDailyRevenue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout Confirmation',
+      'Are you sure you want to logout from admin panel?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/');
+          },
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     fetchStats();
