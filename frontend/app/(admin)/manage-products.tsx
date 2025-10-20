@@ -82,12 +82,43 @@ export default function ManageProductsScreen() {
         </View>
       </View>
 
-      <Text style={styles.productPrice}>₹{item.price.toFixed(2)} / {item.unit}</Text>
+      <View style={styles.priceRow}>
+        <View>
+          <Text style={styles.priceLabel}>MRP:</Text>
+          <Text style={styles.mrpPrice}>₹{item.mrp?.toFixed(2) || '0.00'}</Text>
+        </View>
+        <View>
+          <Text style={styles.priceLabel}>Price:</Text>
+          <Text style={styles.productPrice}>₹{item.price.toFixed(2)}</Text>
+        </View>
+        {item.packet_size && (
+          <View>
+            <Text style={styles.priceLabel}>Size:</Text>
+            <Text style={styles.packetSize}>{item.packet_size}</Text>
+          </View>
+        )}
+      </View>
+
       {item.description && (
         <Text style={styles.productDescription}>{item.description}</Text>
       )}
 
+      {item.remarks && (
+        <View style={styles.remarksContainer}>
+          <Text style={styles.remarksLabel}>Remarks:</Text>
+          <Text style={styles.remarksText}>{item.remarks}</Text>
+        </View>
+      )}
+
       <View style={styles.productActions}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => router.push(`/(admin)/product-form?id=${item.id}`)}
+        >
+          <Ionicons name="create" size={20} color="#fff" />
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[
             styles.availabilityButton,
