@@ -11,9 +11,10 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
-import { useCartStore } from '../../store';
+import { useCartStore, useAuthStore } from '../../store';
 
 const CATEGORIES = ['All', 'Bread', 'Cakes', 'Muffins', 'Brownies', 'Cookies', 'Donuts'];
 
