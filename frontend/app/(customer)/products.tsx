@@ -125,7 +125,6 @@ export default function ProductsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Divine Cakery</Text>
           <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
