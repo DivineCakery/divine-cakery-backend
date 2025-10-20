@@ -121,31 +121,6 @@ export default function DashboardScreen() {
           <Text style={styles.revenueSubtext}>From all completed orders</Text>
         </View>
       </View>
-
-      <View style={styles.quickActions}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsGrid}>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialCommunityIcons name="plus-circle" size={30} color="#8B4513" />
-            <Text style={styles.actionText}>Add Product</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="notifications" size={30} color="#8B4513" />
-            <Text style={styles.actionText}>Notifications</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialCommunityIcons name="file-chart" size={30} color="#8B4513" />
-            <Text style={styles.actionText}>Reports</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="settings" size={30} color="#8B4513" />
-            <Text style={styles.actionText}>Settings</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     </ScrollView>
   );
 }
