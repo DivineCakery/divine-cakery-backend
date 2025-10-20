@@ -293,4 +293,101 @@ const styles = StyleSheet.create({
     marginTop: 5,
     opacity: 0.8,
   },
+  revenueBreakdown: {
+    marginTop: 15,
+  },
+  breakdownTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginBottom: 10,
+  },
+  breakdownCard: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  breakdownItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  breakdownLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
+  },
+  breakdownValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginTop: 5,
+  },
+  breakdownDivider: {
+    width: 1,
+    backgroundColor: '#E0E0E0',
+    marginHorizontal: 10,
+  },
+  breakdownDivider2: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 15,
+  },
+  dailyRevenueSection: {
+    marginTop: 15,
+  },
+  dailyRevenueTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginBottom: 10,
+  },
+  dailyRevenueCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  dailyRevenueLeft: {
+    flex: 1,
+  },
+  dailyRevenueDay: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  dailyRevenueDate: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  dailyRevenueRight: {
+    alignItems: 'flex-end',
+  },
+  dailyRevenueAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  dailyRevenueOrders: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
+  },
 });
