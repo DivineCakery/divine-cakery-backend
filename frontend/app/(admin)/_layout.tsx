@@ -1,7 +1,11 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AdminLayout() {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
@@ -11,9 +15,13 @@ export default function AdminLayout() {
           backgroundColor: '#fff',
           borderTopWidth: 1,
           borderTopColor: '#eee',
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          paddingTop: 8,
+          height: insets.bottom > 0 ? 65 + insets.bottom : 70,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
       }}
     >
