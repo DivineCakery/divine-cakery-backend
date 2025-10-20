@@ -117,37 +117,39 @@ export default function WalletScreen() {
       </View>
 
       <View style={styles.addMoneySection}>
-        <Text style={styles.sectionTitle}>Add Money to Wallet</Text>
-        <View style={styles.addMoneyCard}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.currencySymbol}>₹</Text>
-            <TextInput
-              style={styles.amountInput}
-              placeholder="Enter amount"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-              editable={!addingMoney}
-            />
-          </View>
+        {user?.can_topup_wallet !== false && (
+          <>
+            <Text style={styles.sectionTitle}>Add Money to Wallet</Text>
+            <View style={styles.addMoneyCard}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.currencySymbol}>₹</Text>
+                <TextInput
+                  style={styles.amountInput}
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
+                  editable={!addingMoney}
+                />
+              </View>
 
-          <View style={styles.quickAmounts}>
-            {[100, 500, 1000, 2000].map((amt) => (
+              <View style={styles.quickAmounts}>
+                {[100, 500, 1000, 2000].map((amt) => (
+                  <TouchableOpacity
+                    key={amt}
+                    style={styles.quickAmountButton}
+                    onPress={() => setAmount(amt.toString())}
+                    disabled={addingMoney}
+                  >
+                    <Text style={styles.quickAmountText}>₹{amt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
               <TouchableOpacity
-                key={amt}
-                style={styles.quickAmountButton}
-                onPress={() => setAmount(amt.toString())}
+                style={[styles.addButton, addingMoney && styles.addButtonDisabled]}
+                onPress={handleAddMoney}
                 disabled={addingMoney}
-              >
-                <Text style={styles.quickAmountText}>₹{amt}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.addButton, addingMoney && styles.addButtonDisabled]}
-            onPress={handleAddMoney}
-            disabled={addingMoney}
           >
             {addingMoney ? (
               <ActivityIndicator color="#fff" />
