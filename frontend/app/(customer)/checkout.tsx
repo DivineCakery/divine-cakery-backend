@@ -56,6 +56,23 @@ export default function CheckoutScreen() {
     }
   };
 
+  const sendWhatsAppMessage = async (orderId: string) => {
+    try {
+      const message = `Hello! Your order #${orderId} has been placed successfully with Divine Cakery. Expected delivery: ${getDeliveryDate()}. Thank you for your order!`;
+      const phoneNumber = '919544183334'; // Divine Cakery business number
+      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+      
+      const canOpen = await Linking.canOpenURL(whatsappUrl);
+      if (canOpen) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        Alert.alert('WhatsApp not installed', 'Please install WhatsApp to receive order confirmation');
+      }
+    } catch (error) {
+      console.error('Error opening WhatsApp:', error);
+    }
+  };
+
   const handlePlaceOrder = async () => {
     if (!deliveryAddress.trim()) {
       Alert.alert('Error', 'Please enter delivery address');
