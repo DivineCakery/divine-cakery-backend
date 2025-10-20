@@ -190,8 +190,13 @@ export default function ProductsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Divine Cakery</Text>
-        <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Divine Cakery</Text>
+          <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
+        </View>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
