@@ -114,7 +114,7 @@ export default function ManageOrdersScreen() {
         {item.order_status === 'pending' && (
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
-            onPress={() => updateOrderStatus(item.id, 'confirmed')}
+            onPress={() => updateOrderStatus(item.id, 'confirmed', item)}
           >
             <Text style={styles.actionButtonText}>Confirm</Text>
           </TouchableOpacity>
@@ -122,7 +122,7 @@ export default function ManageOrdersScreen() {
         {item.order_status === 'confirmed' && (
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
-            onPress={() => updateOrderStatus(item.id, 'processing')}
+            onPress={() => updateOrderStatus(item.id, 'processing', item)}
           >
             <Text style={styles.actionButtonText}>Process</Text>
           </TouchableOpacity>
@@ -130,7 +130,7 @@ export default function ManageOrdersScreen() {
         {item.order_status === 'processing' && (
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
-            onPress={() => updateOrderStatus(item.id, 'delivered')}
+            onPress={() => updateOrderStatus(item.id, 'delivered', item)}
           >
             <Text style={styles.actionButtonText}>Mark Delivered</Text>
           </TouchableOpacity>
