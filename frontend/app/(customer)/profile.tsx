@@ -15,7 +15,7 @@ import apiService from '../../services/api';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout, setUser } = useAuthStore();
+  const { user, logout, refreshUser } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -24,8 +24,7 @@ export default function ProfileScreen() {
 
   const fetchUserData = async () => {
     try {
-      const userData = await apiService.getCurrentUser();
-      setUser(userData);
+      await refreshUser();
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
