@@ -267,9 +267,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
   },
   categoryText: {
-    fontSize: 15,
-    color: '#8B4513',
-    fontWeight: '600',
+    fontSize: 16,
+    color: '#333',
+    fontWeight: 'bold',
   },
   categoryTextActive: {
     color: '#fff',
