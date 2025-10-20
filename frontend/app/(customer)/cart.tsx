@@ -123,7 +123,12 @@ export default function CartScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Shopping Cart</Text>
-        {items.length > 0 && (
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      {items.length > 0 && (
+        <View style={styles.clearCartContainer}>
           <TouchableOpacity onPress={() => {
             Alert.alert(
               'Clear Cart',
