@@ -405,4 +405,33 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 2,
   },
+  settingsSection: {
+    marginTop: 15,
+  },
+  settingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  settingsButtonText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  settingsButtonTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  settingsButtonSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
 });
