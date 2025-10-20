@@ -320,6 +320,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  deliveryDateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  deliveryDateInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  deliveryDateLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  deliveryDateText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8B4513',
+  },
   orderItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
