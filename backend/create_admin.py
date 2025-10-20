@@ -21,9 +21,9 @@ async def create_admin():
     # Check if admin already exists
     existing_admin = await db.users.find_one({"username": "admin"})
     if existing_admin:
-        print("Admin user already exists")
-        client.close()
-        return
+        print("Admin user already exists, deleting and recreating...")
+        await db.users.delete_one({"username": "admin"})
+        await db.wallets.delete_one({"user_id": existing_admin["id"]})
     
     # Create admin user
     admin_id = str(uuid.uuid4())
