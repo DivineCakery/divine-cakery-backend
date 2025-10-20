@@ -271,6 +271,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
     padding: 12,
     paddingTop: 35,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 22,
@@ -281,6 +287,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#FFF8DC',
     marginTop: 2,
+  },
+  logoutButton: {
+    padding: 8,
   },
   searchContainer: {
     flexDirection: 'row',
