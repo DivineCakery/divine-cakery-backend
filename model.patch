@@ -1,182 +1,207 @@
-diff --git a/backend/create_admin.py b/backend/create_admin.py
-index 4550a07..1f6497e 100644
---- a/backend/create_admin.py
-+++ b/backend/create_admin.py
-@@ -21,9 +21,9 @@ async def create_admin():
-     # Check if admin already exists
-     existing_admin = await db.users.find_one({"username": "admin"})
-     if existing_admin:
--        print("Admin user already exists")
--        client.close()
--        return
-+        print("Admin user already exists, deleting and recreating...")
-+        await db.users.delete_one({"username": "admin"})
-+        await db.wallets.delete_one({"user_id": existing_admin["id"]})
-     
-     # Create admin user
-     admin_id = str(uuid.uuid4())
 diff --git a/backend/server.py b/backend/server.py
-index 4fe4996..728a4fe 100644
+index 728a4fe..cc25d20 100644
 --- a/backend/server.py
 +++ b/backend/server.py
-@@ -469,6 +469,9 @@ async def update_order(
-         raise HTTPException(status_code=404, detail="Order not found")
-     
-     update_data = {k: v for k, v in order_update.dict().items() if v is not None}
-+    # Map 'status' field to 'order_status' for database
-+    if 'status' in update_data:
-+        update_data['order_status'] = update_data.pop('status')
-     update_data["updated_at"] = datetime.utcnow()
-     
-     await db.orders.update_one({"id": order_id}, {"$set": update_data})
+@@ -133,6 +133,7 @@ async def register(user_data: UserCreate):
+         "business_name": user_data.business_name,
+         "address": user_data.address,
+         "wallet_balance": 0.0,
++        "can_topup_wallet": user_data.can_topup_wallet,
+         "hashed_password": hashed_password,
+         "created_at": datetime.utcnow(),
+         "is_active": True
+@@ -519,6 +520,7 @@ async def create_user_by_admin(
+         "business_name": user_data.business_name,
+         "address": user_data.address,
+         "wallet_balance": 0.0,
++        "can_topup_wallet": user_data.can_topup_wallet,
+         "hashed_password": hashed_password,
+         "created_at": datetime.utcnow(),
+         "is_active": True
 diff --git a/model.patch b/model.patch
-index 5c21d0b..e69de29 100644
+index 07d47a9..e69de29 100644
 --- a/model.patch
 +++ b/model.patch
-@@ -1,94 +0,0 @@
--diff --git a/README.md b/README.md
--index 3786c8a..22f4e97 100644
----- a/README.md
--+++ b/README.md
--@@ -1 +1,88 @@
---# Here are your Instructions
--+# Divine Cakery - Wholesale Bakery Mobile App
--+
--+A comprehensive native mobile application built with Expo (React Native) for Divine Cakery's wholesale bakery business in Kerala, India.
--+
--+## 🏪 Business Information
--+
--+**Divine Cakery**
--+- Location: BNRA 161, Bhagawathi Nagar, NCC Road, Thiruvananthapuram, Kerala
--+- Website: www.divinecakery.in
--+- Type: Wholesale Bakery Products
--+
--+## ✨ Features
--+
--+### Customer Features
--+✅ User Authentication (Login/Register)
--+✅ Product Browsing by Category  
--+✅ Shopping Cart Management
--+✅ Wallet System with UPI Integration (ready)
--+✅ Order Placement & History
--+✅ User Profile Management
--+
--+### Admin Features  
--+✅ Dashboard with Statistics
--+✅ Product Management (CRUD)
--+✅ Order Management
--+✅ User Management
--+✅ Admin Profile
--+
--+### Payment Integration
--+⏳ Razorpay UPI Integration (awaiting credentials)
--+✅ Wallet-based Payments
--+✅ Mock Payment Flow for Development
--+
--+## 🛠️ Tech Stack
--+
--+- **Frontend**: Expo v54 (React Native), Zustand, Axios, Expo Router
--+- **Backend**: FastAPI (Python), JWT Auth, Razorpay SDK
--+- **Database**: MongoDB
--+- **Deployment**: Kubernetes, Nginx
--+
--+## 🔑 Default Credentials
--+
--+**Admin**: username: `admin` | password: `admin123`
--+
--+## 🚀 Quick Start
--+
--+1. **Services**: Backend and Expo are already running
--+2. **Access**: https://wholesale-bakery-app.preview.emergentagent.com
--+3. **Scan QR**: Use Expo Go app on mobile to scan QR code
--+
--+## 📦 Sample Data
--+
--+10 bakery products already loaded including breads, cakes, muffins, brownies, cookies, and donuts.
--+
--+## 💰 Adding Razorpay (Optional)
--+
--+To enable real UPI payments, update `/app/backend/.env`:
--+```env
--+RAZORPAY_KEY_ID="rzp_test_xxxxx"
--+RAZORPAY_KEY_SECRET="xxxxx"
--+```
--+
--+Then restart: `sudo supervisorctl restart backend`
--+
--+## 📱 App Structure
--+
--+```
--+/app/
--+├── backend/          # FastAPI server
--+├── frontend/         # Expo mobile app
--+│   └── app/
--+│       ├── (auth)/        # Login, Register
--+│       ├── (customer)/    # Products, Cart, Wallet, Orders
--+│       └── (admin)/       # Dashboard, Management
--+├── services/         # API service layer
--+└── store/           # Zustand state management
--+```
--+
--+## 🔐 Security
--+
--+- JWT authentication
--+- Bcrypt password hashing
--+- Protected routes
--+- Role-based access control
--+
--+---
--+
--+**Built for Divine Cakery | Powered by Emergent**
-diff --git a/test_result.md b/test_result.md
-index 0305137..9c8f308 100644
---- a/test_result.md
-+++ b/test_result.md
-@@ -107,27 +107,33 @@ user_problem_statement: "Divine Cakery native mobile app for bakery wholesale cu
- backend:
-   - task: "Date-wise revenue API endpoint"
-     implemented: true
--    working: "NA"
-+    working: true
-     file: "/app/backend/server.py"
-     stuck_count: 0
-     priority: "high"
--    needs_retesting: true
-+    needs_retesting: false
-     status_history:
-         - working: "NA"
-           agent: "main"
-           comment: "Created new endpoint /api/admin/revenue/daily that returns last 7 days revenue breakdown with date, day name, revenue amount, and order count for each day."
-+        - working: true
-+          agent: "testing"
-+          comment: "✅ TESTED: Daily revenue API endpoint working correctly. Returns proper 7-day breakdown with date, day_name, revenue, and order_count fields. Requires admin authentication. API structure and data types are correct."
- 
-   - task: "WhatsApp order confirmation - backend support"
-     implemented: true
--    working: "NA"
-+    working: true
-     file: "/app/backend/server.py"
-     stuck_count: 0
-     priority: "medium"
--    needs_retesting: true
-+    needs_retesting: false
-     status_history:
-         - working: "NA"
-           agent: "main"
-           comment: "Backend order update endpoint already exists. No changes needed for WhatsApp functionality as it's handled on frontend."
-+        - working: true
-+          agent: "testing"
-+          comment: "✅ TESTED: Order update endpoint working correctly. Successfully updates order status to 'confirmed'. Fixed field mapping issue where 'status' field now properly maps to 'order_status' in database."
- 
- frontend:
-   - task: "Display 7-day revenue breakdown on dashboard"
-@@ -196,4 +202,6 @@ test_plan:
- 
- agent_communication:
-     - agent: "main"
--      message: "Implemented three new features: 1) Date-wise revenue tracking API endpoint that returns last 7 days breakdown. 2) Admin dashboard now displays 7-day revenue in a card format with day names, dates, amounts and order counts. 3) Manage orders page now automatically sends WhatsApp message when order is confirmed and shows 'Confirmed' button in grey color. Ready for backend testing."
-\ No newline at end of file
-+      message: "Implemented three new features: 1) Date-wise revenue tracking API endpoint that returns last 7 days breakdown. 2) Admin dashboard now displays 7-day revenue in a card format with day names, dates, amounts and order counts. 3) Manage orders page now automatically sends WhatsApp message when order is confirmed and shows 'Confirmed' button in grey color. Ready for backend testing."
-+    - agent: "testing"
-+      message: "✅ BACKEND TESTING COMPLETE: All backend functionality tested successfully. Fixed one critical issue in order update endpoint where 'status' field mapping to 'order_status' was missing. Both high-priority tasks (daily revenue API and order update) are working correctly. Admin authentication, API structure, and data validation all passed. Backend is ready for production use."
-\ No newline at end of file
+@@ -1,182 +0,0 @@
+-diff --git a/backend/create_admin.py b/backend/create_admin.py
+-index 4550a07..1f6497e 100644
+---- a/backend/create_admin.py
+-+++ b/backend/create_admin.py
+-@@ -21,9 +21,9 @@ async def create_admin():
+-     # Check if admin already exists
+-     existing_admin = await db.users.find_one({"username": "admin"})
+-     if existing_admin:
+--        print("Admin user already exists")
+--        client.close()
+--        return
+-+        print("Admin user already exists, deleting and recreating...")
+-+        await db.users.delete_one({"username": "admin"})
+-+        await db.wallets.delete_one({"user_id": existing_admin["id"]})
+-     
+-     # Create admin user
+-     admin_id = str(uuid.uuid4())
+-diff --git a/backend/server.py b/backend/server.py
+-index 4fe4996..728a4fe 100644
+---- a/backend/server.py
+-+++ b/backend/server.py
+-@@ -469,6 +469,9 @@ async def update_order(
+-         raise HTTPException(status_code=404, detail="Order not found")
+-     
+-     update_data = {k: v for k, v in order_update.dict().items() if v is not None}
+-+    # Map 'status' field to 'order_status' for database
+-+    if 'status' in update_data:
+-+        update_data['order_status'] = update_data.pop('status')
+-     update_data["updated_at"] = datetime.utcnow()
+-     
+-     await db.orders.update_one({"id": order_id}, {"$set": update_data})
+-diff --git a/model.patch b/model.patch
+-index 5c21d0b..e69de29 100644
+---- a/model.patch
+-+++ b/model.patch
+-@@ -1,94 +0,0 @@
+--diff --git a/README.md b/README.md
+--index 3786c8a..22f4e97 100644
+----- a/README.md
+--+++ b/README.md
+--@@ -1 +1,88 @@
+---# Here are your Instructions
+--+# Divine Cakery - Wholesale Bakery Mobile App
+--+
+--+A comprehensive native mobile application built with Expo (React Native) for Divine Cakery's wholesale bakery business in Kerala, India.
+--+
+--+## 🏪 Business Information
+--+
+--+**Divine Cakery**
+--+- Location: BNRA 161, Bhagawathi Nagar, NCC Road, Thiruvananthapuram, Kerala
+--+- Website: www.divinecakery.in
+--+- Type: Wholesale Bakery Products
+--+
+--+## ✨ Features
+--+
+--+### Customer Features
+--+✅ User Authentication (Login/Register)
+--+✅ Product Browsing by Category  
+--+✅ Shopping Cart Management
+--+✅ Wallet System with UPI Integration (ready)
+--+✅ Order Placement & History
+--+✅ User Profile Management
+--+
+--+### Admin Features  
+--+✅ Dashboard with Statistics
+--+✅ Product Management (CRUD)
+--+✅ Order Management
+--+✅ User Management
+--+✅ Admin Profile
+--+
+--+### Payment Integration
+--+⏳ Razorpay UPI Integration (awaiting credentials)
+--+✅ Wallet-based Payments
+--+✅ Mock Payment Flow for Development
+--+
+--+## 🛠️ Tech Stack
+--+
+--+- **Frontend**: Expo v54 (React Native), Zustand, Axios, Expo Router
+--+- **Backend**: FastAPI (Python), JWT Auth, Razorpay SDK
+--+- **Database**: MongoDB
+--+- **Deployment**: Kubernetes, Nginx
+--+
+--+## 🔑 Default Credentials
+--+
+--+**Admin**: username: `admin` | password: `admin123`
+--+
+--+## 🚀 Quick Start
+--+
+--+1. **Services**: Backend and Expo are already running
+--+2. **Access**: https://wholesale-bakery-app.preview.emergentagent.com
+--+3. **Scan QR**: Use Expo Go app on mobile to scan QR code
+--+
+--+## 📦 Sample Data
+--+
+--+10 bakery products already loaded including breads, cakes, muffins, brownies, cookies, and donuts.
+--+
+--+## 💰 Adding Razorpay (Optional)
+--+
+--+To enable real UPI payments, update `/app/backend/.env`:
+--+```env
+--+RAZORPAY_KEY_ID="rzp_test_xxxxx"
+--+RAZORPAY_KEY_SECRET="xxxxx"
+--+```
+--+
+--+Then restart: `sudo supervisorctl restart backend`
+--+
+--+## 📱 App Structure
+--+
+--+```
+--+/app/
+--+├── backend/          # FastAPI server
+--+├── frontend/         # Expo mobile app
+--+│   └── app/
+--+│       ├── (auth)/        # Login, Register
+--+│       ├── (customer)/    # Products, Cart, Wallet, Orders
+--+│       └── (admin)/       # Dashboard, Management
+--+├── services/         # API service layer
+--+└── store/           # Zustand state management
+--+```
+--+
+--+## 🔐 Security
+--+
+--+- JWT authentication
+--+- Bcrypt password hashing
+--+- Protected routes
+--+- Role-based access control
+--+
+--+---
+--+
+--+**Built for Divine Cakery | Powered by Emergent**
+-diff --git a/test_result.md b/test_result.md
+-index 0305137..9c8f308 100644
+---- a/test_result.md
+-+++ b/test_result.md
+-@@ -107,27 +107,33 @@ user_problem_statement: "Divine Cakery native mobile app for bakery wholesale cu
+- backend:
+-   - task: "Date-wise revenue API endpoint"
+-     implemented: true
+--    working: "NA"
+-+    working: true
+-     file: "/app/backend/server.py"
+-     stuck_count: 0
+-     priority: "high"
+--    needs_retesting: true
+-+    needs_retesting: false
+-     status_history:
+-         - working: "NA"
+-           agent: "main"
+-           comment: "Created new endpoint /api/admin/revenue/daily that returns last 7 days revenue breakdown with date, day name, revenue amount, and order count for each day."
+-+        - working: true
+-+          agent: "testing"
+-+          comment: "✅ TESTED: Daily revenue API endpoint working correctly. Returns proper 7-day breakdown with date, day_name, revenue, and order_count fields. Requires admin authentication. API structure and data types are correct."
+- 
+-   - task: "WhatsApp order confirmation - backend support"
+-     implemented: true
+--    working: "NA"
+-+    working: true
+-     file: "/app/backend/server.py"
+-     stuck_count: 0
+-     priority: "medium"
+--    needs_retesting: true
+-+    needs_retesting: false
+-     status_history:
+-         - working: "NA"
+-           agent: "main"
+-           comment: "Backend order update endpoint already exists. No changes needed for WhatsApp functionality as it's handled on frontend."
+-+        - working: true
+-+          agent: "testing"
+-+          comment: "✅ TESTED: Order update endpoint working correctly. Successfully updates order status to 'confirmed'. Fixed field mapping issue where 'status' field now properly maps to 'order_status' in database."
+- 
+- frontend:
+-   - task: "Display 7-day revenue breakdown on dashboard"
+-@@ -196,4 +202,6 @@ test_plan:
+- 
+- agent_communication:
+-     - agent: "main"
+--      message: "Implemented three new features: 1) Date-wise revenue tracking API endpoint that returns last 7 days breakdown. 2) Admin dashboard now displays 7-day revenue in a card format with day names, dates, amounts and order counts. 3) Manage orders page now automatically sends WhatsApp message when order is confirmed and shows 'Confirmed' button in grey color. Ready for backend testing."
+-\ No newline at end of file
+-+      message: "Implemented three new features: 1) Date-wise revenue tracking API endpoint that returns last 7 days breakdown. 2) Admin dashboard now displays 7-day revenue in a card format with day names, dates, amounts and order counts. 3) Manage orders page now automatically sends WhatsApp message when order is confirmed and shows 'Confirmed' button in grey color. Ready for backend testing."
+-+    - agent: "testing"
+-+      message: "✅ BACKEND TESTING COMPLETE: All backend functionality tested successfully. Fixed one critical issue in order update endpoint where 'status' field mapping to 'order_status' was missing. Both high-priority tasks (daily revenue API and order update) are working correctly. Admin authentication, API structure, and data validation all passed. Backend is ready for production use."
+-\ No newline at end of file
