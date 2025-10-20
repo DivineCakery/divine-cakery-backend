@@ -161,6 +161,29 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
+
+        <View style={styles.dailyRevenueSection}>
+          <Text style={styles.dailyRevenueTitle}>Last 7 Days Revenue</Text>
+          {dailyRevenue.map((day, index) => (
+            <View key={index} style={styles.dailyRevenueCard}>
+              <View style={styles.dailyRevenueLeft}>
+                <Text style={styles.dailyRevenueDay}>{day.day_name}</Text>
+                <Text style={styles.dailyRevenueDate}>
+                  {new Date(day.date).toLocaleDateString('en-IN', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </Text>
+              </View>
+              <View style={styles.dailyRevenueRight}>
+                <Text style={styles.dailyRevenueAmount}>₹{day.revenue.toFixed(2)}</Text>
+                <Text style={styles.dailyRevenueOrders}>
+                  {day.order_count} order{day.order_count !== 1 ? 's' : ''}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
