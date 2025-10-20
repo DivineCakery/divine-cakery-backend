@@ -267,6 +267,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 15,
+    paddingTop: 25,
     paddingBottom: 100,
   },
   productCard: {
