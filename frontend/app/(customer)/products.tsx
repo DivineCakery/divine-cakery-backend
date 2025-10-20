@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   categoryChip: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 25,
     backgroundColor: '#fff',
     marginRight: 10,
@@ -259,6 +259,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryChipActive: {
     backgroundColor: '#8B4513',
@@ -267,7 +270,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
   },
   categoryText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#333',
     fontWeight: 'bold',
   },
