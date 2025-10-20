@@ -125,8 +125,11 @@ export default function ProductsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Divine Cakery</Text>
-        <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
+        <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Divine Cakery</Text>
+          <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
