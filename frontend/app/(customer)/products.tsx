@@ -200,13 +200,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
     padding: 12,
     paddingTop: 45,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 80,
-    height: 40,
-    marginRight: 10,
   },
   headerTextContainer: {
     flex: 1,
