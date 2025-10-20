@@ -141,8 +141,8 @@ export default function CartScreen() {
           }}>
             <Text style={styles.clearText}>Clear All</Text>
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
