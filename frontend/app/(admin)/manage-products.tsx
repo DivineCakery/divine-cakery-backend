@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#8B4513', padding: 20, paddingTop: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   addButton: { padding: 5 },
-  listContainer: { padding: 15 },
+  listContainer: { padding: 15, paddingBottom: 100 },
   productCard: { backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 2 },
   productHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   productInfo: { marginLeft: 15, flex: 1 },
