@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Linking,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import apiService from '../../services/api';
@@ -19,6 +20,8 @@ const STATUS_COLORS: any = {
   delivered: '#4CAF50',
   cancelled: '#f44336',
 };
+
+const WHATSAPP_NUMBER = '919544183334'; // Format: country code + number (no + or spaces)
 
 export default function ManageOrdersScreen() {
   const [orders, setOrders] = useState([]);
@@ -41,11 +44,48 @@ export default function ManageOrdersScreen() {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+  const sendWhatsAppMessage = async (order: any) => {
+    try {
+      const customerPhone = order.user_phone || ''; // Assuming we'll add this
+      const message = `Hello! Thank you for your order #${order.id.slice(0, 8)}. We will despatch it soon!`;
+      
+      // Use business WhatsApp number instead of customer's
+      const whatsappUrl = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+      
+      const canOpen = await Linking.canOpenURL(whatsappUrl);
+      if (canOpen) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        // Fallback to web WhatsApp
+        const webUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        await Linking.openURL(webUrl);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Could not open WhatsApp');
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: string, order: any) => {
     try {
       await apiService.updateOrder(orderId, { status: newStatus });
       await fetchOrders();
-      Alert.alert('Success', `Order status updated to ${newStatus}`);
+      
+      // If confirming order, prompt to send WhatsApp
+      if (newStatus === 'confirmed') {
+        Alert.alert(
+          'Order Confirmed!',
+          'Would you like to send a WhatsApp notification to the customer?',
+          [
+            { text: 'Skip', style: 'cancel' },
+            {
+              text: 'Send WhatsApp',
+              onPress: () => sendWhatsAppMessage(order),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Success', `Order status updated to ${newStatus}`);
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to update order');
     }
