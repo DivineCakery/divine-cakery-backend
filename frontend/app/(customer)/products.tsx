@@ -14,7 +14,6 @@ import {
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useCartStore } from '../../store';
-import { DIVINE_LOGO } from '../../constants/logo';
 
 const CATEGORIES = ['All', 'Bread', 'Cakes', 'Muffins', 'Brownies', 'Cookies', 'Donuts'];
 
