@@ -111,12 +111,17 @@ export default function ManageOrdersScreen() {
           </TouchableOpacity>
         )}
         {item.order_status === 'confirmed' && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
-            onPress={() => updateOrderStatus(item.id, 'processing', item)}
-          >
-            <Text style={styles.actionButtonText}>Process</Text>
-          </TouchableOpacity>
+          <>
+            <View style={[styles.actionButton, { backgroundColor: '#9E9E9E' }]}>
+              <Text style={styles.actionButtonText}>Confirmed</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
+              onPress={() => updateOrderStatus(item.id, 'processing', item)}
+            >
+              <Text style={styles.actionButtonText}>Process</Text>
+            </TouchableOpacity>
+          </>
         )}
         {item.order_status === 'processing' && (
           <TouchableOpacity
