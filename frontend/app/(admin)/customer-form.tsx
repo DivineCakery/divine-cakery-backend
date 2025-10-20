@@ -29,6 +29,7 @@ export default function CustomerFormScreen() {
     phone: '',
     business_name: '',
     address: '',
+    can_topup_wallet: true,
   });
 
   useEffect(() => {
