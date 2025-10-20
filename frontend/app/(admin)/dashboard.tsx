@@ -148,8 +148,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  logo: {
+    width: 100,
+    height: 50,
+    marginRight: 10,
+  },
   headerText: {
-    marginLeft: 15,
+    marginLeft: 5,
   },
   headerTitle: {
     fontSize: 24,
