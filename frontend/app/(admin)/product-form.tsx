@@ -135,7 +135,11 @@ export default function ProductFormScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.form}>
           <Text style={styles.label}>Product Name *</Text>
           <TextInput
