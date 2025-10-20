@@ -1,14 +1,27 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 import uuid
-from datetime import datetime
+import razorpay
+import hmac
+import hashlib
+
+from models import (
+    UserCreate, UserLogin, User, UserInDB, UserRole, Token, TokenData,
+    ProductCreate, ProductUpdate, Product,
+    OrderCreate, OrderUpdate, Order, OrderStatus,
+    Wallet, Transaction, TransactionCreate, TransactionType, TransactionStatus,
+    PaymentOrderCreate, PaymentVerification, MessageResponse, WalletResponse
+)
 
 
 ROOT_DIR = Path(__file__).parent
@@ -17,40 +30,499 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'divine_cakery')]
 
-# Create the main app without a prefix
-app = FastAPI()
+# Security
+SECRET_KEY = os.environ.get("SECRET_KEY", "divine_cakery_secret_key_change_in_production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+# Razorpay Client
+razorpay_client = razorpay.Client(auth=(
+    os.environ.get("RAZORPAY_KEY_ID", ""),
+    os.environ.get("RAZORPAY_KEY_SECRET", "")
+))
+
+# Create the main app
+app = FastAPI(title="Divine Cakery API", version="1.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+# Helper Functions
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
-# Add your routes to the router instead of directly to app
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        role: str = payload.get("role")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username, role=role)
+    except JWTError:
+        raise credentials_exception
+    
+    user_dict = await db.users.find_one({"username": token_data.username})
+    if user_dict is None:
+        raise credentials_exception
+    user = User(**user_dict)
+    return user
+
+
+async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to perform this action"
+        )
+    return current_user
+
+
+# Authentication Routes
+@api_router.post("/auth/register", response_model=User)
+async def register(user_data: UserCreate):
+    # Check if user exists
+    existing_user = await db.users.find_one({"username": user_data.username})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    # Create user
+    user_id = str(uuid.uuid4())
+    hashed_password = get_password_hash(user_data.password)
+    
+    user_dict = {
+        "id": user_id,
+        "username": user_data.username,
+        "email": user_data.email,
+        "phone": user_data.phone,
+        "role": UserRole.CUSTOMER,
+        "business_name": user_data.business_name,
+        "address": user_data.address,
+        "wallet_balance": 0.0,
+        "hashed_password": hashed_password,
+        "created_at": datetime.utcnow(),
+        "is_active": True
+    }
+    
+    await db.users.insert_one(user_dict)
+    
+    # Create wallet for user
+    wallet_dict = {
+        "user_id": user_id,
+        "balance": 0.0,
+        "updated_at": datetime.utcnow()
+    }
+    await db.wallets.insert_one(wallet_dict)
+    
+    return User(**user_dict)
+
+
+@api_router.post("/auth/login", response_model=Token)
+async def login(user_data: UserLogin):
+    user_dict = await db.users.find_one({"username": user_data.username})
+    if not user_dict or not verify_password(user_data.password, user_dict["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user_dict["username"], "role": user_dict["role"]},
+        expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@api_router.get("/auth/me", response_model=User)
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+# Product Routes
+@api_router.post("/products", response_model=Product)
+async def create_product(
+    product_data: ProductCreate,
+    current_user: User = Depends(get_current_admin)
+):
+    product_id = str(uuid.uuid4())
+    product_dict = {
+        "id": product_id,
+        **product_data.dict(),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.products.insert_one(product_dict)
+    return Product(**product_dict)
+
+
+@api_router.get("/products", response_model=List[Product])
+async def get_products(
+    category: Optional[str] = None,
+    is_available: Optional[bool] = None
+):
+    query = {}
+    if category:
+        query["category"] = category
+    if is_available is not None:
+        query["is_available"] = is_available
+    
+    products = await db.products.find(query).to_list(1000)
+    return [Product(**product) for product in products]
+
+
+@api_router.get("/products/{product_id}", response_model=Product)
+async def get_product(product_id: str):
+    product = await db.products.find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return Product(**product)
+
+
+@api_router.put("/products/{product_id}", response_model=Product)
+async def update_product(
+    product_id: str,
+    product_data: ProductUpdate,
+    current_user: User = Depends(get_current_admin)
+):
+    product = await db.products.find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    update_data = {k: v for k, v in product_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.products.update_one({"id": product_id}, {"$set": update_data})
+    
+    updated_product = await db.products.find_one({"id": product_id})
+    return Product(**updated_product)
+
+
+@api_router.delete("/products/{product_id}")
+async def delete_product(
+    product_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    result = await db.products.delete_one({"id": product_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"message": "Product deleted successfully"}
+
+
+# Wallet Routes
+@api_router.get("/wallet", response_model=WalletResponse)
+async def get_wallet(current_user: User = Depends(get_current_user)):
+    wallet = await db.wallets.find_one({"user_id": current_user.id})
+    if not wallet:
+        # Create wallet if it doesn't exist
+        wallet = {
+            "user_id": current_user.id,
+            "balance": 0.0,
+            "updated_at": datetime.utcnow()
+        }
+        await db.wallets.insert_one(wallet)
+    
+    return WalletResponse(balance=wallet["balance"], updated_at=wallet["updated_at"])
+
+
+# Payment Routes
+@api_router.post("/payments/create-order")
+async def create_payment_order(
+    payment_data: PaymentOrderCreate,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        # Create order in Razorpay
+        receipt = f"rcpt_{current_user.id}_{int(datetime.utcnow().timestamp())}"
+        order_data = {
+            "amount": int(payment_data.amount * 100),  # Convert to paise
+            "currency": "INR",
+            "receipt": receipt,
+            "notes": {
+                "user_id": current_user.id,
+                "transaction_type": payment_data.transaction_type,
+                **(payment_data.notes or {})
+            }
+        }
+        
+        razorpay_order = razorpay_client.order.create(data=order_data)
+        
+        # Create transaction record
+        transaction_id = str(uuid.uuid4())
+        transaction_dict = {
+            "id": transaction_id,
+            "user_id": current_user.id,
+            "amount": payment_data.amount,
+            "transaction_type": payment_data.transaction_type,
+            "payment_method": "upi",
+            "razorpay_order_id": razorpay_order["id"],
+            "status": TransactionStatus.PENDING,
+            "notes": payment_data.notes,
+            "created_at": datetime.utcnow()
+        }
+        
+        await db.transactions.insert_one(transaction_dict)
+        
+        return {
+            "order_id": razorpay_order["id"],
+            "amount": razorpay_order["amount"],
+            "currency": razorpay_order["currency"],
+            "razorpay_key_id": os.environ.get("RAZORPAY_KEY_ID", ""),
+            "transaction_id": transaction_id
+        }
+    
+    except Exception as e:
+        logger.error(f"Error creating payment order: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/payments/verify")
+async def verify_payment(
+    verification_data: PaymentVerification,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        # Verify signature
+        signature_payload = f"{verification_data.razorpay_order_id}|{verification_data.razorpay_payment_id}"
+        expected_signature = hmac.new(
+            key=os.environ.get("RAZORPAY_KEY_SECRET", "").encode(),
+            msg=signature_payload.encode(),
+            digestmod=hashlib.sha256
+        ).hexdigest()
+        
+        if not hmac.compare_digest(expected_signature, verification_data.razorpay_signature):
+            return {"verified": False, "message": "Invalid signature"}
+        
+        # Update transaction
+        transaction = await db.transactions.find_one({
+            "razorpay_order_id": verification_data.razorpay_order_id
+        })
+        
+        if not transaction:
+            raise HTTPException(status_code=404, detail="Transaction not found")
+        
+        await db.transactions.update_one(
+            {"id": transaction["id"]},
+            {
+                "$set": {
+                    "razorpay_payment_id": verification_data.razorpay_payment_id,
+                    "status": TransactionStatus.SUCCESS
+                }
+            }
+        )
+        
+        # Update wallet if wallet topup
+        if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
+            await db.wallets.update_one(
+                {"user_id": current_user.id},
+                {
+                    "$inc": {"balance": transaction["amount"]},
+                    "$set": {"updated_at": datetime.utcnow()}
+                }
+            )
+            
+            # Update user's wallet balance
+            await db.users.update_one(
+                {"id": current_user.id},
+                {"$inc": {"wallet_balance": transaction["amount"]}}
+            )
+        
+        return {
+            "verified": True,
+            "message": "Payment verified successfully",
+            "transaction_id": transaction["id"]
+        }
+    
+    except Exception as e:
+        logger.error(f"Error verifying payment: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Order Routes
+@api_router.post("/orders", response_model=Order)
+async def create_order(
+    order_data: OrderCreate,
+    current_user: User = Depends(get_current_user)
+):
+    # Check if payment method is wallet
+    if order_data.payment_method == "wallet":
+        wallet = await db.wallets.find_one({"user_id": current_user.id})
+        if not wallet or wallet["balance"] < order_data.total_amount:
+            raise HTTPException(status_code=400, detail="Insufficient wallet balance")
+        
+        # Deduct from wallet
+        await db.wallets.update_one(
+            {"user_id": current_user.id},
+            {
+                "$inc": {"balance": -order_data.total_amount},
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+        
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$inc": {"wallet_balance": -order_data.total_amount}}
+        )
+        
+        payment_status = "completed"
+    else:
+        payment_status = "pending"
+    
+    # Create order
+    order_id = str(uuid.uuid4())
+    order_dict = {
+        "id": order_id,
+        "user_id": current_user.id,
+        "items": [item.dict() for item in order_data.items],
+        "total_amount": order_data.total_amount,
+        "payment_method": order_data.payment_method,
+        "payment_status": payment_status,
+        "order_status": OrderStatus.PENDING,
+        "delivery_address": order_data.delivery_address or current_user.address,
+        "notes": order_data.notes,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    await db.orders.insert_one(order_dict)
+    
+    # Create transaction record for wallet payment
+    if order_data.payment_method == "wallet":
+        transaction_dict = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user.id,
+            "amount": order_data.total_amount,
+            "transaction_type": TransactionType.ORDER_PAYMENT,
+            "payment_method": "wallet",
+            "status": TransactionStatus.SUCCESS,
+            "notes": {"order_id": order_id},
+            "created_at": datetime.utcnow()
+        }
+        await db.transactions.insert_one(transaction_dict)
+    
+    return Order(**order_dict)
+
+
+@api_router.get("/orders", response_model=List[Order])
+async def get_orders(current_user: User = Depends(get_current_user)):
+    query = {"user_id": current_user.id} if current_user.role != UserRole.ADMIN else {}
+    orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
+    return [Order(**order) for order in orders]
+
+
+@api_router.get("/orders/{order_id}", response_model=Order)
+async def get_order(order_id: str, current_user: User = Depends(get_current_user)):
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    if current_user.role != UserRole.ADMIN and order["user_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    return Order(**order)
+
+
+@api_router.put("/orders/{order_id}", response_model=Order)
+async def update_order(
+    order_id: str,
+    order_update: OrderUpdate,
+    current_user: User = Depends(get_current_admin)
+):
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    update_data = {k: v for k, v in order_update.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.utcnow()
+    
+    await db.orders.update_one({"id": order_id}, {"$set": update_data})
+    
+    updated_order = await db.orders.find_one({"id": order_id})
+    return Order(**updated_order)
+
+
+# Transaction Routes
+@api_router.get("/transactions", response_model=List[Transaction])
+async def get_transactions(current_user: User = Depends(get_current_user)):
+    transactions = await db.transactions.find(
+        {"user_id": current_user.id}
+    ).sort("created_at", -1).to_list(1000)
+    return [Transaction(**txn) for txn in transactions]
+
+
+# Admin Routes
+@api_router.get("/admin/users", response_model=List[User])
+async def get_all_users(current_user: User = Depends(get_current_admin)):
+    users = await db.users.find().to_list(1000)
+    return [User(**user) for user in users]
+
+
+@api_router.get("/admin/stats")
+async def get_admin_stats(current_user: User = Depends(get_current_admin)):
+    total_users = await db.users.count_documents({"role": UserRole.CUSTOMER})
+    total_products = await db.products.count_documents({})
+    total_orders = await db.orders.count_documents({})
+    pending_orders = await db.orders.count_documents({"order_status": OrderStatus.PENDING})
+    
+    # Calculate total revenue
+    orders = await db.orders.find({"payment_status": "completed"}).to_list(10000)
+    total_revenue = sum(order["total_amount"] for order in orders)
+    
+    return {
+        "total_users": total_users,
+        "total_products": total_products,
+        "total_orders": total_orders,
+        "pending_orders": pending_orders,
+        "total_revenue": total_revenue
+    }
+
+
+# Root routes
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Divine Cakery API", "version": "1.0.0"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+@api_router.get("/health")
+async def health():
+    return {"status": "healthy"}
+
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -63,12 +535,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
