@@ -156,7 +156,25 @@ class DivineCakeryTester:
                 
                 customer_token = login_response.json()["access_token"]
                 
-                # Create order with customer token
+                # First add money to customer's wallet
+                wallet_topup_data = {
+                    "amount": 1000.0,
+                    "transaction_type": "wallet_topup"
+                }
+                
+                # Create a mock completed transaction by directly updating wallet
+                # Since we can't complete Razorpay payment in test, we'll use admin to add balance
+                self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
+                
+                # Update customer wallet balance directly (admin operation)
+                import requests
+                wallet_update_response = requests.put(
+                    f"{BACKEND_URL}/admin/users/{customer['id']}", 
+                    json={"wallet_balance": 1000.0},
+                    headers={"Authorization": f"Bearer {self.admin_token}"}
+                )
+                
+                # Create order with wallet payment (this will have completed payment status)
                 order_data = {
                     "items": [{
                         "product_id": product_id,
@@ -166,7 +184,7 @@ class DivineCakeryTester:
                         "subtotal": 900.0
                     }],
                     "total_amount": 900.0,
-                    "payment_method": "upi",
+                    "payment_method": "wallet",  # Use wallet payment for completed status
                     "delivery_address": "Test Address",
                     "notes": f"Test order {i}"
                 }
