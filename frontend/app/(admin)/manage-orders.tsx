@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF8DC' },
   header: { backgroundColor: '#8B4513', padding: 20, paddingTop: 50 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
-  listContainer: { padding: 15 },
+  listContainer: { padding: 15, paddingBottom: 100 },
   orderCard: { backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 2 },
   orderHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   orderNumber: { fontSize: 16, fontWeight: 'bold', color: '#333' },
