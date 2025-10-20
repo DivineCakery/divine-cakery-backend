@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,133 +6,122 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../store';
+import apiService from '../../services/api';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/(auth)/login');
-          },
-        },
-      ]
-    );
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const userData = await apiService.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
   };
 
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+          router.replace('/index');
+        },
+      },
+    ]);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#8B4513" />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <Ionicons name="person" size={60} color="#8B4513" />
+        <View style={styles.profileIconContainer}>
+          <Ionicons name="person" size={60} color="#fff" />
         </View>
-        <Text style={styles.userName}>{user?.username}</Text>
-        {user?.business_name && (
-          <Text style={styles.businessName}>{user.business_name}</Text>
-        )}
+        <Text style={styles.headerName}>{user?.username || 'User'}</Text>
+        <Text style={styles.headerEmail}>{user?.email || ''}</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Information</Text>
-        
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="person-outline" size={20} color="#8B4513" />
-            </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Username</Text>
-              <Text style={styles.infoValue}>{user?.username}</Text>
-            </View>
-          </View>
+      <View style={styles.content}>
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Account Information</Text>
 
-          {user?.email && (
+          <View style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Ionicons name="mail-outline" size={20} color="#8B4513" />
+              <MaterialCommunityIcons name="account" size={24} color="#8B4513" />
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.infoLabel}>Username</Text>
+                <Text style={styles.infoValue}>{user?.username}</Text>
               </View>
-              <View style={styles.infoContent}>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="email" size={24} color="#8B4513" />
+              <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{user.email}</Text>
+                <Text style={styles.infoValue}>{user?.email}</Text>
               </View>
             </View>
-          )}
 
-          {user?.phone && (
+            <View style={styles.divider} />
+
             <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Ionicons name="call-outline" size={20} color="#8B4513" />
-              </View>
-              <View style={styles.infoContent}>
+              <MaterialCommunityIcons name="phone" size={24} color="#8B4513" />
+              <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Phone</Text>
-                <Text style={styles.infoValue}>{user.phone}</Text>
+                <Text style={styles.infoValue}>{user?.phone}</Text>
               </View>
             </View>
-          )}
 
-          {user?.address && (
+            <View style={styles.divider} />
+
             <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Ionicons name="location-outline" size={20} color="#8B4513" />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Address</Text>
-                <Text style={styles.infoValue}>{user.address}</Text>
+              <MaterialCommunityIcons name="store" size={24} color="#8B4513" />
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.infoLabel}>Business Name</Text>
+                <Text style={styles.infoValue}>{user?.business_name}</Text>
               </View>
             </View>
-          )}
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="wallet-outline" size={20} color="#8B4513" />
-            </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Wallet Balance</Text>
-              <Text style={[styles.infoValue, styles.balanceText]}>
-                ₹{user?.wallet_balance?.toFixed(2) || '0.00'}
-              </Text>
+            <View style={styles.divider} />
+
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="map-marker" size={24} color="#8B4513" />
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.infoLabel}>Address</Text>
+                <Text style={styles.infoValue}>{user?.address}</Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.aboutCard}>
-          <MaterialCommunityIcons name="cupcake" size={40} color="#8B4513" />
-          <Text style={styles.aboutTitle}>Divine Cakery</Text>
-          <Text style={styles.aboutText}>Wholesale Bakery Products</Text>
-          <Text style={styles.aboutAddress}>
-            BNRA 161, Bhagawathi Nagar{' \n'}
-            NCC Road, Thiruvananthapuram{' \n'}
-            Kerala, India
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#fff" />
+          <Ionicons name="log-out" size={24} color="#fff" />
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Divine Cakery v1.0.0</Text>
-        <Text style={styles.footerSubtext}>Powered by Emergent</Text>
       </View>
     </ScrollView>
   );
@@ -143,131 +132,98 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8DC',
   },
+  scrollContent: {
+    paddingBottom: 100,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF8DC',
+  },
   header: {
     backgroundColor: '#8B4513',
-    paddingTop: 50,
-    paddingBottom: 30,
+    padding: 30,
+    paddingTop: 60,
     alignItems: 'center',
   },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FFF8DC',
+  profileIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
   },
-  userName: {
+  headerName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    marginBottom: 5,
   },
-  businessName: {
-    fontSize: 16,
+  headerEmail: {
+    fontSize: 14,
     color: '#FFF8DC',
-    marginTop: 5,
   },
-  section: {
+  content: {
     padding: 20,
+  },
+  infoSection: {
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#8B4513',
     marginBottom: 15,
   },
   infoCard: {
     backgroundColor: '#fff',
     borderRadius: 15,
-    padding: 15,
+    padding: 20,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
   },
   infoRow: {
     flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoIconContainer: {
-    width: 40,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 10,
   },
-  infoContent: {
+  infoTextContainer: {
+    marginLeft: 15,
     flex: 1,
   },
   infoLabel: {
     fontSize: 12,
     color: '#999',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   infoValue: {
     fontSize: 16,
     color: '#333',
   },
-  balanceText: {
-    fontWeight: 'bold',
-    color: '#8B4513',
-    fontSize: 18,
-  },
-  aboutCard: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  aboutTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#8B4513',
-    marginTop: 10,
-  },
-  aboutText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  aboutAddress: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 10,
-    textAlign: 'center',
+  divider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 5,
   },
   logoutButton: {
-    backgroundColor: '#ff3b30',
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#f44336',
     padding: 15,
     borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
   },
   logoutButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#999',
-  },
-  footerSubtext: {
-    fontSize: 10,
-    color: '#ccc',
-    marginTop: 2,
   },
 });
