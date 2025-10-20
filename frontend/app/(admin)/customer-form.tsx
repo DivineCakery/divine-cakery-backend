@@ -200,6 +200,23 @@ export default function CustomerFormScreen() {
             editable={!loading}
           />
 
+          <View style={styles.toggleContainer}>
+            <View style={styles.toggleLabel}>
+              <Ionicons name="wallet" size={20} color="#8B4513" />
+              <Text style={styles.label}>Allow Wallet Top-up</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.toggleButton, formData.can_topup_wallet && styles.toggleButtonActive]}
+              onPress={() => setFormData({ ...formData, can_topup_wallet: !formData.can_topup_wallet })}
+              disabled={loading}
+            >
+              <View style={[styles.toggleCircle, formData.can_topup_wallet && styles.toggleCircleActive]} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.hint}>
+            {formData.can_topup_wallet ? 'Customer can add money to wallet' : 'Customer cannot add money to wallet'}
+          </Text>
+
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
