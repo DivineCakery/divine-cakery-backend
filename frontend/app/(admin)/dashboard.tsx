@@ -130,6 +130,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8DC',
   },
+  scrollContent: {
+    paddingBottom: 100,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -220,38 +223,5 @@ const styles = StyleSheet.create({
     color: '#FFF8DC',
     marginTop: 5,
     opacity: 0.8,
-  },
-  quickActions: {
-    padding: 15,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 15,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  actionText: {
-    fontSize: 14,
-    color: '#333',
-    marginTop: 10,
-    textAlign: 'center',
   },
 });
