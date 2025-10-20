@@ -163,6 +163,11 @@ class ApiService {
     const response = await this.api.get('/admin/stats');
     return response.data;
   }
+
+  async getDailyRevenue() {
+    const response = await this.api.get('/admin/revenue/daily');
+    return response.data;
+  }
 }
 
 export default new ApiService();
