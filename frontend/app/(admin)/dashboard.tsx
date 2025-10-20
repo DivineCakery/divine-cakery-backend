@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
+import apiService from '../../services/api';
 
 export default function DashboardScreen() {
   const [stats, setStats] = useState<any>(null);
