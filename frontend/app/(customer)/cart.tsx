@@ -139,6 +139,14 @@ export default function CartScreen() {
           />
 
           <View style={styles.footer}>
+            <View style={styles.deliveryDateContainer}>
+              <Ionicons name="calendar" size={20} color="#8B4513" />
+              <View style={styles.deliveryDateInfo}>
+                <Text style={styles.deliveryDateLabel}>Expected Delivery:</Text>
+                <Text style={styles.deliveryDateText}>{getDeliveryDate()}</Text>
+              </View>
+            </View>
+            
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total Amount:</Text>
               <Text style={styles.totalAmount}>₹{totalAmount.toFixed(2)}</Text>
