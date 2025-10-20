@@ -493,6 +493,105 @@ async def get_all_users(current_user: User = Depends(get_current_admin)):
     return [User(**user) for user in users]
 
 
+@api_router.post("/admin/users", response_model=User)
+async def create_user_by_admin(
+    user_data: UserCreate,
+    current_user: User = Depends(get_current_admin)
+):
+    # Check if user exists
+    existing_user = await db.users.find_one({"username": user_data.username})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Create user
+    user_id = str(uuid.uuid4())
+    hashed_password = get_password_hash(user_data.password)
+    
+    user_dict = {
+        "id": user_id,
+        "username": user_data.username,
+        "email": user_data.email,
+        "phone": user_data.phone,
+        "role": UserRole.CUSTOMER,
+        "business_name": user_data.business_name,
+        "address": user_data.address,
+        "wallet_balance": 0.0,
+        "hashed_password": hashed_password,
+        "created_at": datetime.utcnow(),
+        "is_active": True
+    }
+    
+    await db.users.insert_one(user_dict)
+    
+    # Create wallet for user
+    wallet_dict = {
+        "user_id": user_id,
+        "balance": 0.0,
+        "updated_at": datetime.utcnow()
+    }
+    await db.wallets.insert_one(wallet_dict)
+    
+    return User(**user_dict)
+
+
+@api_router.put("/admin/users/{user_id}", response_model=User)
+async def update_user_by_admin(
+    user_id: str,
+    user_data: dict,
+    current_user: User = Depends(get_current_admin)
+):
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent changing role to admin (security)
+    if "role" in user_data:
+        user_data.pop("role")
+    
+    # If password is being changed, hash it
+    if "password" in user_data and user_data["password"]:
+        user_data["hashed_password"] = get_password_hash(user_data["password"])
+        user_data.pop("password")
+    
+    # Update user
+    await db.users.update_one({"id": user_id}, {"$set": user_data})
+    
+    updated_user = await db.users.find_one({"id": user_id})
+    return User(**updated_user)
+
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user_by_admin(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    # Prevent admin from deleting themselves
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent deleting other admins
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Cannot delete admin accounts")
+    
+    # Delete user's wallet
+    await db.wallets.delete_one({"user_id": user_id})
+    
+    # Delete user's orders (optional - or mark as deleted)
+    # await db.orders.delete_many({"user_id": user_id})
+    
+    # Delete user
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User deleted successfully"}
+
+
 @api_router.get("/admin/stats")
 async def get_admin_stats(current_user: User = Depends(get_current_admin)):
     total_users = await db.users.count_documents({"role": UserRole.CUSTOMER})
