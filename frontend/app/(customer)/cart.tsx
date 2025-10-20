@@ -286,6 +286,28 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#ddd',
   },
+  deliveryDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8DC',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  deliveryDateInfo: {
+    marginLeft: 10,
+    flex: 1,
+  },
+  deliveryDateLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 2,
+  },
+  deliveryDateText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8B4513',
+  },
   totalContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
