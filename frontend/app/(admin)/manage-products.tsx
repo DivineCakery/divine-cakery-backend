@@ -122,6 +122,12 @@ export default function ManageProductsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Products</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push('/(admin)/product-form')}
+        >
+          <Ionicons name="add-circle" size={28} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <FlatList
