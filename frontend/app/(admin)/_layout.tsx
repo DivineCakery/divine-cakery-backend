@@ -82,6 +82,12 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="delivery-notes"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
