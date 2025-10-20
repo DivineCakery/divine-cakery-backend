@@ -70,6 +70,18 @@ export default function AdminLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="product-form"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="customer-form"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
