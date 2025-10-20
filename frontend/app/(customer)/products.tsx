@@ -229,6 +229,11 @@ const styles = StyleSheet.create({
     height: 45,
     fontSize: 16,
   },
+  categoriesWrapper: {
+    backgroundColor: '#FFF8DC',
+    paddingBottom: 15,
+    marginBottom: 10,
+  },
   categoriesContainer: {
     paddingHorizontal: 15,
     marginBottom: 25,
