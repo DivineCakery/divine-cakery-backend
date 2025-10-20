@@ -127,13 +127,28 @@ export default function ProductsScreen() {
             <Text style={styles.productPrice}>₹{item.price.toFixed(2)}</Text>
             <Text style={styles.productUnit}>per {item.unit}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => handleAddToCart(item)}
-          >
-            <Ionicons name="cart" size={20} color="#fff" />
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() => decreaseQuantity(item.id)}
+            >
+              <Ionicons name="remove" size={20} color="#8B4513" />
+            </TouchableOpacity>
+            <Text style={styles.quantityText}>{getQuantity(item.id)}</Text>
+            <TouchableOpacity
+              style={styles.quantityButton}
+              onPress={() => increaseQuantity(item.id)}
+            >
+              <Ionicons name="add" size={20} color="#8B4513" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => handleAddToCart(item)}
+            >
+              <Ionicons name="cart" size={20} color="#fff" />
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
