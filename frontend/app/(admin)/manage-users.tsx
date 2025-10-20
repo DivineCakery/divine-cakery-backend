@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   headerSubtitle: { fontSize: 14, color: '#666', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 5 },
   addButton: { padding: 5 },
-  listContainer: { padding: 15 },
+  listContainer: { padding: 15, paddingBottom: 100 },
   userCard: { backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 2 },
   userHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF8DC', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
