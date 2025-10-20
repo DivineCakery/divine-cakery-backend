@@ -26,6 +26,31 @@ export default function ProductsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const addItem = useCartStore((state) => state.addItem);
+  const { items: cartItems } = useCartStore();
+  const { logout } = useAuthStore();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    const hasItemsInCart = cartItems.length > 0;
+    
+    Alert.alert(
+      'Logout Confirmation',
+      hasItemsInCart 
+        ? 'You have items in your cart. Are you sure you want to logout? Your cart will be saved.'
+        : 'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/');
+          },
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     fetchProducts();
