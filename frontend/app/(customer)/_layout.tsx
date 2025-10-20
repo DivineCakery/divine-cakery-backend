@@ -70,6 +70,12 @@ export default function CustomerLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="checkout"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
