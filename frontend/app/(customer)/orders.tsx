@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 15,
+    paddingBottom: 100,
   },
   orderCard: {
     backgroundColor: '#fff',
