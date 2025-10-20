@@ -7,11 +7,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 
 export default function ManageUsersScreen() {
+  const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,6 +38,29 @@ export default function ManageUsersScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchUsers();
+  };
+
+  const handleDelete = async (userId: string, username: string) => {
+    Alert.alert(
+      'Delete Customer',
+      `Are you sure you want to delete "${username}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.deleteUserByAdmin(userId);
+              await fetchUsers();
+              Alert.alert('Success', 'Customer deleted successfully');
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.detail || 'Failed to delete customer');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const renderUser = ({ item }: any) => (
