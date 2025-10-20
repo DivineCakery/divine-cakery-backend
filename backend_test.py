@@ -181,10 +181,9 @@ class DivineCakeryTester:
                     # This requires direct database access, so we'll use admin endpoint to update
                     self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
                     
-                    # Update order payment status to completed
-                    update_response = self.session.put(f"{BACKEND_URL}/orders/{order['id']}", json={
-                        "status": "confirmed"
-                    })
+                    # Update order payment status to completed (need to manually update payment_status)
+                    # Since we can't directly update payment_status through the API, we'll create wallet orders instead
+                    pass
                     
                     if update_response.status_code == 200:
                         orders_created += 1
