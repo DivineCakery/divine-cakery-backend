@@ -20,7 +20,7 @@ export default function WalletScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [amount, setAmount] = useState('');
   const [addingMoney, setAddingMoney] = useState(false);
-  const refreshUser = useAuthStore((state) => state.refreshUser);
+  const { user, refreshUser } = useAuthStore();
 
   useEffect(() => {
     fetchWallet();
