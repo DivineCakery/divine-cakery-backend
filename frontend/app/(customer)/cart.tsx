@@ -130,10 +130,16 @@ export default function CartScreen() {
               <Text style={styles.totalLabel}>Total Amount:</Text>
               <Text style={styles.totalAmount}>₹{totalAmount.toFixed(2)}</Text>
             </View>
-            <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
-              <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCancelOrder}>
+                <Ionicons name="close-circle" size={20} color="#fff" />
+                <Text style={styles.cancelButtonText}>Cancel Order</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
+                <Text style={styles.checkoutButtonText}>Place Order</Text>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       )}
