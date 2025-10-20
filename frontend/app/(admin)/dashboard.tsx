@@ -7,10 +7,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
+import { DIVINE_LOGO } from '../../constants/logo';
 
 export default function DashboardScreen() {
   const router = useRouter();
