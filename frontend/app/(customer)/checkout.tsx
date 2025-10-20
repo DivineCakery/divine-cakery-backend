@@ -114,12 +114,17 @@ export default function CheckoutScreen() {
                   Alert.alert('Payment Simulated', 'Order will be placed with mocked payment');
                   
                   // Place order
-                  await apiService.createOrder(orderData);
+                  const response = await apiService.createOrder(orderData);
                   
                   clearCart();
                   await refreshUser();
                   
-                  Alert.alert('Success', 'Order placed successfully!', [
+                  // Send WhatsApp message
+                  if (response && response.id) {
+                    await sendWhatsAppMessage(response.id);
+                  }
+                  
+                  Alert.alert('Success', 'Order placed successfully! WhatsApp message sent.', [
                     { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
                   ]);
                 } catch (error: any) {
@@ -133,12 +138,17 @@ export default function CheckoutScreen() {
         );
       } else {
         // Wallet payment
-        await apiService.createOrder(orderData);
+        const response = await apiService.createOrder(orderData);
         
         clearCart();
         await refreshUser();
         
-        Alert.alert('Success', 'Order placed successfully!', [
+        // Send WhatsApp message
+        if (response && response.id) {
+          await sendWhatsAppMessage(response.id);
+        }
+        
+        Alert.alert('Success', 'Order placed successfully! WhatsApp message sent.', [
           { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
         ]);
         setPlacing(false);
