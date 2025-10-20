@@ -51,6 +51,7 @@ export default function CustomerFormScreen() {
           phone: user.phone || '',
           business_name: user.business_name || '',
           address: user.address || '',
+          can_topup_wallet: user.can_topup_wallet !== false,
         });
       }
     } catch (error) {
