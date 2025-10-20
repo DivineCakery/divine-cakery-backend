@@ -1,0 +1,193 @@
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
+from datetime import datetime
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    CUSTOMER = "customer"
+    ADMIN = "admin"
+
+
+class OrderStatus(str, Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    PROCESSING = "processing"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+
+class TransactionType(str, Enum):
+    WALLET_TOPUP = "wallet_topup"
+    ORDER_PAYMENT = "order_payment"
+    REFUND = "refund"
+
+
+class TransactionStatus(str, Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+# User Models
+class UserBase(BaseModel):
+    username: str
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    role: UserRole = UserRole.CUSTOMER
+    business_name: Optional[str] = None
+    address: Optional[str] = None
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    business_name: Optional[str] = None
+    address: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class User(UserBase):
+    id: str
+    wallet_balance: float = 0.0
+    created_at: datetime
+    is_active: bool = True
+
+
+class UserInDB(User):
+    hashed_password: str
+
+
+# Product Models
+class ProductBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    category: str
+    price: float
+    unit: str = "piece"  # piece, kg, dozen, etc.
+    image_base64: Optional[str] = None
+    is_available: bool = True
+
+
+class ProductCreate(ProductBase):
+    pass
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    price: Optional[float] = None
+    unit: Optional[str] = None
+    image_base64: Optional[str] = None
+    is_available: Optional[bool] = None
+
+
+class Product(ProductBase):
+    id: str
+    created_at: datetime
+    updated_at: datetime
+
+
+# Order Models
+class OrderItem(BaseModel):
+    product_id: str
+    product_name: str
+    quantity: int
+    price: float
+    subtotal: float
+
+
+class OrderCreate(BaseModel):
+    items: List[OrderItem]
+    total_amount: float
+    payment_method: str  # wallet or upi
+    delivery_address: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class OrderUpdate(BaseModel):
+    status: Optional[OrderStatus] = None
+    notes: Optional[str] = None
+
+
+class Order(BaseModel):
+    id: str
+    user_id: str
+    items: List[OrderItem]
+    total_amount: float
+    payment_method: str
+    payment_status: str = "pending"
+    order_status: OrderStatus = OrderStatus.PENDING
+    delivery_address: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+# Wallet Models
+class Wallet(BaseModel):
+    user_id: str
+    balance: float = 0.0
+    updated_at: datetime
+
+
+# Transaction Models
+class TransactionCreate(BaseModel):
+    amount: float
+    transaction_type: TransactionType
+    payment_method: str = "upi"
+    notes: Optional[dict] = None
+
+
+class Transaction(BaseModel):
+    id: str
+    user_id: str
+    amount: float
+    transaction_type: TransactionType
+    payment_method: str
+    razorpay_order_id: Optional[str] = None
+    razorpay_payment_id: Optional[str] = None
+    status: TransactionStatus = TransactionStatus.PENDING
+    notes: Optional[dict] = None
+    created_at: datetime
+
+
+# Payment Models
+class PaymentOrderCreate(BaseModel):
+    amount: float
+    transaction_type: TransactionType = TransactionType.WALLET_TOPUP
+    notes: Optional[dict] = None
+
+
+class PaymentVerification(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+
+
+# Token Model
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    role: Optional[UserRole] = None
+
+
+# Response Models
+class MessageResponse(BaseModel):
+    message: str
+
+
+class WalletResponse(BaseModel):
+    balance: float
+    updated_at: datetime
