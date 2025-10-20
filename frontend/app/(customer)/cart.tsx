@@ -25,6 +25,24 @@ export default function CartScreen() {
     router.push('/(customer)/checkout' as any);
   };
 
+  const handleCancelOrder = () => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order and clear the cart?',
+      [
+        { text: 'No', style: 'cancel' },
+        { 
+          text: 'Yes, Cancel', 
+          onPress: () => {
+            clearCart();
+            Alert.alert('Order Cancelled', 'Your cart has been cleared');
+          }, 
+          style: 'destructive' 
+        },
+      ]
+    );
+  };
+
   const renderCartItem = ({ item }: any) => (
     <View style={styles.cartItem}>
       <View style={styles.itemInfo}>
