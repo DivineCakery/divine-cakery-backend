@@ -10,10 +10,12 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { DIVINE_LOGO } from '../../constants/logo';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -46,8 +48,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <MaterialCommunityIcons name="cupcake" size={80} color="#8B4513" />
-          <Text style={styles.title}>Divine Cakery</Text>
+          <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
           <Text style={styles.subtitle}>Wholesale Bakery App</Text>
         </View>
 
