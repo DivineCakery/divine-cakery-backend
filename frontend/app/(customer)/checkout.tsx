@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 15,
-    paddingBottom: 30,
+    paddingBottom: 100,
   },
   placeOrderButton: {
     backgroundColor: '#8B4513',
