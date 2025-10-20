@@ -168,6 +168,23 @@ class ApiService {
     const response = await this.api.get('/admin/revenue/daily');
     return response.data;
   }
+
+  // Delivery Notes Management (Admin)
+  async getDeliveryNotes() {
+    const response = await this.api.get('/admin/delivery-notes');
+    return response.data;
+  }
+
+  async updateDeliveryNotes(enabled: boolean, message: string) {
+    const response = await this.api.post('/admin/delivery-notes', { enabled, message });
+    return response.data;
+  }
+
+  // Delivery Notes (Customer)
+  async getCustomerDeliveryNotes() {
+    const response = await this.api.get('/delivery-notes');
+    return response.data;
+  }
 }
 
 export default new ApiService();
