@@ -212,6 +212,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  logoutButton: {
+    padding: 8,
+  },
+  clearCartContainer: {
+    backgroundColor: '#8B4513',
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+  },
   clearText: {
     color: '#FFF8DC',
     fontSize: 14,
