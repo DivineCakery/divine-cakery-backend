@@ -243,8 +243,8 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingHorizontal: 15,
-    marginBottom: 15,
-    marginTop: 5,
+    marginBottom: 20,
+    marginTop: 10,
   },
   categoryChip: {
     paddingHorizontal: 20,
