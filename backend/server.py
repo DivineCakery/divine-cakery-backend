@@ -469,6 +469,9 @@ async def update_order(
         raise HTTPException(status_code=404, detail="Order not found")
     
     update_data = {k: v for k, v in order_update.dict().items() if v is not None}
+    # Map 'status' field to 'order_status' for database
+    if 'status' in update_data:
+        update_data['order_status'] = update_data.pop('status')
     update_data["updated_at"] = datetime.utcnow()
     
     await db.orders.update_one({"id": order_id}, {"$set": update_data})
