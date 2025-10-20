@@ -229,8 +229,9 @@ const styles = StyleSheet.create({
   },
   categoriesContainer: {
     paddingHorizontal: 15,
-    marginBottom: 20,
+    marginBottom: 25,
     marginTop: 10,
+    paddingBottom: 10,
   },
   categoryChip: {
     paddingHorizontal: 20,
