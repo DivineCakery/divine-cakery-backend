@@ -67,22 +67,13 @@ export default function ManageOrdersScreen() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string, order: any) => {
     try {
-      await apiService.updateOrder(orderId, { status: newStatus });
+      await apiService.updateOrder(orderId, { order_status: newStatus });
       await fetchOrders();
       
-      // If confirming order, prompt to send WhatsApp
+      // If confirming order, automatically send WhatsApp
       if (newStatus === 'confirmed') {
-        Alert.alert(
-          'Order Confirmed!',
-          'Would you like to send a WhatsApp notification to the customer?',
-          [
-            { text: 'Skip', style: 'cancel' },
-            {
-              text: 'Send WhatsApp',
-              onPress: () => sendWhatsAppMessage(order),
-            },
-          ]
-        );
+        await sendWhatsAppMessage(order);
+        Alert.alert('Success', 'Order confirmed and WhatsApp message sent!');
       } else {
         Alert.alert('Success', `Order status updated to ${newStatus}`);
       }
