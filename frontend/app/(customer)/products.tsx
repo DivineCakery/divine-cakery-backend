@@ -24,6 +24,7 @@ export default function ProductsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
