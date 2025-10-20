@@ -1,16 +1,30 @@
-import { Text, View, StyleSheet, Image } from "react-native";
-
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect } from 'react';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../store';
 
 export default function Index() {
-  console.log(EXPO_PUBLIC_BACKEND_URL, "EXPO_PUBLIC_BACKEND_URL");
+  const router = useRouter();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated && user) {
+        if (user.role === 'admin') {
+          router.replace('/(admin)/dashboard');
+        } else {
+          router.replace('/(customer)/products');
+        }
+      } else {
+        router.replace('/(auth)/login');
+      }
+    }
+  }, [isLoading, isAuthenticated, user]);
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../assets/images/app-image.png")}
-        style={styles.image}
-      />
+      <ActivityIndicator size="large" color="#8B4513" />
+      <Text style={styles.text}>Divine Cakery</Text>
     </View>
   );
 }
@@ -18,13 +32,14 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0c0c0c",
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF8DC',
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
+  text: {
+    marginTop: 20,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#8B4513',
   },
 });
