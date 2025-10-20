@@ -17,11 +17,11 @@ export default function CartScreen() {
   const { items, removeItem, updateQuantity, getTotalAmount, clearCart } = useCartStore();
   const totalAmount = getTotalAmount();
 
-  // Calculate delivery date (3 days from now)
+  // Calculate delivery date (1 day from now)
   const getDeliveryDate = () => {
     const today = new Date();
     const deliveryDate = new Date(today);
-    deliveryDate.setDate(today.getDate() + 3);
+    deliveryDate.setDate(today.getDate() + 1);
     return deliveryDate.toLocaleDateString('en-IN', { 
       weekday: 'long', 
       year: 'numeric', 
