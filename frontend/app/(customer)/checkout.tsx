@@ -168,6 +168,17 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Delivery Date</Text>
+        <View style={styles.deliveryDateCard}>
+          <Ionicons name="calendar" size={24} color="#8B4513" />
+          <View style={styles.deliveryDateInfo}>
+            <Text style={styles.deliveryDateLabel}>Expected Delivery:</Text>
+            <Text style={styles.deliveryDateText}>{getDeliveryDate()}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Delivery Address</Text>
         <View style={styles.card}>
           <TextInput
