@@ -37,6 +37,7 @@ class UserBase(BaseModel):
     role: UserRole = UserRole.CUSTOMER
     business_name: Optional[str] = None
     address: Optional[str] = None
+    can_topup_wallet: bool = True
 
 
 class UserCreate(BaseModel):
@@ -46,6 +47,7 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     business_name: Optional[str] = None
     address: Optional[str] = None
+    can_topup_wallet: bool = True
 
 
 class UserLogin(BaseModel):
