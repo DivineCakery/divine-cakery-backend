@@ -72,8 +72,7 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <MaterialCommunityIcons name="cupcake" size={60} color="#8B4513" />
-          <Text style={styles.title}>Create Account</Text>
+          <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
           <Text style={styles.subtitle}>Join Divine Cakery Wholesale</Text>
         </View>
 
