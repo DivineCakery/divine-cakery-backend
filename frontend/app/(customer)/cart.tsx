@@ -17,6 +17,19 @@ export default function CartScreen() {
   const { items, removeItem, updateQuantity, getTotalAmount, clearCart } = useCartStore();
   const totalAmount = getTotalAmount();
 
+  // Calculate delivery date (3 days from now)
+  const getDeliveryDate = () => {
+    const today = new Date();
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(today.getDate() + 3);
+    return deliveryDate.toLocaleDateString('en-IN', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   const handleCheckout = () => {
     if (items.length === 0) {
       Alert.alert('Empty Cart', 'Please add items to cart before checkout');
