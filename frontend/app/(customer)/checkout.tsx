@@ -84,7 +84,32 @@ export default function CheckoutScreen() {
       return;
     }
 
-    setPlacing(true);
+    // Check for delivery notes
+    try {
+      const deliveryNotesData = await apiService.getCustomerDeliveryNotes();
+      
+      if (deliveryNotesData.enabled && deliveryNotesData.message) {
+        // Show delivery notes popup
+        Alert.alert(
+          'Special Delivery Note',
+          deliveryNotesData.message,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Continue Order', onPress: () => proceedWithOrder() }
+          ]
+        );
+      } else {
+        // No delivery notes, proceed directly
+        await proceedWithOrder();
+      }
+    } catch (error) {
+      console.error('Error fetching delivery notes:', error);
+      // If error, proceed without notes
+      await proceedWithOrder();
+    }
+  };
+
+  const proceedWithOrder = async () => {    setPlacing(true);
     try {
       const orderData = {
         items: items.map(item => ({
