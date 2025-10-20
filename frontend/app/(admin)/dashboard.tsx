@@ -8,10 +8,12 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
