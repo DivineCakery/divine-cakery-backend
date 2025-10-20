@@ -256,6 +256,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     marginLeft: 5,
+    flex: 1,
   },
   headerTitle: {
     fontSize: 24,
@@ -266,6 +267,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFF8DC',
     marginTop: 2,
+  },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   statsContainer: {
     padding: 15,
