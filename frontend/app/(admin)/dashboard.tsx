@@ -17,11 +17,13 @@ import { DIVINE_LOGO } from '../../constants/logo';
 export default function DashboardScreen() {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
+  const [dailyRevenue, setDailyRevenue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchStats();
+    fetchDailyRevenue();
   }, []);
 
   const fetchStats = async () => {
@@ -36,9 +38,19 @@ export default function DashboardScreen() {
     }
   };
 
+  const fetchDailyRevenue = async () => {
+    try {
+      const data = await apiService.getDailyRevenue();
+      setDailyRevenue(data.daily_revenue || []);
+    } catch (error) {
+      console.error('Error fetching daily revenue:', error);
+    }
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchStats();
+    fetchDailyRevenue();
   };
 
   if (loading) {
