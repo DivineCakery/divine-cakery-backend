@@ -184,6 +184,21 @@ export default function DashboardScreen() {
             </View>
           ))}
         </View>
+
+        <View style={styles.settingsSection}>
+          <Text style={styles.sectionTitle}>Settings</Text>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push('/(admin)/delivery-notes' as any)}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#8B4513" />
+            <View style={styles.settingsButtonText}>
+              <Text style={styles.settingsButtonTitle}>Delivery Notes</Text>
+              <Text style={styles.settingsButtonSubtitle}>Manage customer delivery notifications</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#999" />
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
