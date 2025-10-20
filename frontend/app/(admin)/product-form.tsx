@@ -347,6 +347,11 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 15,
     marginTop: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   submitButtonDisabled: {
     backgroundColor: '#999',
