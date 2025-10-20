@@ -677,6 +677,62 @@ async def get_daily_revenue(current_user: User = Depends(get_current_admin)):
     return {"daily_revenue": daily_revenue}
 
 
+@api_router.get("/admin/delivery-notes")
+async def get_delivery_notes(current_user: User = Depends(get_current_admin)):
+    """Get delivery notes settings"""
+    settings = await db.settings.find_one({"type": "delivery_notes"})
+    if not settings:
+        # Return default settings
+        return {
+            "enabled": False,
+            "message": "Thank you for your order! Please ensure someone is available to receive the delivery."
+        }
+    return {
+        "enabled": settings.get("enabled", False),
+        "message": settings.get("message", "")
+    }
+
+
+@api_router.post("/admin/delivery-notes")
+async def update_delivery_notes(
+    enabled: bool,
+    message: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update delivery notes settings"""
+    settings = await db.settings.find_one({"type": "delivery_notes"})
+    
+    settings_data = {
+        "type": "delivery_notes",
+        "enabled": enabled,
+        "message": message,
+        "updated_at": datetime.utcnow()
+    }
+    
+    if settings:
+        await db.settings.update_one(
+            {"type": "delivery_notes"},
+            {"$set": settings_data}
+        )
+    else:
+        settings_data["created_at"] = datetime.utcnow()
+        await db.settings.insert_one(settings_data)
+    
+    return {"success": True, "message": "Delivery notes updated successfully"}
+
+
+@api_router.get("/delivery-notes")
+async def get_customer_delivery_notes():
+    """Get delivery notes for customers (public endpoint)"""
+    settings = await db.settings.find_one({"type": "delivery_notes"})
+    if not settings or not settings.get("enabled", False):
+        return {"enabled": False, "message": ""}
+    return {
+        "enabled": True,
+        "message": settings.get("message", "")
+    }
+
+
 # Root routes
 @api_router.get("/")
 async def root():
