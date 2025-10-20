@@ -144,6 +144,21 @@ class ApiService {
     return response.data;
   }
 
+  async createUserByAdmin(userData: any) {
+    const response = await this.api.post('/admin/users', userData);
+    return response.data;
+  }
+
+  async updateUserByAdmin(userId: string, userData: any) {
+    const response = await this.api.put(`/admin/users/${userId}`, userData);
+    return response.data;
+  }
+
+  async deleteUserByAdmin(userId: string) {
+    const response = await this.api.delete(`/admin/users/${userId}`);
+    return response.data;
+  }
+
   async getAdminStats() {
     const response = await this.api.get('/admin/stats');
     return response.data;
