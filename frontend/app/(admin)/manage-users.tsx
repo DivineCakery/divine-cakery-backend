@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
+import apiService from '../../services/api';
 
 export default function ManageUsersScreen() {
   const [users, setUsers] = useState([]);

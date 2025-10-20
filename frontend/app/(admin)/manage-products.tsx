@@ -11,7 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import apiService from '../../../services/api';
+import apiService from '../../services/api';
 
 export default function ManageProductsScreen() {
   const [products, setProducts] = useState([]);
