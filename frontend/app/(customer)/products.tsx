@@ -124,10 +124,8 @@ export default function ProductsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Divine Cakery</Text>
-          <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
-        </View>
+        <Text style={styles.headerTitle}>Divine Cakery</Text>
+        <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
       </View>
 
       <View style={styles.searchContainer}>
