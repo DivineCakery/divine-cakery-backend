@@ -1,0 +1,258 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../../store';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+export default function RegisterScreen() {
+  const router = useRouter();
+  const register = useAuthStore((state) => state.register);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+    email: '',
+    phone: '',
+    business_name: '',
+    address: '',
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!formData.username || !formData.password || !formData.confirmPassword) {
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await register({
+        username: formData.username,
+        password: formData.password,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        business_name: formData.business_name || undefined,
+        address: formData.address || undefined,
+      });
+      // Navigation will be handled by index.tsx after successful registration
+    } catch (error: any) {
+      Alert.alert('Registration Failed', error.response?.data?.detail || 'Please try again');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <MaterialCommunityIcons name="cupcake" size={60} color="#8B4513" />
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Join Divine Cakery Wholesale</Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="account" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Username *"
+              value={formData.username}
+              onChangeText={(text) => setFormData({ ...formData, username: text })}
+              autoCapitalize="none"
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="email" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email (optional)"
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="phone" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Phone (optional)"
+              value={formData.phone}
+              onChangeText={(text) => setFormData({ ...formData, phone: text })}
+              keyboardType="phone-pad"
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="store" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Business Name (optional)"
+              value={formData.business_name}
+              onChangeText={(text) => setFormData({ ...formData, business_name: text })}
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="map-marker" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Address (optional)"
+              value={formData.address}
+              onChangeText={(text) => setFormData({ ...formData, address: text })}
+              multiline
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="lock" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Password *"
+              value={formData.password}
+              onChangeText={(text) => setFormData({ ...formData, password: text })}
+              secureTextEntry
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <MaterialCommunityIcons name="lock-check" size={24} color="#8B4513" style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm Password *"
+              value={formData.confirmPassword}
+              onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
+              secureTextEntry
+              editable={!loading}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Register</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => router.back()}
+            disabled={loading}
+          >
+            <Text style={styles.loginText}>Already have an account? Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFF8DC',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+    paddingTop: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginTop: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+  form: {
+    width: '100%',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 12,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#8B4513',
+    borderRadius: 10,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#999',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  loginButton: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  loginText: {
+    color: '#8B4513',
+    fontSize: 16,
+  },
+});
