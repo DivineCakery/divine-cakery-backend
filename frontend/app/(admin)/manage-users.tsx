@@ -1,0 +1,125 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import apiService from '../../../services/api';
+
+export default function ManageUsersScreen() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const data = await apiService.getAllUsers();
+      setUsers(data);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load users');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchUsers();
+  };
+
+  const renderUser = ({ item }: any) => (
+    <View style={styles.userCard}>
+      <View style={styles.userHeader}>
+        <View style={styles.avatar}>
+          <Ionicons name="person" size={30} color="#8B4513" />
+        </View>
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>{item.username}</Text>
+          {item.business_name && (
+            <Text style={styles.businessName}>{item.business_name}</Text>
+          )}
+        </View>
+      </View>
+
+      {item.email && <Text style={styles.infoText}>Email: {item.email}</Text>}
+      {item.phone && <Text style={styles.infoText}>Phone: {item.phone}</Text>}
+      {item.address && <Text style={styles.infoText}>Address: {item.address}</Text>}
+      
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Wallet</Text>
+          <Text style={styles.statValue}>₹{item.wallet_balance?.toFixed(2)}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Joined</Text>
+          <Text style={styles.statValue}>{new Date(item.created_at).toLocaleDateString()}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#8B4513" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Manage Users</Text>
+        <Text style={styles.headerSubtitle}>{users.length} Customers</Text>
+      </View>
+
+      <FlatList
+        data={users}
+        renderItem={renderUser}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B4513']} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="people-outline" size={80} color="#ccc" />
+            <Text style={styles.emptyText}>No users yet</Text>
+          </View>
+        }
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FFF8DC' },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF8DC' },
+  header: { backgroundColor: '#8B4513', padding: 20, paddingTop: 50 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  headerSubtitle: { fontSize: 14, color: '#FFF8DC', marginTop: 5 },
+  listContainer: { padding: 15 },
+  userCard: { backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 2 },
+  userHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF8DC', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  userInfo: { flex: 1 },
+  userName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  businessName: { fontSize: 14, color: '#8B4513', marginTop: 2 },
+  infoText: { fontSize: 14, color: '#666', marginBottom: 5 },
+  statsRow: { flexDirection: 'row', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#eee' },
+  statItem: { flex: 1 },
+  statLabel: { fontSize: 12, color: '#999' },
+  statValue: { fontSize: 16, fontWeight: 'bold', color: '#8B4513', marginTop: 2 },
+  emptyContainer: { alignItems: 'center', paddingVertical: 60 },
+  emptyText: { fontSize: 18, color: '#999', marginTop: 10 },
+});
