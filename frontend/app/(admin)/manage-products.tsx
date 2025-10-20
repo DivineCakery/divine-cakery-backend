@@ -10,10 +10,12 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 
 export default function ManageProductsScreen() {
+  const router = useRouter();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
