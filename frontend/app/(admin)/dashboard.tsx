@@ -58,10 +58,10 @@ export default function DashboardScreen() {
       }
     >
       <View style={styles.header}>
-        <MaterialCommunityIcons name="cupcake" size={40} color="#fff" />
+        <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerText}>
-          <Text style={styles.headerTitle}>Divine Cakery</Text>
-          <Text style={styles.headerSubtitle}>Admin Dashboard</Text>
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
+          <Text style={styles.headerSubtitle}>Divine Cakery</Text>
         </View>
       </View>
 
