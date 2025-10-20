@@ -273,6 +273,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
   statsContainer: {
     padding: 15,
   },
