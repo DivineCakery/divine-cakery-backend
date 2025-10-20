@@ -10,12 +10,33 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { useCartStore } from '../../store';
+import { useCartStore, useAuthStore } from '../../store';
 
 export default function CartScreen() {
   const router = useRouter();
   const { items, removeItem, updateQuantity, getTotalAmount, clearCart } = useCartStore();
+  const { logout } = useAuthStore();
   const totalAmount = getTotalAmount();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout Confirmation',
+      items.length > 0 
+        ? 'You have items in your cart. Are you sure you want to logout? Your cart will be saved.'
+        : 'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/');
+          },
+        },
+      ]
+    );
+  };
 
   // Calculate delivery date (1 day from now)
   const getDeliveryDate = () => {
