@@ -599,16 +599,46 @@ async def get_admin_stats(current_user: User = Depends(get_current_admin)):
     total_orders = await db.orders.count_documents({})
     pending_orders = await db.orders.count_documents({"order_status": OrderStatus.PENDING})
     
-    # Calculate total revenue
-    orders = await db.orders.find({"payment_status": "completed"}).to_list(10000)
-    total_revenue = sum(order["total_amount"] for order in orders)
+    # Calculate total revenue from completed orders
+    completed_orders = await db.orders.find({"payment_status": "completed"}).to_list(10000)
+    total_revenue = sum(order["total_amount"] for order in completed_orders)
+    
+    # Calculate today's revenue
+    from datetime import datetime as dt, timedelta
+    today_start = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = today_start + timedelta(days=1)
+    
+    today_orders = await db.orders.find({
+        "payment_status": "completed",
+        "created_at": {"$gte": today_start, "$lt": today_end}
+    }).to_list(10000)
+    today_revenue = sum(order["total_amount"] for order in today_orders)
+    
+    # Calculate this week's revenue
+    week_start = today_start - timedelta(days=today_start.weekday())
+    week_orders = await db.orders.find({
+        "payment_status": "completed",
+        "created_at": {"$gte": week_start}
+    }).to_list(10000)
+    week_revenue = sum(order["total_amount"] for order in week_orders)
+    
+    # Calculate this month's revenue
+    month_start = today_start.replace(day=1)
+    month_orders = await db.orders.find({
+        "payment_status": "completed",
+        "created_at": {"$gte": month_start}
+    }).to_list(10000)
+    month_revenue = sum(order["total_amount"] for order in month_orders)
     
     return {
         "total_users": total_users,
         "total_products": total_products,
         "total_orders": total_orders,
         "pending_orders": pending_orders,
-        "total_revenue": total_revenue
+        "total_revenue": total_revenue,
+        "today_revenue": today_revenue,
+        "week_revenue": week_revenue,
+        "month_revenue": month_revenue,
     }
 
 
