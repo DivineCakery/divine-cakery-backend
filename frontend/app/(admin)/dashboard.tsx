@@ -94,8 +94,11 @@ export default function DashboardScreen() {
         <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>Admin Dashboard</Text>
-          <Text style={styles.headerSubtitle}>Divine Cakery</Text>
+          <Text style={styles.headerSubtitle}>Divine Cakery Management</Text>
         </View>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.statsContainer}>
