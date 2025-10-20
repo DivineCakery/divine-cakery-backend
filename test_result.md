@@ -107,27 +107,33 @@ user_problem_statement: "Divine Cakery native mobile app for bakery wholesale cu
 backend:
   - task: "Date-wise revenue API endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Created new endpoint /api/admin/revenue/daily that returns last 7 days revenue breakdown with date, day name, revenue amount, and order count for each day."
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Daily revenue API endpoint working correctly. Returns proper 7-day breakdown with date, day_name, revenue, and order_count fields. Requires admin authentication. API structure and data types are correct."
 
   - task: "WhatsApp order confirmation - backend support"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Backend order update endpoint already exists. No changes needed for WhatsApp functionality as it's handled on frontend."
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Order update endpoint working correctly. Successfully updates order status to 'confirmed'. Fixed field mapping issue where 'status' field now properly maps to 'order_status' in database."
 
 frontend:
   - task: "Display 7-day revenue breakdown on dashboard"
