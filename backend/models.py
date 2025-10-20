@@ -69,8 +69,11 @@ class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     category: str
+    mrp: float
     price: float
+    packet_size: Optional[str] = None
     unit: str = "piece"  # piece, kg, dozen, etc.
+    remarks: Optional[str] = None
     image_base64: Optional[str] = None
     is_available: bool = True
 
@@ -83,8 +86,11 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
+    mrp: Optional[float] = None
     price: Optional[float] = None
+    packet_size: Optional[str] = None
     unit: Optional[str] = None
+    remarks: Optional[str] = None
     image_base64: Optional[str] = None
     is_available: Optional[bool] = None
 
