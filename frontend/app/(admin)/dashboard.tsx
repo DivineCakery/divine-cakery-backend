@@ -199,6 +199,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    position: 'relative',
   },
   statNumber: {
     fontSize: 32,
@@ -210,6 +211,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#fff',
     textAlign: 'center',
+  },
+  arrowIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    opacity: 0.7,
   },
   revenueCard: {
     borderRadius: 15,
@@ -231,6 +238,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginTop: 10,
+  },
+  revenueSubtext: {
+    fontSize: 12,
+    color: '#FFF8DC',
+    marginTop: 5,
+    opacity: 0.8,
   },
   quickActions: {
     padding: 15,
