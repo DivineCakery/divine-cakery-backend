@@ -280,8 +280,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#8B4513',
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#f44336',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 10,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
   checkoutButton: {
-    backgroundColor: '#8B4513',
+    flex: 1,
+    backgroundColor: '#4CAF50',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -290,8 +311,8 @@ const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 10,
+    marginRight: 8,
   },
 });
