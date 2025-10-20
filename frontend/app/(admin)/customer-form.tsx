@@ -302,6 +302,43 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontStyle: 'italic',
   },
+  toggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    paddingVertical: 10,
+  },
+  toggleLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toggleButton: {
+    width: 60,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ccc',
+    padding: 3,
+    justifyContent: 'center',
+  },
+  toggleButtonActive: {
+    backgroundColor: '#4CAF50',
+  },
+  toggleCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  toggleCircleActive: {
+    transform: [{ translateX: 28 }],
+  },
   submitButton: {
     backgroundColor: '#8B4513',
     flexDirection: 'row',
