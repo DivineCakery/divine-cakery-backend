@@ -91,6 +91,24 @@ export default function ManageUsersScreen() {
           <Text style={styles.statValue}>{new Date(item.created_at).toLocaleDateString()}</Text>
         </View>
       </View>
+
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => router.push(`/(admin)/customer-form?id=${item.id}`)}
+        >
+          <Ionicons name="create" size={18} color="#fff" />
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDelete(item.id, item.username)}
+        >
+          <Ionicons name="trash" size={18} color="#fff" />
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
