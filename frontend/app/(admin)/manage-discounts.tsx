@@ -225,9 +225,22 @@ export default function ManageDiscountsScreen() {
       </ScrollView>
 
       {/* Add/Edit Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+      <Modal 
+        visible={modalVisible} 
+        animationType="slide" 
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <TouchableOpacity 
+            style={styles.modalContent} 
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{editingDiscount ? 'Edit' : 'Add'} Discount</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -235,10 +248,18 @@ export default function ManageDiscountsScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.form}>
+            <ScrollView 
+              style={styles.form}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <Text style={styles.label}>Customer *</Text>
               <View style={styles.pickerContainer}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
                   {users.map((u) => (
                     <TouchableOpacity
                       key={u.id}
@@ -303,7 +324,7 @@ export default function ManageDiscountsScreen() {
                 keyboardType="numeric"
               />
 
-              <Text style={styles.label}>Start Date *</Text>
+              <Text style={styles.label}>Start Date * (YYYY-MM-DD)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="YYYY-MM-DD"
@@ -311,7 +332,7 @@ export default function ManageDiscountsScreen() {
                 onChangeText={(text) => setFormData({ ...formData, start_date: text })}
               />
 
-              <Text style={styles.label}>End Date *</Text>
+              <Text style={styles.label}>End Date * (YYYY-MM-DD)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="YYYY-MM-DD"
@@ -325,8 +346,8 @@ export default function ManageDiscountsScreen() {
                 </Text>
               </TouchableOpacity>
             </ScrollView>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
