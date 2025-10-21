@@ -64,6 +64,7 @@ export default function AdminLayout() {
         name="manage-orders"
         options={{
           title: 'Orders',
+          href: canShowTab('manage-orders') ? undefined : null,
           tabBarIcon: ({ color, size }) => (
             <FontAwesome5 name="clipboard-list" size={size} color={color} />
           ),
