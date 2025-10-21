@@ -616,10 +616,11 @@ async def delete_user_by_admin(
 async def get_admin_stats(current_user: User = Depends(get_current_admin)):
     total_users = await db.users.count_documents({"role": UserRole.CUSTOMER})
     total_products = await db.products.count_documents({})
-    total_orders = await db.orders.count_documents({})
+    # Exclude cancelled orders from total count
+    total_orders = await db.orders.count_documents({"order_status": {"$ne": OrderStatus.CANCELLED}})
     pending_orders = await db.orders.count_documents({"order_status": OrderStatus.PENDING})
     
-    # Calculate total revenue from completed orders
+    # Calculate total revenue from completed orders (excludes cancelled)
     completed_orders = await db.orders.find({"payment_status": "completed"}).to_list(10000)
     total_revenue = sum(order["total_amount"] for order in completed_orders)
     
