@@ -178,7 +178,7 @@ export default function ManageDiscountsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={{paddingBottom: 100}}>
         {discounts.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="pricetag-outline" size={60} color="#999" />
