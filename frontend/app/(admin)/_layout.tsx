@@ -84,6 +84,7 @@ export default function AdminLayout() {
         name="admin-profile"
         options={{
           title: 'Profile',
+          href: canShowTab('admin-profile') ? undefined : null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
