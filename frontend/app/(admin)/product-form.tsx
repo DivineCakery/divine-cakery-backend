@@ -183,6 +183,35 @@ export default function ProductFormScreen() {
             editable={!loading}
           />
 
+          <Text style={styles.label}>Product Image</Text>
+          <View style={styles.imageContainer}>
+            {formData.image_base64 ? (
+              <View style={styles.imagePreview}>
+                <Image
+                  source={{ uri: formData.image_base64 }}
+                  style={styles.productImage}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={removeImage}
+                  disabled={loading}
+                >
+                  <Ionicons name="close-circle" size={30} color="#ff3b30" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.imagePicker}
+                onPress={pickImage}
+                disabled={loading}
+              >
+                <Ionicons name="camera" size={40} color="#8B4513" />
+                <Text style={styles.imagePickerText}>Tap to add product image</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
           <Text style={styles.label}>Category *</Text>
           <View style={styles.categoryContainer}>
             {CATEGORIES.map((cat) => (
