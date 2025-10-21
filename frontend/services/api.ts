@@ -194,6 +194,43 @@ class ApiService {
     const response = await this.api.get('/admin/reports/daily-items', { params });
     return response.data;
   }
+
+  // Delivery Charge Settings
+  async getDeliveryCharge() {
+    const response = await this.api.get('/admin/settings/delivery-charge');
+    return response.data;
+  }
+
+  async updateDeliveryCharge(deliveryCharge: number) {
+    const response = await this.api.put(`/admin/settings/delivery-charge?delivery_charge=${deliveryCharge}`);
+    return response.data;
+  }
+
+  // Discount Management
+  async getAllDiscounts() {
+    const response = await this.api.get('/admin/discounts');
+    return response.data;
+  }
+
+  async getCustomerDiscount(customerId: string) {
+    const response = await this.api.get(`/admin/discounts/customer/${customerId}`);
+    return response.data;
+  }
+
+  async createDiscount(discountData: any) {
+    const response = await this.api.post('/admin/discounts', discountData);
+    return response.data;
+  }
+
+  async updateDiscount(discountId: string, discountData: any) {
+    const response = await this.api.put(`/admin/discounts/${discountId}`, discountData);
+    return response.data;
+  }
+
+  async deleteDiscount(discountId: string) {
+    const response = await this.api.delete(`/admin/discounts/${discountId}`);
+    return response.data;
+  }
 }
 
 export default new ApiService();
