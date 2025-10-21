@@ -154,15 +154,6 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.revenueCard, { backgroundColor: '#8B4513' }]}>
-              <Ionicons name="cash" size={50} color="#fff" />
-              <Text style={styles.revenueLabel}>Total Revenue</Text>
-              <Text style={styles.revenueAmount}>
-                ₹{stats?.total_revenue?.toFixed(2) || '0.00'}
-              </Text>
-              <Text style={styles.revenueSubtext}>From all completed orders</Text>
-            </View>
-
             <View style={styles.revenueBreakdown}>
               <Text style={styles.breakdownTitle}>Revenue Breakdown</Text>
               <View style={styles.breakdownCard}>
