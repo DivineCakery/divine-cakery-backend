@@ -437,6 +437,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  fullScreenModal: {
+    flex: 1,
+    backgroundColor: '#FFF8DC',
+  },
   modalContent: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -448,11 +452,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    padding: 20,
+    backgroundColor: '#8B4513',
   },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#8B4513' },
+  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
   form: { flex: 1 },
-  label: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8 },
+  modalForm: { 
+    flex: 1,
+    padding: 20,
+  },
+  customerScroll: {
+    marginBottom: 15,
+  },
+  label: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 10 },
   input: {
     backgroundColor: '#f5f5f5',
     borderWidth: 1,
