@@ -22,12 +22,22 @@ export default function CheckoutScreen() {
   const { user, refreshUser } = useAuthStore();
   const [wallet, setWallet] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'upi'>('wallet');
+  const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [discount, setDiscount] = useState<any>(null);
 
-  const totalAmount = getTotalAmount();
+  const subtotal = getTotalAmount();
+  const appliedDeliveryCharge = orderType === 'delivery' ? deliveryCharge : 0;
+  const discountAmount = discount?.has_discount 
+    ? (discount.discount.discount_type === 'percentage' 
+        ? (subtotal * discount.discount.discount_value) / 100 
+        : discount.discount.discount_value)
+    : 0;
+  const totalAmount = subtotal + appliedDeliveryCharge - discountAmount;
 
   // Calculate delivery date based on order time
   // Orders before 4 AM: same day delivery
@@ -54,6 +64,8 @@ export default function CheckoutScreen() {
 
   useEffect(() => {
     fetchWallet();
+    fetchDeliveryCharge();
+    fetchCustomerDiscount();
   }, []);
 
   const fetchWallet = async () => {
@@ -64,6 +76,26 @@ export default function CheckoutScreen() {
       console.error('Error fetching wallet:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDeliveryCharge = async () => {
+    try {
+      const data = await apiService.getDeliveryCharge();
+      setDeliveryCharge(data.delivery_charge || 0);
+    } catch (error) {
+      console.error('Error fetching delivery charge:', error);
+    }
+  };
+
+  const fetchCustomerDiscount = async () => {
+    try {
+      if (user?.id) {
+        const data = await apiService.getCustomerDiscount(user.id);
+        setDiscount(data);
+      }
+    } catch (error) {
+      console.error('Error fetching discount:', error);
     }
   };
 
