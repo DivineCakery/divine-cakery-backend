@@ -57,7 +57,19 @@ export default function RegisterScreen() {
         business_name: formData.business_name || undefined,
         address: formData.address || undefined,
       });
-      // Navigation will be handled by index.tsx after successful registration
+      // Show success message
+      Alert.alert(
+        'Registration Successful!',
+        'Welcome to Divine Cakery! You are now logged in.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Navigation will be handled by index.tsx after successful registration
+            }
+          }
+        ]
+      );
     } catch (error: any) {
       Alert.alert('Registration Failed', error.response?.data?.detail || 'Please try again');
     } finally {
