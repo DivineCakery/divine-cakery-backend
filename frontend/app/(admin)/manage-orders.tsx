@@ -169,7 +169,7 @@ export default function ManageOrdersScreen() {
         {item.order_status === 'pending' && (
           <>
             <TouchableOpacity
-              style={[styles.actionButton, styles.pendingButton]}
+              style={[styles.actionButton, styles.statusButton, styles.pendingButton]}
               onPress={() => confirmOrder(item.id, item)}
             >
               <Ionicons name="time-outline" size={20} color="#fff" />
@@ -185,34 +185,25 @@ export default function ManageOrdersScreen() {
           </>
         )}
         {item.order_status === 'confirmed' && (
-          <>
-            <View style={[styles.actionButton, styles.confirmedButton]}>
-              <Ionicons name="checkmark-circle" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Confirmed</Text>
-            </View>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.cancelButton]}
-              onPress={() => cancelOrder(item.id)}
-            >
-              <Ionicons name="close-circle" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </>
+          <View style={[styles.actionButton, styles.statusButton, styles.confirmedButton]}>
+            <Ionicons name="checkmark-circle" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>Confirmed</Text>
+          </View>
         )}
         {item.order_status === 'processing' && (
-          <View style={[styles.actionButton, { backgroundColor: '#2196F3' }]}>
+          <View style={[styles.actionButton, styles.statusButton, styles.processingButton]}>
             <Ionicons name="sync" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Processing</Text>
           </View>
         )}
         {item.order_status === 'delivered' && (
-          <View style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}>
+          <View style={[styles.actionButton, styles.statusButton, styles.deliveredButton]}>
             <Ionicons name="checkmark-done" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Delivered</Text>
           </View>
         )}
         {item.order_status === 'cancelled' && (
-          <View style={[styles.actionButton, styles.cancelledBadge]}>
+          <View style={[styles.actionButton, styles.statusButton, styles.cancelledButton]}>
             <Ionicons name="ban" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Cancelled</Text>
           </View>
