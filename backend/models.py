@@ -122,8 +122,12 @@ class OrderItem(BaseModel):
 
 class OrderCreate(BaseModel):
     items: List[OrderItem]
+    subtotal: float
+    delivery_charge: float = 0.0
+    discount_amount: float = 0.0
     total_amount: float
     payment_method: str  # wallet or upi
+    order_type: str = "delivery"  # "delivery" or "pickup"
     delivery_address: Optional[str] = None
     notes: Optional[str] = None
 
