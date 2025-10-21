@@ -840,9 +840,18 @@ async def get_daily_items_report(
 
 
 # Delivery Charge Settings Endpoints
+@api_router.get("/settings/delivery-charge")
+async def get_delivery_charge_public():
+    """Get current delivery charge (public endpoint for customers)"""
+    settings = await db.settings.find_one({"key": "delivery_charge"})
+    if not settings:
+        return {"delivery_charge": 0.0}
+    return {"delivery_charge": settings.get("value", 0.0)}
+
+
 @api_router.get("/admin/settings/delivery-charge")
 async def get_delivery_charge(current_user: User = Depends(get_current_admin)):
-    """Get current delivery charge"""
+    """Get current delivery charge (admin endpoint)"""
     settings = await db.settings.find_one({"key": "delivery_charge"})
     if not settings:
         # Create default setting
