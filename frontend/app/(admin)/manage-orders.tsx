@@ -173,7 +173,7 @@ export default function ManageOrdersScreen() {
               onPress={() => confirmOrder(item.id, item)}
             >
               <Ionicons name="time-outline" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Pending - Tap to Confirm</Text>
+              <Text style={styles.actionButtonText}>Pending</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.cancelButton]}
@@ -188,7 +188,7 @@ export default function ManageOrdersScreen() {
           <>
             <View style={[styles.actionButton, styles.confirmedButton]}>
               <Ionicons name="checkmark-circle" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Confirmed ✓</Text>
+              <Text style={styles.actionButtonText}>Confirmed</Text>
             </View>
             <TouchableOpacity
               style={[styles.actionButton, styles.cancelButton]}
@@ -212,7 +212,7 @@ export default function ManageOrdersScreen() {
           </View>
         )}
         {item.order_status === 'cancelled' && (
-          <View style={[styles.actionButton, { backgroundColor: '#999' }]}>
+          <View style={[styles.actionButton, styles.cancelledBadge]}>
             <Ionicons name="ban" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Cancelled</Text>
           </View>
