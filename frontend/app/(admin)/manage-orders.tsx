@@ -22,8 +22,6 @@ const STATUS_COLORS: any = {
   cancelled: '#f44336',
 };
 
-const WHATSAPP_NUMBER = '919544183334'; // Format: country code + number (no + or spaces)
-
 export default function ManageOrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
