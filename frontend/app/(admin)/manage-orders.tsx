@@ -369,7 +369,6 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#f44336',
-    minWidth: 100,
   },
   actionButtonText: {
     color: '#fff',
