@@ -173,10 +173,10 @@ export default function ManageOrdersScreen() {
               onPress={() => confirmOrder(item.id, item)}
             >
               <Ionicons name="time-outline" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Pending</Text>
+              <Text style={styles.actionButtonText}>Tap to Confirm</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, styles.cancelButton]}
+              style={[styles.actionButton, styles.statusButton, styles.cancelButton]}
               onPress={() => cancelOrder(item.id)}
             >
               <Ionicons name="close-circle" size={20} color="#fff" />
