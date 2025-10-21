@@ -210,9 +210,21 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={styles.sectionTitle}>Settings & Reports</Text>
           <TouchableOpacity
             style={styles.settingsButton}
+            onPress={() => router.push('/(admin)/reports' as any)}
+          >
+            <Ionicons name="bar-chart-outline" size={24} color="#8B4513" />
+            <View style={styles.settingsButtonText}>
+              <Text style={styles.settingsButtonTitle}>Daily Items Report</Text>
+              <Text style={styles.settingsButtonSubtitle}>View item-wise orders and revenue</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#999" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.settingsButton, { marginTop: 10 }]}
             onPress={() => router.push('/(admin)/delivery-notes' as any)}
           >
             <Ionicons name="notifications-outline" size={24} color="#8B4513" />
