@@ -567,6 +567,44 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: 'top',
   },
+  orderTypeContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  orderTypeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 15,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#8B4513',
+  },
+  orderTypeButtonActive: {
+    backgroundColor: '#8B4513',
+    borderColor: '#8B4513',
+  },
+  orderTypeText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8B4513',
+  },
+  orderTypeTextActive: {
+    color: '#fff',
+  },
+  deliveryInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  deliveryText: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '500',
+  },
   notesInput: {
     fontSize: 16,
     color: '#333',
