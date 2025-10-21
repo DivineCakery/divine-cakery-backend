@@ -82,6 +82,32 @@ export default function ManageOrdersScreen() {
     }
   };
 
+  const cancelOrder = async (orderId: string) => {
+    Alert.alert(
+      'Cancel Order',
+      'Are you sure you want to cancel this order? This action cannot be undone.',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Cancel Order',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.updateOrder(orderId, { 
+                order_status: 'cancelled',
+                payment_status: 'cancelled'
+              });
+              await fetchOrders();
+              Alert.alert('Success', 'Order has been cancelled');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to cancel order');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const updateOrderStatus = async (orderId: string, newStatus: string, order: any) => {
     try {
       await apiService.updateOrder(orderId, { order_status: newStatus });
