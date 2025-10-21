@@ -59,9 +59,8 @@ export default function CheckoutScreen() {
 
   const sendWhatsAppMessage = async (orderId: string) => {
     try {
-      const message = `Hello! Your order #${orderId} has been placed successfully with Divine Cakery. Expected delivery: ${getDeliveryDate()}. Thank you for your order!`;
-      const phoneNumber = '919544183334'; // Divine Cakery business number
-      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+      const message = getOrderConfirmationMessage(orderId, getDeliveryDate());
+      const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
       
       const canOpen = await Linking.canOpenURL(whatsappUrl);
       if (canOpen) {
