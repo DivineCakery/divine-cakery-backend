@@ -86,21 +86,13 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="manage-discounts"
         options={{
-          title: 'Discounts',
-          href: canShowTab('manage-discounts') ? undefined : null,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pricetag" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="delivery-settings"
         options={{
-          title: 'Delivery',
-          href: canShowTab('delivery-settings') ? undefined : null,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
