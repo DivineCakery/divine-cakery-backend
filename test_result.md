@@ -171,6 +171,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Updated button rendering logic. When order status is 'confirmed', shows a grey non-clickable button with text 'Confirmed' alongside the 'Process' button."
+        - working: "NA"
+          agent: "main"
+          comment: "Refined order status buttons: 1) Made Pending/Confirmed buttons consistent in size and shape using statusButton style 2) When order is cancelled, only 'Cancelled' badge shows (no action buttons) 3) Removed Cancel button from confirmed orders 4) Added consistent gap styling between buttons 5) All status buttons now have unified appearance with minHeight: 48"
 
   - task: "API service for daily revenue"
     implemented: true
