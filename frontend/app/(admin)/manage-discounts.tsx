@@ -237,142 +237,132 @@ export default function ManageDiscountsScreen() {
       {/* Add/Edit Modal */}
       <Modal 
         visible={modalVisible} 
-        animationType="slide" 
-        transparent={true}
+        animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{editingDiscount ? 'Edit' : 'Add'} Discount</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={28} color="#333" />
+        <View style={styles.fullScreenModal}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{editingDiscount ? 'Edit' : 'Add'} Discount</Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Ionicons name="close" size={28} color="#333" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalForm} contentContainerStyle={{paddingBottom: 40}}>
+            <Text style={styles.label}>Customer *</Text>
+            <ScrollView 
+              horizontal 
+              style={styles.customerScroll}
+              contentContainerStyle={{paddingVertical: 10}}
+            >
+              {users.map((u) => (
+                <TouchableOpacity
+                  key={u.id}
+                  style={[
+                    styles.customerChip,
+                    formData.customer_id === u.id && styles.customerChipActive,
+                  ]}
+                  onPress={() => {
+                    console.log('Customer selected:', u.username);
+                    setFormData({ ...formData, customer_id: u.id });
+                  }}
+                >
+                  <Text style={[
+                    styles.customerChipText,
+                    formData.customer_id === u.id && styles.customerChipTextActive,
+                  ]}>
+                    {u.username}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={styles.label}>Discount Type *</Text>
+            <View style={styles.typeContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.typeButton,
+                  formData.discount_type === 'percentage' && styles.typeButtonActive,
+                ]}
+                onPress={() => {
+                  console.log('Type selected: percentage');
+                  setFormData({ ...formData, discount_type: 'percentage' });
+                }}
+              >
+                <Text style={[
+                  styles.typeButtonText,
+                  formData.discount_type === 'percentage' && styles.typeButtonTextActive,
+                ]}>
+                  Percentage (%)
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.typeButton,
+                  formData.discount_type === 'fixed' && styles.typeButtonActive,
+                ]}
+                onPress={() => {
+                  console.log('Type selected: fixed');
+                  setFormData({ ...formData, discount_type: 'fixed' });
+                }}
+              >
+                <Text style={[
+                  styles.typeButtonText,
+                  formData.discount_type === 'fixed' && styles.typeButtonTextActive,
+                ]}>
+                  Fixed Amount (₹)
+                </Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView 
-              style={styles.form}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="always"
+            <Text style={styles.label}>
+              Discount Value * {formData.discount_type === 'percentage' ? '(0-100)' : '(₹)'}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={formData.discount_type === 'percentage' ? 'e.g. 10' : 'e.g. 50'}
+              value={formData.discount_value}
+              onChangeText={(text) => {
+                console.log('Value changed:', text);
+                setFormData({ ...formData, discount_value: text });
+              }}
+              keyboardType="numeric"
+            />
+
+            <Text style={styles.label}>Start Date * (YYYY-MM-DD)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DD"
+              value={formData.start_date}
+              onChangeText={(text) => setFormData({ ...formData, start_date: text })}
+            />
+
+            <Text style={styles.label}>End Date * (YYYY-MM-DD)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="YYYY-MM-DD"
+              value={formData.end_date}
+              onChangeText={(text) => setFormData({ ...formData, end_date: text })}
+            />
+
+            <TouchableOpacity 
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+              onPress={() => {
+                console.log('Save button pressed!');
+                handleSave();
+              }}
+              disabled={saving}
             >
-              <Text style={styles.label}>Customer *</Text>
-              <View style={styles.pickerContainer}>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  nestedScrollEnabled={true}
-                >
-                  {users.map((u) => (
-                    <TouchableOpacity
-                      key={u.id}
-                      style={[
-                        styles.customerChip,
-                        formData.customer_id === u.id && styles.customerChipActive,
-                      ]}
-                      onPress={() => {
-                        console.log('Customer selected:', u.username);
-                        setFormData({ ...formData, customer_id: u.id });
-                      }}
-                    >
-                      <Text style={[
-                        styles.customerChipText,
-                        formData.customer_id === u.id && styles.customerChipTextActive,
-                      ]}>
-                        {u.username}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              <Text style={styles.label}>Discount Type *</Text>
-              <View style={styles.typeContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    formData.discount_type === 'percentage' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => {
-                    console.log('Type selected: percentage');
-                    setFormData({ ...formData, discount_type: 'percentage' });
-                  }}
-                >
-                  <Text style={[
-                    styles.typeButtonText,
-                    formData.discount_type === 'percentage' && styles.typeButtonTextActive,
-                  ]}>
-                    Percentage (%)
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.typeButton,
-                    formData.discount_type === 'fixed' && styles.typeButtonActive,
-                  ]}
-                  onPress={() => {
-                    console.log('Type selected: fixed');
-                    setFormData({ ...formData, discount_type: 'fixed' });
-                  }}
-                >
-                  <Text style={[
-                    styles.typeButtonText,
-                    formData.discount_type === 'fixed' && styles.typeButtonTextActive,
-                  ]}>
-                    Fixed Amount (₹)
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.label}>
-                Discount Value * {formData.discount_type === 'percentage' ? '(0-100)' : '(₹)'}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder={formData.discount_type === 'percentage' ? 'e.g. 10' : 'e.g. 50'}
-                value={formData.discount_value}
-                onChangeText={(text) => {
-                  console.log('Value changed:', text);
-                  setFormData({ ...formData, discount_value: text });
-                }}
-                keyboardType="numeric"
-              />
-
-              <Text style={styles.label}>Start Date * (YYYY-MM-DD)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD"
-                value={formData.start_date}
-                onChangeText={(text) => setFormData({ ...formData, start_date: text })}
-              />
-
-              <Text style={styles.label}>End Date * (YYYY-MM-DD)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD"
-                value={formData.end_date}
-                onChangeText={(text) => setFormData({ ...formData, end_date: text })}
-              />
-
-              <TouchableOpacity 
-                style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
-                onPress={() => {
-                  console.log('Save button pressed!');
-                  handleSave();
-                }}
-                disabled={saving}
-                activeOpacity={0.7}
-              >
-                {saving ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.saveButtonText}>
-                    {editingDiscount ? 'Update' : 'Create'} Discount
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveButtonText}>
+                  {editingDiscount ? 'Update' : 'Create'} Discount
+                </Text>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </Modal>
     </View>
