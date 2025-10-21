@@ -20,7 +20,8 @@ from models import (
     ProductCreate, ProductUpdate, Product,
     OrderCreate, OrderUpdate, Order, OrderStatus,
     Wallet, Transaction, TransactionCreate, TransactionType, TransactionStatus,
-    PaymentOrderCreate, PaymentVerification, MessageResponse, WalletResponse
+    PaymentOrderCreate, PaymentVerification, MessageResponse, WalletResponse,
+    Discount, DiscountCreate, DiscountUpdate, DiscountType
 )
 
 
