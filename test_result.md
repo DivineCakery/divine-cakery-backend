@@ -162,11 +162,11 @@ frontend:
 
   - task: "Change button color/text after order confirmation"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/(admin)/manage-orders.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
@@ -177,6 +177,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Fixed button uniformity and cancel functionality: 1) Applied statusButton style to Cancel button for uniform sizing with Pending/Confirmed 2) Changed Pending button text to 'Tap to Confirm' for clarity 3) Removed minWidth constraint from Cancel button to allow flex sizing 4) Both buttons in pending state now have identical dimensions with flex: 1"
+        - working: true
+          agent: "user"
+          comment: "User confirmed buttons are working correctly. Fixed backend OrderUpdate model to accept order_status and payment_status fields. Buttons now properly change state: Tap to Confirm → Confirmed (green), Cancel → Cancelled (grey)."
 
   - task: "API service for daily revenue"
     implemented: true
