@@ -733,6 +733,75 @@ async def get_customer_delivery_notes():
     }
 
 
+@api_router.get("/admin/reports/daily-items")
+async def get_daily_items_report(
+    date: str = None,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get daily report of items ordered"""
+    from datetime import datetime as dt, timedelta
+    
+    # Parse date or use today
+    if date:
+        try:
+            report_date = dt.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    else:
+        report_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    day_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_end = day_start + timedelta(days=1)
+    
+    # Get all orders for the day
+    orders = await db.orders.find({
+        "created_at": {"$gte": day_start, "$lt": day_end}
+    }).to_list(10000)
+    
+    # Aggregate items
+    item_summary = {}
+    total_orders = len(orders)
+    total_revenue = 0
+    
+    for order in orders:
+        total_revenue += order.get("total_amount", 0)
+        for item in order.get("items", []):
+            product_id = item.get("product_id")
+            product_name = item.get("product_name", "Unknown")
+            quantity = item.get("quantity", 0)
+            price = item.get("price", 0)
+            subtotal = item.get("subtotal", 0)
+            
+            if product_id in item_summary:
+                item_summary[product_id]["quantity"] += quantity
+                item_summary[product_id]["revenue"] += subtotal
+                item_summary[product_id]["order_count"] += 1
+            else:
+                item_summary[product_id] = {
+                    "product_id": product_id,
+                    "product_name": product_name,
+                    "quantity": quantity,
+                    "price": price,
+                    "revenue": subtotal,
+                    "order_count": 1
+                }
+    
+    # Convert to list and sort by quantity
+    items_list = sorted(
+        item_summary.values(),
+        key=lambda x: x["quantity"],
+        reverse=True
+    )
+    
+    return {
+        "date": report_date.strftime("%Y-%m-%d"),
+        "day_name": report_date.strftime("%A"),
+        "total_orders": total_orders,
+        "total_revenue": total_revenue,
+        "items": items_list
+    }
+
+
 # Root routes
 @api_router.get("/")
 async def root():
