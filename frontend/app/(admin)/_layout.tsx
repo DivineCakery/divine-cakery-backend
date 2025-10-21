@@ -6,7 +6,21 @@ import { useAuthStore } from '../../store';
 
 export default function AdminLayout() {
   const insets = useSafeAreaInsets();
-  
+  const { user } = useAuthStore();
+  const accessLevel = user?.admin_access_level || 'full';
+
+  // Define which tabs are visible for each access level
+  const canShowTab = (tabName: string) => {
+    if (accessLevel === 'full') return true;
+    if (accessLevel === 'limited') {
+      return ['dashboard', 'manage-orders'].includes(tabName);
+    }
+    if (accessLevel === 'reports') {
+      return ['dashboard', 'reports'].includes(tabName);
+    }
+    return false;
+  };
+
   return (
     <Tabs
       screenOptions={{
