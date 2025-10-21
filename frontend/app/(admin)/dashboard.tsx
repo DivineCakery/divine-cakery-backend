@@ -217,10 +217,10 @@ export default function DashboardScreen() {
 
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>
-            {accessLevel === 'reports' ? 'Reports' : 'Settings & Reports'}
+            {accessLevel === 'reports' ? 'Reports' : accessLevel === 'limited' ? 'Reports' : 'Settings & Reports'}
           </Text>
           
-          {(accessLevel === 'full' || accessLevel === 'reports') && (
+          {(accessLevel === 'full' || accessLevel === 'limited' || accessLevel === 'reports') && (
             <TouchableOpacity
               style={styles.settingsButton}
               onPress={() => router.push('/(admin)/reports' as any)}
