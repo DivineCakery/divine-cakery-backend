@@ -45,18 +45,17 @@ export default function ManageOrdersScreen() {
 
   const sendWhatsAppMessage = async (order: any) => {
     try {
-      const customerPhone = order.user_phone || ''; // Assuming we'll add this
-      const message = `Hello! Thank you for your order #${order.id.slice(0, 8)}. We will despatch it soon!`;
+      const message = getAdminOrderNotification(order.id.slice(0, 8));
       
       // Use business WhatsApp number instead of customer's
-      const whatsappUrl = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
       
       const canOpen = await Linking.canOpenURL(whatsappUrl);
       if (canOpen) {
         await Linking.openURL(whatsappUrl);
       } else {
         // Fallback to web WhatsApp
-        const webUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
         await Linking.openURL(webUrl);
       }
     } catch (error) {
