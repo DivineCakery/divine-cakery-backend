@@ -138,7 +138,7 @@ export default function ManageUsersScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Manage Customers</Text>
+        <Text style={styles.headerTitle}>Manage Users</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push('/(admin)/customer-form')}
@@ -146,7 +146,7 @@ export default function ManageUsersScreen() {
           <Ionicons name="add-circle" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.headerSubtitle}>{users.length} Customers Total</Text>
+      <Text style={styles.headerSubtitle}>{users.length} Users Total</Text>
 
       <FlatList
         data={users}
