@@ -762,24 +762,26 @@ async def get_daily_items_report(
     date: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Get daily report of items ordered"""
+    """Get daily report of items ordered by delivery date"""
     from datetime import datetime as dt, timedelta
     
     # Parse date or use today
     if date:
         try:
-            report_date = dt.strptime(date, "%Y-%m-%d")
+            delivery_date = dt.strptime(date, "%Y-%m-%d")
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     else:
-        report_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        delivery_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    day_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    day_end = day_start + timedelta(days=1)
+    # Orders created 1 day before delivery date (since delivery is next day)
+    order_date = delivery_date - timedelta(days=1)
+    order_start = order_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    order_end = order_start + timedelta(days=1)
     
-    # Get all orders for the day (excluding cancelled orders)
+    # Get all orders created on order_date (will be delivered on delivery_date), excluding cancelled
     orders = await db.orders.find({
-        "created_at": {"$gte": day_start, "$lt": day_end},
+        "created_at": {"$gte": order_start, "$lt": order_end},
         "order_status": {"$ne": OrderStatus.CANCELLED}
     }).to_list(10000)
     
