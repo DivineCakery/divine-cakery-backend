@@ -400,6 +400,63 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontStyle: 'italic',
   },
+  roleSelector: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  roleOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#8B4513',
+    backgroundColor: '#fff',
+  },
+  roleOptionActive: {
+    backgroundColor: '#8B4513',
+    borderColor: '#8B4513',
+  },
+  roleText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#8B4513',
+  },
+  roleTextActive: {
+    color: '#fff',
+  },
+  accessLevelContainer: {
+    gap: 10,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  accessOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#8B4513',
+    backgroundColor: '#fff',
+  },
+  accessOptionActive: {
+    backgroundColor: '#8B4513',
+    borderColor: '#8B4513',
+  },
+  accessText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B4513',
+  },
+  accessTextActive: {
+    color: '#fff',
+  },
   toggleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
