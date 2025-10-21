@@ -498,5 +498,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
   },
+  saveButtonDisabled: {
+    backgroundColor: '#999',
+  },
   saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
