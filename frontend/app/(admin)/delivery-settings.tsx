@@ -62,7 +62,7 @@ export default function DeliverySettingsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Delivery Settings</Text>
       </View>
