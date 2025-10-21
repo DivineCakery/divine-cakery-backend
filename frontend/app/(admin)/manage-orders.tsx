@@ -27,14 +27,16 @@ export default function ManageOrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [selectedDate]);
 
   const fetchOrders = async () => {
     try {
-      const data = await apiService.getOrders();
+      const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+      const data = await apiService.getOrders(dateStr);
       setOrders(data);
     } catch (error) {
       Alert.alert('Error', 'Failed to load orders');
