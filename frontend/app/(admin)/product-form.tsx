@@ -10,9 +10,11 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import apiService from '../../services/api';
 
 const CATEGORIES = ['Bread', 'Cakes', 'Muffins', 'Brownies', 'Cookies', 'Donuts'];
