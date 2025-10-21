@@ -257,6 +257,39 @@ export default function ManageOrdersScreen() {
         <Text style={styles.headerTitle}>Manage Orders</Text>
       </View>
 
+      {/* Date Filter Selector */}
+      <View style={styles.dateFilterContainer}>
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => changeDate(-1)}
+        >
+          <Ionicons name="chevron-back" size={24} color="#8B4513" />
+        </TouchableOpacity>
+        
+        <View style={styles.dateDisplay}>
+          <Text style={styles.dateText}>{formatDisplayDate()}</Text>
+          {selectedDate && (
+            <Text style={styles.dateDay}>
+              {selectedDate.toLocaleDateString('en-IN', { weekday: 'long' })}
+            </Text>
+          )}
+        </View>
+
+        <TouchableOpacity
+          style={styles.dateButton}
+          onPress={() => changeDate(1)}
+        >
+          <Ionicons name="chevron-forward" size={24} color="#8B4513" />
+        </TouchableOpacity>
+      </View>
+
+      {selectedDate && (
+        <TouchableOpacity style={styles.clearFilterButton} onPress={clearDateFilter}>
+          <Ionicons name="close-circle" size={16} color="#8B4513" />
+          <Text style={styles.clearFilterText}>Show All Orders</Text>
+        </TouchableOpacity>
+      )}
+
       <FlatList
         data={orders}
         renderItem={renderOrder}
