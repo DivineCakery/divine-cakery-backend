@@ -337,25 +337,35 @@ const styles = StyleSheet.create({
   statusContainer: { marginBottom: 10 },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' },
   statusText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  actionButtons: { flexDirection: 'row', flexWrap: 'wrap' },
+  actionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 12,
     borderRadius: 8,
-    marginRight: 10,
     gap: 8,
     marginBottom: 8,
   },
+  statusButton: {
+    flex: 1,
+    minHeight: 48,
+  },
   pendingButton: {
     backgroundColor: '#FF9800',
-    marginRight: 0,
-    flex: 1,
   },
   confirmedButton: {
     backgroundColor: '#4CAF50',
-    flex: 1,
+  },
+  processingButton: {
+    backgroundColor: '#2196F3',
+  },
+  deliveredButton: {
+    backgroundColor: '#4CAF50',
+  },
+  cancelledButton: {
+    backgroundColor: '#9E9E9E',
+    opacity: 0.8,
   },
   cancelButton: {
     backgroundColor: '#f44336',
