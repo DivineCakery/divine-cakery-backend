@@ -185,6 +185,13 @@ class ApiService {
     const response = await this.api.get('/delivery-notes');
     return response.data;
   }
+
+  // Reports
+  async getDailyItemsReport(date?: string) {
+    const params = date ? { date } : {};
+    const response = await this.api.get('/admin/reports/daily-items', { params });
+    return response.data;
+  }
 }
 
 export default new ApiService();
