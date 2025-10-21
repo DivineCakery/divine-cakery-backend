@@ -143,10 +143,10 @@ class Order(BaseModel):
     id: str
     user_id: str
     items: List[OrderItem]
-    subtotal: float  # Amount before delivery charge and discount
+    subtotal: Optional[float] = None  # Optional for backward compatibility
     delivery_charge: float = 0.0
     discount_amount: float = 0.0
-    total_amount: float  # Final amount after delivery and discount
+    total_amount: float
     payment_method: str
     payment_status: str = "pending"
     order_status: OrderStatus = OrderStatus.PENDING
