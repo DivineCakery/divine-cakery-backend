@@ -326,7 +326,7 @@ export default function CustomerFormScreen() {
               <>
                 <Ionicons name="checkmark-circle" size={24} color="#fff" />
                 <Text style={styles.submitButtonText}>
-                  {isEdit ? 'Update Customer' : 'Create Customer'}
+                  {isEdit ? 'Update User' : 'Create User'}
                 </Text>
               </>
             )}
