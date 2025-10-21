@@ -839,29 +839,6 @@ async def get_daily_items_report(
     }
 
 
-# Root routes
-@api_router.get("/")
-async def root():
-    return {"message": "Divine Cakery API", "version": "1.0.0"}
-
-
-@api_router.get("/health")
-async def health():
-    return {"status": "healthy"}
-
-
-# Include the router in the main app
-app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
 # Delivery Charge Settings Endpoints
 @api_router.get("/admin/settings/delivery-charge")
 async def get_delivery_charge(current_user: User = Depends(get_current_admin)):
@@ -892,7 +869,6 @@ async def update_delivery_charge(
 @api_router.get("/admin/discounts", response_model=List[Discount])
 async def get_all_discounts(current_user: User = Depends(get_current_admin)):
     """Get all discounts"""
-    from models import Discount
     discounts = await db.discounts.find().to_list(1000)
     return [Discount(**discount) for discount in discounts]
 
@@ -916,7 +892,6 @@ async def get_customer_discount(
     if not discount:
         return {"has_discount": False}
     
-    from models import Discount
     return {
         "has_discount": True,
         "discount": Discount(**discount)
@@ -931,7 +906,6 @@ async def create_discount(
     """Create a new discount"""
     import uuid
     from datetime import datetime as dt
-    from models import Discount
     
     discount_dict = {
         "id": str(uuid.uuid4()),
@@ -953,7 +927,6 @@ async def update_discount(
 ):
     """Update a discount"""
     from datetime import datetime as dt
-    from models import Discount
     
     update_data = {k: v for k, v in discount_data.dict().items() if v is not None}
     update_data["updated_at"] = dt.utcnow()
@@ -982,6 +955,29 @@ async def delete_discount(
         raise HTTPException(status_code=404, detail="Discount not found")
     
     return {"message": "Discount deleted successfully"}
+
+
+# Root routes
+@api_router.get("/")
+async def root():
+    return {"message": "Divine Cakery API", "version": "1.0.0"}
+
+
+@api_router.get("/health")
+async def health():
+    return {"status": "healthy"}
+
+
+# Include the router in the main app
+app.include_router(api_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("shutdown")
