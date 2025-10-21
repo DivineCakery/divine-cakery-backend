@@ -54,6 +54,7 @@ export default function AdminLayout() {
         name="manage-products"
         options={{
           title: 'Products',
+          href: canShowTab('manage-products') ? undefined : null,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="bread-slice" size={size} color={color} />
           ),
