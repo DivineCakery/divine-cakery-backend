@@ -57,6 +57,7 @@ export default function ProductFormScreen() {
         unit: product.unit,
         description: product.description || '',
         remarks: product.remarks || '',
+        image_base64: product.image_base64 || '',
       });
     } catch (error) {
       Alert.alert('Error', 'Failed to load product');
@@ -64,6 +65,35 @@ export default function ProductFormScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const pickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Required', 'Please allow access to your photo library');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0].base64) {
+        setFormData({ ...formData, image_base64: `data:image/jpeg;base64,${result.assets[0].base64}` });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const removeImage = () => {
+    setFormData({ ...formData, image_base64: '' });
   };
 
   const handleSubmit = async () => {
