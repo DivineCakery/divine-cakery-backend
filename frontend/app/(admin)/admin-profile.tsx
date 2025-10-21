@@ -23,7 +23,7 @@ export default function AdminProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <Ionicons name="shield-checkmark" size={60} color="#fff" />
