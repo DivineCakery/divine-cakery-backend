@@ -128,6 +128,27 @@ export default function ManageOrdersScreen() {
     }
   };
 
+  const changeDate = (days: number) => {
+    const newDate = selectedDate ? new Date(selectedDate) : new Date();
+    newDate.setDate(newDate.getDate() + days);
+    setSelectedDate(newDate);
+    setLoading(true);
+  };
+
+  const clearDateFilter = () => {
+    setSelectedDate(null);
+    setLoading(true);
+  };
+
+  const formatDisplayDate = () => {
+    if (!selectedDate) return 'All Orders';
+    return selectedDate.toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   const renderOrder = ({ item }: any) => (
     <View style={styles.orderCard}>
       <View style={styles.orderHeader}>
