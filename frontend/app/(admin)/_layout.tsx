@@ -111,7 +111,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          href: null,
+          href: canShowTab('reports') ? undefined : null,
         }}
       />
     </Tabs>
