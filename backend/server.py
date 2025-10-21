@@ -628,30 +628,35 @@ async def get_admin_stats(current_user: User = Depends(get_current_admin)):
     completed_orders = await db.orders.find({"payment_status": "completed"}).to_list(10000)
     total_revenue = sum(order["total_amount"] for order in completed_orders)
     
-    # Calculate today's revenue
+    # Calculate revenue based on delivery date (orders created 1 day before)
     from datetime import datetime as dt, timedelta
-    today_start = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = today_start + timedelta(days=1)
+    today = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
+    # Today's revenue (orders delivered today = created yesterday)
+    yesterday_start = today - timedelta(days=1)
+    yesterday_end = today
     today_orders = await db.orders.find({
         "payment_status": "completed",
-        "created_at": {"$gte": today_start, "$lt": today_end}
+        "created_at": {"$gte": yesterday_start, "$lt": yesterday_end}
     }).to_list(10000)
     today_revenue = sum(order["total_amount"] for order in today_orders)
     
-    # Calculate this week's revenue
-    week_start = today_start - timedelta(days=today_start.weekday())
+    # This week's revenue (deliveries this week = orders created last week + this week)
+    week_start = today - timedelta(days=today.weekday())
+    # Orders created from (week_start - 1 day) onwards
+    week_order_start = week_start - timedelta(days=1)
     week_orders = await db.orders.find({
         "payment_status": "completed",
-        "created_at": {"$gte": week_start}
+        "created_at": {"$gte": week_order_start, "$lt": today}
     }).to_list(10000)
     week_revenue = sum(order["total_amount"] for order in week_orders)
     
-    # Calculate this month's revenue
-    month_start = today_start.replace(day=1)
+    # This month's revenue (deliveries this month = orders created from last day of prev month)
+    month_start = today.replace(day=1)
+    month_order_start = month_start - timedelta(days=1)
     month_orders = await db.orders.find({
         "payment_status": "completed",
-        "created_at": {"$gte": month_start}
+        "created_at": {"$gte": month_order_start, "$lt": today}
     }).to_list(10000)
     month_revenue = sum(order["total_amount"] for order in month_orders)
     
