@@ -35,6 +35,7 @@ async def create_admin():
         "email": "admin@divinecakery.in",
         "phone": "9999999999",
         "role": "admin",
+        "admin_access_level": "full",
         "business_name": "Divine Cakery",
         "address": "BNRA 161, Bhagawathi Nagar, NCC Road, Thiruvananthapuram, Kerala",
         "wallet_balance": 0.0,
