@@ -441,8 +441,23 @@ async def create_order(
 
 
 @api_router.get("/orders", response_model=List[Order])
-async def get_orders(current_user: User = Depends(get_current_user)):
+async def get_orders(
+    delivery_date: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
     query = {"user_id": current_user.id} if current_user.role != UserRole.ADMIN else {}
+    
+    # Add delivery date filter if provided
+    if delivery_date:
+        try:
+            # Parse the date string and create start and end of day
+            filter_date = datetime.fromisoformat(delivery_date.replace('Z', '+00:00'))
+            start_of_day = filter_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_day = filter_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+            query["delivery_date"] = {"$gte": start_of_day, "$lte": end_of_day}
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format")
+    
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
     return [Order(**order) for order in orders]
 
