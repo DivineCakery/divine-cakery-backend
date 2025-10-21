@@ -350,10 +350,18 @@ export default function ManageDiscountsScreen() {
                 onChangeText={(text) => setFormData({ ...formData, end_date: text })}
               />
 
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>
-                  {editingDiscount ? 'Update' : 'Create'} Discount
-                </Text>
+              <TouchableOpacity 
+                style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+                onPress={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.saveButtonText}>
+                    {editingDiscount ? 'Update' : 'Create'} Discount
+                  </Text>
+                )}
               </TouchableOpacity>
             </ScrollView>
           </TouchableOpacity>
