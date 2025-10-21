@@ -139,14 +139,52 @@ class Order(BaseModel):
     id: str
     user_id: str
     items: List[OrderItem]
-    total_amount: float
+    subtotal: float  # Amount before delivery charge and discount
+    delivery_charge: float = 0.0
+    discount_amount: float = 0.0
+    total_amount: float  # Final amount after delivery and discount
     payment_method: str
     payment_status: str = "pending"
     order_status: OrderStatus = OrderStatus.PENDING
+    order_type: str = "delivery"  # "delivery" or "pickup"
     delivery_address: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+
+# Discount Models
+class DiscountType(str, Enum):
+    PERCENTAGE = "percentage"
+    FIXED = "fixed"
+
+
+class Discount(BaseModel):
+    id: str
+    customer_id: str
+    discount_type: DiscountType
+    discount_value: float  # Percentage (0-100) or fixed amount
+    start_date: datetime
+    end_date: datetime
+    is_active: bool = True
+    created_at: datetime
+    updated_at: datetime
+
+
+class DiscountCreate(BaseModel):
+    customer_id: str
+    discount_type: DiscountType
+    discount_value: float
+    start_date: datetime
+    end_date: datetime
+
+
+class DiscountUpdate(BaseModel):
+    discount_type: Optional[DiscountType] = None
+    discount_value: Optional[float] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    is_active: Optional[bool] = None
 
 
 # Wallet Models
