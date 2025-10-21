@@ -44,6 +44,7 @@ export default function AdminLayout() {
         name="dashboard"
         options={{
           title: 'Dashboard',
+          href: canShowTab('dashboard') ? undefined : null,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="view-dashboard" size={size} color={color} />
           ),
