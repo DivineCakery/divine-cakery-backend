@@ -116,7 +116,7 @@ export default function CheckoutScreen() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!deliveryAddress.trim()) {
+    if (orderType === 'delivery' && !deliveryAddress.trim()) {
       Alert.alert('Error', 'Please enter delivery address');
       return;
     }
@@ -151,7 +151,8 @@ export default function CheckoutScreen() {
     }
   };
 
-  const proceedWithOrder = async () => {    setPlacing(true);
+  const proceedWithOrder = async () => {
+    setPlacing(true);
     try {
       const orderData = {
         items: items.map(item => ({
@@ -161,9 +162,13 @@ export default function CheckoutScreen() {
           price: item.price,
           subtotal: item.subtotal,
         })),
+        subtotal: subtotal,
+        delivery_charge: appliedDeliveryCharge,
+        discount_amount: discountAmount,
         total_amount: totalAmount,
         payment_method: paymentMethod,
-        delivery_address: deliveryAddress,
+        order_type: orderType,
+        delivery_address: orderType === 'delivery' ? deliveryAddress : undefined,
         notes: notes || undefined,
       };
 
