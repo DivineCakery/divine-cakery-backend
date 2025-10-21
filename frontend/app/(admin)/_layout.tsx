@@ -116,13 +116,19 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
-        name="delivery-notes"
+        name="manage-discounts"
         options={{
           href: null,
         }}
       />
       <Tabs.Screen
-        name="reports"
+        name="delivery-settings"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="delivery-notes"
         options={{
           href: null,
         }}
