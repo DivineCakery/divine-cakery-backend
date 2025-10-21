@@ -260,6 +260,27 @@ export default function CheckoutScreen() {
               </Text>
             </View>
           ))}
+          <View style={styles.divider} />
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Subtotal:</Text>
+            <Text style={styles.priceValue}>₹{subtotal.toFixed(2)}</Text>
+          </View>
+          {orderType === 'delivery' && (
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Delivery Charge:</Text>
+              <Text style={styles.priceValue}>₹{appliedDeliveryCharge.toFixed(2)}</Text>
+            </View>
+          )}
+          {discount?.has_discount && (
+            <View style={styles.priceRow}>
+              <Text style={[styles.priceLabel, styles.discountText]}>
+                Discount ({discount.discount.discount_type === 'percentage' 
+                  ? `${discount.discount.discount_value}%` 
+                  : `₹${discount.discount.discount_value}`}):
+              </Text>
+              <Text style={[styles.priceValue, styles.discountText]}>-₹{discountAmount.toFixed(2)}</Text>
+            </View>
+          )}
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total Amount:</Text>
             <Text style={styles.totalAmount}>₹{totalAmount.toFixed(2)}</Text>
@@ -268,6 +289,51 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Order Type</Text>
+        <View style={styles.orderTypeContainer}>
+          <TouchableOpacity
+            style={[styles.orderTypeButton, orderType === 'delivery' && styles.orderTypeButtonActive]}
+            onPress={() => setOrderType('delivery')}
+          >
+            <Ionicons 
+              name="bicycle" 
+              size={24} 
+              color={orderType === 'delivery' ? '#fff' : '#8B4513'} 
+            />
+            <Text style={[styles.orderTypeText, orderType === 'delivery' && styles.orderTypeTextActive]}>
+              Delivery
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.orderTypeButton, orderType === 'pickup' && styles.orderTypeButtonActive]}
+            onPress={() => setOrderType('pickup')}
+          >
+            <Ionicons 
+              name="basket" 
+              size={24} 
+              color={orderType === 'pickup' ? '#fff' : '#8B4513'} 
+            />
+            <Text style={[styles.orderTypeText, orderType === 'pickup' && styles.orderTypeTextActive]}>
+              Pickup
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {orderType === 'delivery' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Expected Delivery</Text>
+          <View style={styles.card}>
+            <View style={styles.deliveryInfo}>
+              <Ionicons name="calendar" size={20} color="#8B4513" />
+              <Text style={styles.deliveryText}>{getDeliveryDate()}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {orderType === 'delivery' && (
         <Text style={styles.sectionTitle}>Delivery Date</Text>
         <View style={styles.deliveryDateCard}>
           <Ionicons name="calendar" size={24} color="#8B4513" />
