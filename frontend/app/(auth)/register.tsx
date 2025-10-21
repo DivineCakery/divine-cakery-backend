@@ -157,6 +157,7 @@ export default function RegisterScreen() {
               value={formData.password}
               onChangeText={(text) => setFormData({ ...formData, password: text })}
               secureTextEntry
+              autoCapitalize="none"
               editable={!loading}
             />
           </View>
@@ -169,6 +170,7 @@ export default function RegisterScreen() {
               value={formData.confirmPassword}
               onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
               secureTextEntry
+              autoCapitalize="none"
               editable={!loading}
             />
           </View>
