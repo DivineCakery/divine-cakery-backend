@@ -97,6 +97,7 @@ export default function RegisterScreen() {
               value={formData.username}
               onChangeText={(text) => setFormData({ ...formData, username: text })}
               autoCapitalize="none"
+              autoCorrect={false}
               editable={!loading}
             />
           </View>
