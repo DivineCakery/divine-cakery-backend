@@ -82,6 +82,9 @@ export default function ManageDiscountsScreen() {
   };
 
   const handleSave = async () => {
+    console.log('handleSave called');
+    console.log('Form data:', formData);
+    
     if (!formData.customer_id || !formData.discount_value || !formData.start_date || !formData.end_date) {
       Alert.alert('Error', 'Please fill all fields');
       return;
@@ -98,6 +101,7 @@ export default function ManageDiscountsScreen() {
       return;
     }
 
+    setSaving(true);
     try {
       const discountData = {
         customer_id: formData.customer_id,
@@ -106,6 +110,8 @@ export default function ManageDiscountsScreen() {
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
       };
+
+      console.log('Sending discount data:', discountData);
 
       if (editingDiscount) {
         await apiService.updateDiscount(editingDiscount.id, discountData);
@@ -119,7 +125,10 @@ export default function ManageDiscountsScreen() {
       fetchDiscounts();
     } catch (error: any) {
       console.error('Error saving discount:', error);
+      console.error('Error response:', error.response?.data);
       Alert.alert('Error', error.response?.data?.detail || 'Failed to save discount');
+    } finally {
+      setSaving(false);
     }
   };
 
