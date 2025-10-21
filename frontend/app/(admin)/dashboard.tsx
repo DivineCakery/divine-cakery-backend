@@ -104,112 +104,116 @@ export default function DashboardScreen() {
       </View>
 
       <View style={styles.statsContainer}>
-        <View style={styles.statsRow}>
-          <TouchableOpacity 
-            style={[styles.statCard, { backgroundColor: '#4CAF50' }]}
-            onPress={() => router.push('/(admin)/manage-users')}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="account-group" size={40} color="#fff" />
-            <Text style={styles.statNumber}>{stats?.total_users || 0}</Text>
-            <Text style={styles.statLabel}>Total Customers</Text>
-            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-          </TouchableOpacity>
+        {(accessLevel === 'full' || accessLevel === 'limited') && (
+          <>
+            <View style={styles.statsRow}>
+              <TouchableOpacity 
+                style={[styles.statCard, { backgroundColor: '#4CAF50' }]}
+                onPress={() => router.push('/(admin)/manage-users')}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="account-group" size={40} color="#fff" />
+                <Text style={styles.statNumber}>{stats?.total_users || 0}</Text>
+                <Text style={styles.statLabel}>Total Customers</Text>
+                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+              </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.statCard, { backgroundColor: '#2196F3' }]}
-            onPress={() => router.push('/(admin)/manage-products')}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="bread-slice" size={40} color="#fff" />
-            <Text style={styles.statNumber}>{stats?.total_products || 0}</Text>
-            <Text style={styles.statLabel}>Products</Text>
-            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-          </TouchableOpacity>
-        </View>
+              <TouchableOpacity 
+                style={[styles.statCard, { backgroundColor: '#2196F3' }]}
+                onPress={() => router.push('/(admin)/manage-products')}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="bread-slice" size={40} color="#fff" />
+                <Text style={styles.statNumber}>{stats?.total_products || 0}</Text>
+                <Text style={styles.statLabel}>Products</Text>
+                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+              </TouchableOpacity>
+            </View>
 
-        <View style={styles.statsRow}>
-          <TouchableOpacity 
-            style={[styles.statCard, { backgroundColor: '#FF9800' }]}
-            onPress={() => router.push('/(admin)/manage-orders')}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons name="clipboard-text" size={40} color="#fff" />
-            <Text style={styles.statNumber}>{stats?.total_orders || 0}</Text>
-            <Text style={styles.statLabel}>Total Orders</Text>
-            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-          </TouchableOpacity>
+            <View style={styles.statsRow}>
+              <TouchableOpacity 
+                style={[styles.statCard, { backgroundColor: '#FF9800' }]}
+                onPress={() => router.push('/(admin)/manage-orders')}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="clipboard-text" size={40} color="#fff" />
+                <Text style={styles.statNumber}>{stats?.total_orders || 0}</Text>
+                <Text style={styles.statLabel}>Total Orders</Text>
+                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+              </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.statCard, { backgroundColor: '#f44336' }]}
-            onPress={() => router.push('/(admin)/manage-orders')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="time" size={40} color="#fff" />
-            <Text style={styles.statNumber}>{stats?.pending_orders || 0}</Text>
-            <Text style={styles.statLabel}>Pending Orders</Text>
-            <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-          </TouchableOpacity>
-        </View>
+              <TouchableOpacity 
+                style={[styles.statCard, { backgroundColor: '#f44336' }]}
+                onPress={() => router.push('/(admin)/manage-orders')}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="time" size={40} color="#fff" />
+                <Text style={styles.statNumber}>{stats?.pending_orders || 0}</Text>
+                <Text style={styles.statLabel}>Pending Orders</Text>
+                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+              </TouchableOpacity>
+            </View>
 
-        <View style={[styles.revenueCard, { backgroundColor: '#8B4513' }]}>
-          <Ionicons name="cash" size={50} color="#fff" />
-          <Text style={styles.revenueLabel}>Total Revenue</Text>
-          <Text style={styles.revenueAmount}>
-            ₹{stats?.total_revenue?.toFixed(2) || '0.00'}
-          </Text>
-          <Text style={styles.revenueSubtext}>From all completed orders</Text>
-        </View>
+            <View style={[styles.revenueCard, { backgroundColor: '#8B4513' }]}>
+              <Ionicons name="cash" size={50} color="#fff" />
+              <Text style={styles.revenueLabel}>Total Revenue</Text>
+              <Text style={styles.revenueAmount}>
+                ₹{stats?.total_revenue?.toFixed(2) || '0.00'}
+              </Text>
+              <Text style={styles.revenueSubtext}>From all completed orders</Text>
+            </View>
 
-        <View style={styles.revenueBreakdown}>
-          <Text style={styles.breakdownTitle}>Revenue Breakdown</Text>
-          <View style={styles.breakdownCard}>
-            <View style={styles.breakdownRow}>
-              <View style={styles.breakdownItem}>
-                <Ionicons name="today" size={24} color="#4CAF50" />
-                <Text style={styles.breakdownLabel}>Today</Text>
-                <Text style={styles.breakdownValue}>₹{stats?.today_revenue?.toFixed(2) || '0.00'}</Text>
-              </View>
-              <View style={styles.breakdownDivider} />
-              <View style={styles.breakdownItem}>
-                <Ionicons name="calendar" size={24} color="#2196F3" />
-                <Text style={styles.breakdownLabel}>This Week</Text>
-                <Text style={styles.breakdownValue}>₹{stats?.week_revenue?.toFixed(2) || '0.00'}</Text>
+            <View style={styles.revenueBreakdown}>
+              <Text style={styles.breakdownTitle}>Revenue Breakdown</Text>
+              <View style={styles.breakdownCard}>
+                <View style={styles.breakdownRow}>
+                  <View style={styles.breakdownItem}>
+                    <Ionicons name="today" size={24} color="#4CAF50" />
+                    <Text style={styles.breakdownLabel}>Today</Text>
+                    <Text style={styles.breakdownValue}>₹{stats?.today_revenue?.toFixed(2) || '0.00'}</Text>
+                  </View>
+                  <View style={styles.breakdownDivider} />
+                  <View style={styles.breakdownItem}>
+                    <Ionicons name="calendar" size={24} color="#2196F3" />
+                    <Text style={styles.breakdownLabel}>This Week</Text>
+                    <Text style={styles.breakdownValue}>₹{stats?.week_revenue?.toFixed(2) || '0.00'}</Text>
+                  </View>
+                </View>
+                <View style={styles.breakdownDivider2} />
+                <View style={styles.breakdownRow}>
+                  <View style={styles.breakdownItem}>
+                    <Ionicons name="calendar-outline" size={24} color="#FF9800" />
+                    <Text style={styles.breakdownLabel}>This Month</Text>
+                    <Text style={styles.breakdownValue}>₹{stats?.month_revenue?.toFixed(2) || '0.00'}</Text>
+                  </View>
+                </View>
               </View>
             </View>
-            <View style={styles.breakdownDivider2} />
-            <View style={styles.breakdownRow}>
-              <View style={styles.breakdownItem}>
-                <Ionicons name="calendar-outline" size={24} color="#FF9800" />
-                <Text style={styles.breakdownLabel}>This Month</Text>
-                <Text style={styles.breakdownValue}>₹{stats?.month_revenue?.toFixed(2) || '0.00'}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
 
-        <View style={styles.dailyRevenueSection}>
-          <Text style={styles.dailyRevenueTitle}>Last 7 Days Revenue</Text>
-          {dailyRevenue.map((day, index) => (
-            <View key={index} style={styles.dailyRevenueCard}>
-              <View style={styles.dailyRevenueLeft}>
-                <Text style={styles.dailyRevenueDay}>{day.day_name}</Text>
-                <Text style={styles.dailyRevenueDate}>
-                  {new Date(day.date).toLocaleDateString('en-IN', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
-                </Text>
-              </View>
-              <View style={styles.dailyRevenueRight}>
-                <Text style={styles.dailyRevenueAmount}>₹{day.revenue.toFixed(2)}</Text>
-                <Text style={styles.dailyRevenueOrders}>
-                  {day.order_count} order{day.order_count !== 1 ? 's' : ''}
-                </Text>
-              </View>
+            <View style={styles.dailyRevenueSection}>
+              <Text style={styles.dailyRevenueTitle}>Last 7 Days Revenue</Text>
+              {dailyRevenue.map((day, index) => (
+                <View key={index} style={styles.dailyRevenueCard}>
+                  <View style={styles.dailyRevenueLeft}>
+                    <Text style={styles.dailyRevenueDay}>{day.day_name}</Text>
+                    <Text style={styles.dailyRevenueDate}>
+                      {new Date(day.date).toLocaleDateString('en-IN', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </Text>
+                  </View>
+                  <View style={styles.dailyRevenueRight}>
+                    <Text style={styles.dailyRevenueAmount}>₹{day.revenue.toFixed(2)}</Text>
+                    <Text style={styles.dailyRevenueOrders}>
+                      {day.order_count} order{day.order_count !== 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </>
+        )}
 
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>
