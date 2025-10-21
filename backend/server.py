@@ -857,6 +857,128 @@ app.add_middleware(
 )
 
 
+# Delivery Charge Settings Endpoints
+@api_router.get("/admin/settings/delivery-charge")
+async def get_delivery_charge(current_user: User = Depends(get_current_admin)):
+    """Get current delivery charge"""
+    settings = await db.settings.find_one({"key": "delivery_charge"})
+    if not settings:
+        # Create default setting
+        await db.settings.insert_one({"key": "delivery_charge", "value": 0.0})
+        return {"delivery_charge": 0.0}
+    return {"delivery_charge": settings.get("value", 0.0)}
+
+
+@api_router.put("/admin/settings/delivery-charge")
+async def update_delivery_charge(
+    delivery_charge: float,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update delivery charge"""
+    await db.settings.update_one(
+        {"key": "delivery_charge"},
+        {"$set": {"value": delivery_charge}},
+        upsert=True
+    )
+    return {"message": "Delivery charge updated", "delivery_charge": delivery_charge}
+
+
+# Discount Management Endpoints
+@api_router.get("/admin/discounts", response_model=List[Discount])
+async def get_all_discounts(current_user: User = Depends(get_current_admin)):
+    """Get all discounts"""
+    from models import Discount
+    discounts = await db.discounts.find().to_list(1000)
+    return [Discount(**discount) for discount in discounts]
+
+
+@api_router.get("/admin/discounts/customer/{customer_id}")
+async def get_customer_discount(
+    customer_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get active discount for a customer"""
+    from datetime import datetime as dt
+    now = dt.utcnow()
+    
+    discount = await db.discounts.find_one({
+        "customer_id": customer_id,
+        "is_active": True,
+        "start_date": {"$lte": now},
+        "end_date": {"$gte": now}
+    })
+    
+    if not discount:
+        return {"has_discount": False}
+    
+    from models import Discount
+    return {
+        "has_discount": True,
+        "discount": Discount(**discount)
+    }
+
+
+@api_router.post("/admin/discounts", response_model=Discount)
+async def create_discount(
+    discount_data: DiscountCreate,
+    current_user: User = Depends(get_current_admin)
+):
+    """Create a new discount"""
+    import uuid
+    from datetime import datetime as dt
+    from models import Discount
+    
+    discount_dict = {
+        "id": str(uuid.uuid4()),
+        **discount_data.dict(),
+        "is_active": True,
+        "created_at": dt.utcnow(),
+        "updated_at": dt.utcnow()
+    }
+    
+    await db.discounts.insert_one(discount_dict)
+    return Discount(**discount_dict)
+
+
+@api_router.put("/admin/discounts/{discount_id}", response_model=Discount)
+async def update_discount(
+    discount_id: str,
+    discount_data: DiscountUpdate,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update a discount"""
+    from datetime import datetime as dt
+    from models import Discount
+    
+    update_data = {k: v for k, v in discount_data.dict().items() if v is not None}
+    update_data["updated_at"] = dt.utcnow()
+    
+    result = await db.discounts.update_one(
+        {"id": discount_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Discount not found")
+    
+    discount = await db.discounts.find_one({"id": discount_id})
+    return Discount(**discount)
+
+
+@api_router.delete("/admin/discounts/{discount_id}")
+async def delete_discount(
+    discount_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Delete a discount"""
+    result = await db.discounts.delete_one({"id": discount_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Discount not found")
+    
+    return {"message": "Discount deleted successfully"}
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
