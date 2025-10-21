@@ -63,16 +63,29 @@ export default function ManageUsersScreen() {
     );
   };
 
-  const renderUser = ({ item }: any) => (
+  const renderUser = ({ item }: any) => {
+    const isAdmin = item.role === 'admin';
+    const accessLevelLabel = item.admin_access_level === 'full' ? 'Full Access' 
+      : item.admin_access_level === 'limited' ? 'Limited Access' 
+      : item.admin_access_level === 'reports_only' ? 'Reports Only' 
+      : '';
+    
+    return (
     <View style={styles.userCard}>
       <View style={styles.userHeader}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={30} color="#8B4513" />
+        <View style={[styles.avatar, isAdmin && styles.adminAvatar]}>
+          <Ionicons name={isAdmin ? "shield-checkmark" : "person"} size={30} color={isAdmin ? "#fff" : "#8B4513"} />
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.username}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.userName}>{item.username}</Text>
+            {isAdmin && <Text style={styles.adminBadge}>ADMIN</Text>}
+          </View>
           {item.business_name && (
             <Text style={styles.businessName}>{item.business_name}</Text>
+          )}
+          {isAdmin && accessLevelLabel && (
+            <Text style={styles.accessLevel}>{accessLevelLabel}</Text>
           )}
         </View>
       </View>
@@ -81,16 +94,18 @@ export default function ManageUsersScreen() {
       {item.phone && <Text style={styles.infoText}>Phone: {item.phone}</Text>}
       {item.address && <Text style={styles.infoText}>Address: {item.address}</Text>}
       
-      <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Wallet</Text>
-          <Text style={styles.statValue}>₹{item.wallet_balance?.toFixed(2)}</Text>
+      {!isAdmin && (
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Wallet</Text>
+            <Text style={styles.statValue}>₹{item.wallet_balance?.toFixed(2)}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Joined</Text>
+            <Text style={styles.statValue}>{new Date(item.created_at).toLocaleDateString()}</Text>
+          </View>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Joined</Text>
-          <Text style={styles.statValue}>{new Date(item.created_at).toLocaleDateString()}</Text>
-        </View>
-      </View>
+      )}
 
       <View style={styles.actionButtons}>
         <TouchableOpacity
@@ -110,7 +125,7 @@ export default function ManageUsersScreen() {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  );};
 
   if (loading) {
     return (
