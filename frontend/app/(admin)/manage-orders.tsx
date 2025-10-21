@@ -180,7 +180,7 @@ export default function ManageOrdersScreen() {
               <Text style={styles.itemName}>{orderItem.product_name}</Text>
               <Text style={styles.itemQuantity}>Qty: {orderItem.quantity} × ₹{orderItem.price.toFixed(2)}</Text>
             </View>
-            <Text style={styles.itemTotal}>₹{orderItem.subtotal.toFixed(2)}</Text>
+            <Text style={styles.itemTotal}>₹{(orderItem.subtotal || orderItem.quantity * orderItem.price).toFixed(2)}</Text>
           </View>
         ))}
       </View>
