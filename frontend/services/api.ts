@@ -117,8 +117,10 @@ class ApiService {
     return response.data;
   }
 
-  async getOrders() {
-    const response = await this.api.get('/orders');
+  async getOrders(deliveryDate?: string) {
+    const params: any = {};
+    if (deliveryDate) params.delivery_date = deliveryDate;
+    const response = await this.api.get('/orders', { params });
     return response.data;
   }
 
