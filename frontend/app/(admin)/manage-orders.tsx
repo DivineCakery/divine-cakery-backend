@@ -99,10 +99,38 @@ export default function ManageOrdersScreen() {
         <Text style={styles.orderAmount}>₹{item.total_amount.toFixed(2)}</Text>
       </View>
 
+      {/* Customer Information */}
+      <View style={styles.customerSection}>
+        <View style={styles.customerHeader}>
+          <Ionicons name="person-circle" size={20} color="#8B4513" />
+          <Text style={styles.customerTitle}>Customer</Text>
+        </View>
+        <Text style={styles.customerName}>{item.user_name || 'N/A'}</Text>
+        {item.delivery_address && (
+          <Text style={styles.customerAddress}>{item.delivery_address}</Text>
+        )}
+      </View>
+
+      {/* Items List */}
+      <View style={styles.itemsSection}>
+        <View style={styles.itemsHeader}>
+          <Ionicons name="cart" size={18} color="#8B4513" />
+          <Text style={styles.itemsTitle}>Items Ordered</Text>
+        </View>
+        {item.items && item.items.map((orderItem: any, index: number) => (
+          <View key={index} style={styles.itemRow}>
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemName}>{orderItem.product_name}</Text>
+              <Text style={styles.itemQuantity}>Qty: {orderItem.quantity} × ₹{orderItem.price.toFixed(2)}</Text>
+            </View>
+            <Text style={styles.itemTotal}>₹{orderItem.subtotal.toFixed(2)}</Text>
+          </View>
+        ))}
+      </View>
+
       <View style={styles.orderDetails}>
-        <Text style={styles.detailText}>Items: {item.items.length}</Text>
         <Text style={styles.detailText}>Payment: {item.payment_method}</Text>
-        <Text style={styles.detailText}>Date: {new Date(item.created_at).toLocaleDateString()}</Text>
+        <Text style={styles.detailText}>Date: {new Date(item.created_at).toLocaleDateString('en-IN')}</Text>
       </View>
 
       <View style={styles.statusContainer}>
