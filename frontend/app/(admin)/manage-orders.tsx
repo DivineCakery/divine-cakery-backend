@@ -87,6 +87,7 @@ export default function ManageOrdersScreen() {
   };
 
   const cancelOrder = async (orderId: string) => {
+    console.log('Cancel Order clicked for:', orderId);
     Alert.alert(
       'Cancel Order',
       'Are you sure you want to cancel this order? This action cannot be undone.',
@@ -96,14 +97,17 @@ export default function ManageOrdersScreen() {
           text: 'Yes, Cancel Order',
           style: 'destructive',
           onPress: async () => {
+            console.log('User confirmed cancellation');
             try {
               await apiService.updateOrder(orderId, { 
                 order_status: 'cancelled',
                 payment_status: 'cancelled'
               });
+              console.log('Order cancelled successfully');
               await fetchOrders();
               Alert.alert('Success', 'Order has been cancelled');
             } catch (error) {
+              console.error('Error cancelling order:', error);
               Alert.alert('Error', 'Failed to cancel order');
             }
           },
