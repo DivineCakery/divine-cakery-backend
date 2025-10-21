@@ -23,7 +23,7 @@ export default function DeliverySettingsScreen() {
 
   const fetchDeliveryCharge = async () => {
     try {
-      const data = await apiService.getDeliveryCharge();
+      const data = await apiService.getDeliveryChargeAdmin();
       setDeliveryCharge(data.delivery_charge.toString());
     } catch (error) {
       console.error('Error fetching delivery charge:', error);
