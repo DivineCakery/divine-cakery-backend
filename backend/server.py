@@ -773,9 +773,10 @@ async def get_daily_items_report(
     day_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
     day_end = day_start + timedelta(days=1)
     
-    # Get all orders for the day
+    # Get all orders for the day (excluding cancelled orders)
     orders = await db.orders.find({
-        "created_at": {"$gte": day_start, "$lt": day_end}
+        "created_at": {"$gte": day_start, "$lt": day_end},
+        "order_status": {"$ne": OrderStatus.CANCELLED}
     }).to_list(10000)
     
     # Aggregate items
