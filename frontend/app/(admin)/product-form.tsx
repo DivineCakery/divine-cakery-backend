@@ -35,6 +35,7 @@ export default function ProductFormScreen() {
     unit: 'piece',
     description: '',
     remarks: '',
+    image_base64: '',
   });
 
   useEffect(() => {
