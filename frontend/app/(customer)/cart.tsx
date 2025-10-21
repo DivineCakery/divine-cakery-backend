@@ -38,11 +38,21 @@ export default function CartScreen() {
     );
   };
 
-  // Calculate delivery date (1 day from now)
+  // Calculate delivery date based on order time
+  // Orders before 4 AM: same day delivery
+  // Orders after 4 AM: next day delivery
   const getDeliveryDate = () => {
-    const today = new Date();
-    const deliveryDate = new Date(today);
-    deliveryDate.setDate(today.getDate() + 1);
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    const deliveryDate = new Date(now);
+    
+    // If order is placed after 4 AM, add 1 day
+    if (currentHour >= 4) {
+      deliveryDate.setDate(now.getDate() + 1);
+    }
+    // If before 4 AM, delivery is same day (no change needed)
+    
     return deliveryDate.toLocaleDateString('en-IN', { 
       weekday: 'long', 
       year: 'numeric', 
