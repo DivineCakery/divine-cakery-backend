@@ -518,6 +518,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  divider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 10,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  priceLabel: {
+    fontSize: 15,
+    color: '#666',
+  },
+  priceValue: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '500',
+  },
+  discountText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
