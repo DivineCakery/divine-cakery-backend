@@ -226,17 +226,43 @@ export default function DashboardScreen() {
           )}
 
           {accessLevel === 'full' && (
-            <TouchableOpacity
-              style={[styles.settingsButton, { marginTop: 10 }]}
-              onPress={() => router.push('/(admin)/delivery-notes' as any)}
-            >
-              <Ionicons name="notifications-outline" size={24} color="#8B4513" />
-              <View style={styles.settingsButtonText}>
-                <Text style={styles.settingsButtonTitle}>Delivery Notes</Text>
-                <Text style={styles.settingsButtonSubtitle}>Manage customer delivery notifications</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#999" />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/manage-discounts' as any)}
+              >
+                <Ionicons name="pricetag-outline" size={24} color="#8B4513" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Manage Discounts</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Create and manage customer discounts</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/delivery-settings' as any)}
+              >
+                <Ionicons name="bicycle-outline" size={24} color="#8B4513" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Delivery Settings</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Configure delivery charges</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/delivery-notes' as any)}
+              >
+                <Ionicons name="notifications-outline" size={24} color="#8B4513" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Delivery Notes</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Manage customer delivery notifications</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </View>
