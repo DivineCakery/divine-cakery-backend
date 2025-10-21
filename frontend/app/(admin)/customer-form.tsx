@@ -204,22 +204,116 @@ export default function CustomerFormScreen() {
             editable={!loading}
           />
 
-          <View style={styles.toggleContainer}>
-            <View style={styles.toggleLabel}>
-              <Ionicons name="wallet" size={20} color="#8B4513" />
-              <Text style={styles.label}>Allow Wallet Top-up</Text>
-            </View>
+          <Text style={styles.label}>User Role</Text>
+          <View style={styles.roleSelector}>
             <TouchableOpacity
-              style={[styles.toggleButton, formData.can_topup_wallet && styles.toggleButtonActive]}
-              onPress={() => setFormData({ ...formData, can_topup_wallet: !formData.can_topup_wallet })}
+              style={[styles.roleOption, formData.role === 'customer' && styles.roleOptionActive]}
+              onPress={() => setFormData({ ...formData, role: 'customer' })}
               disabled={loading}
             >
-              <View style={[styles.toggleCircle, formData.can_topup_wallet && styles.toggleCircleActive]} />
+              <Ionicons 
+                name="person" 
+                size={20} 
+                color={formData.role === 'customer' ? '#fff' : '#8B4513'} 
+              />
+              <Text style={[styles.roleText, formData.role === 'customer' && styles.roleTextActive]}>
+                Customer
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.roleOption, formData.role === 'admin' && styles.roleOptionActive]}
+              onPress={() => setFormData({ ...formData, role: 'admin' })}
+              disabled={loading}
+            >
+              <Ionicons 
+                name="shield-checkmark" 
+                size={20} 
+                color={formData.role === 'admin' ? '#fff' : '#8B4513'} 
+              />
+              <Text style={[styles.roleText, formData.role === 'admin' && styles.roleTextActive]}>
+                Admin
+              </Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.hint}>
-            {formData.can_topup_wallet ? 'Customer can add money to wallet' : 'Customer cannot add money to wallet'}
-          </Text>
+
+          {formData.role === 'admin' && (
+            <>
+              <Text style={styles.label}>Admin Access Level</Text>
+              <View style={styles.accessLevelContainer}>
+                <TouchableOpacity
+                  style={[styles.accessOption, formData.admin_access_level === 'full' && styles.accessOptionActive]}
+                  onPress={() => setFormData({ ...formData, admin_access_level: 'full' })}
+                  disabled={loading}
+                >
+                  <Ionicons 
+                    name="shield-checkmark" 
+                    size={18} 
+                    color={formData.admin_access_level === 'full' ? '#fff' : '#8B4513'} 
+                  />
+                  <Text style={[styles.accessText, formData.admin_access_level === 'full' && styles.accessTextActive]}>
+                    Full Access
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.accessOption, formData.admin_access_level === 'limited' && styles.accessOptionActive]}
+                  onPress={() => setFormData({ ...formData, admin_access_level: 'limited' })}
+                  disabled={loading}
+                >
+                  <Ionicons 
+                    name="shield-half" 
+                    size={18} 
+                    color={formData.admin_access_level === 'limited' ? '#fff' : '#8B4513'} 
+                  />
+                  <Text style={[styles.accessText, formData.admin_access_level === 'limited' && styles.accessTextActive]}>
+                    Limited Access
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.accessOption, formData.admin_access_level === 'reports_only' && styles.accessOptionActive]}
+                  onPress={() => setFormData({ ...formData, admin_access_level: 'reports_only' })}
+                  disabled={loading}
+                >
+                  <Ionicons 
+                    name="stats-chart" 
+                    size={18} 
+                    color={formData.admin_access_level === 'reports_only' ? '#fff' : '#8B4513'} 
+                  />
+                  <Text style={[styles.accessText, formData.admin_access_level === 'reports_only' && styles.accessTextActive]}>
+                    Reports Only
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.hint}>
+                {formData.admin_access_level === 'full' && 'Full access to all admin features'}
+                {formData.admin_access_level === 'limited' && 'Can manage orders but not users or products'}
+                {formData.admin_access_level === 'reports_only' && 'Can only view reports and revenue data'}
+              </Text>
+            </>
+          )}
+
+          {formData.role === 'customer' && (
+            <>
+              <View style={styles.toggleContainer}>
+                <View style={styles.toggleLabel}>
+                  <Ionicons name="wallet" size={20} color="#8B4513" />
+                  <Text style={styles.label}>Allow Wallet Top-up</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.toggleButton, formData.can_topup_wallet && styles.toggleButtonActive]}
+                  onPress={() => setFormData({ ...formData, can_topup_wallet: !formData.can_topup_wallet })}
+                  disabled={loading}
+                >
+                  <View style={[styles.toggleCircle, formData.can_topup_wallet && styles.toggleCircleActive]} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.hint}>
+                {formData.can_topup_wallet ? 'Customer can add money to wallet' : 'Customer cannot add money to wallet'}
+              </Text>
+            </>
+          )}
 
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
