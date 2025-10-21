@@ -821,8 +821,8 @@ async def get_daily_items_report(
     )
     
     return {
-        "date": report_date.strftime("%Y-%m-%d"),
-        "day_name": report_date.strftime("%A"),
+        "date": delivery_date.strftime("%Y-%m-%d"),
+        "day_name": delivery_date.strftime("%A"),
         "total_orders": total_orders,
         "total_revenue": total_revenue,
         "items": items_list
