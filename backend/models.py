@@ -44,6 +44,7 @@ class UserBase(BaseModel):
     business_name: Optional[str] = None
     address: Optional[str] = None
     can_topup_wallet: bool = True
+    admin_access_level: Optional[AdminAccessLevel] = AdminAccessLevel.FULL
 
 
 class UserCreate(BaseModel):
@@ -54,6 +55,7 @@ class UserCreate(BaseModel):
     business_name: Optional[str] = None
     address: Optional[str] = None
     can_topup_wallet: bool = True
+    admin_access_level: Optional[AdminAccessLevel] = AdminAccessLevel.FULL
 
 
 class UserLogin(BaseModel):
