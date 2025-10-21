@@ -9,6 +9,12 @@ class UserRole(str, Enum):
     ADMIN = "admin"
 
 
+class AdminAccessLevel(str, Enum):
+    FULL = "full"  # Full access to everything
+    LIMITED = "limited"  # Dashboard and orders only
+    REPORTS = "reports"  # Dashboard and reports only
+
+
 class OrderStatus(str, Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
