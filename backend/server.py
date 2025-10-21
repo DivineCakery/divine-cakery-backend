@@ -669,27 +669,31 @@ async def get_admin_stats(current_user: User = Depends(get_current_admin)):
 
 @api_router.get("/admin/revenue/daily")
 async def get_daily_revenue(current_user: User = Depends(get_current_admin)):
-    """Get daily revenue breakdown for the last 7 days"""
+    """Get daily revenue breakdown for the last 7 days based on delivery date"""
     from datetime import datetime as dt, timedelta
     
     today = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     daily_revenue = []
     
     for i in range(6, -1, -1):  # Last 7 days (6 days ago to today)
-        day_start = today - timedelta(days=i)
-        day_end = day_start + timedelta(days=1)
+        delivery_date = today - timedelta(days=i)
         
-        # Get orders for this day
+        # Orders created 1 day before delivery date (since delivery is next day)
+        order_date = delivery_date - timedelta(days=1)
+        order_start = order_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        order_end = order_start + timedelta(days=1)
+        
+        # Get orders created on order_date (will be delivered on delivery_date)
         day_orders = await db.orders.find({
             "payment_status": "completed",
-            "created_at": {"$gte": day_start, "$lt": day_end}
+            "created_at": {"$gte": order_start, "$lt": order_end}
         }).to_list(10000)
         
         revenue = sum(order["total_amount"] for order in day_orders)
         
         daily_revenue.append({
-            "date": day_start.strftime("%Y-%m-%d"),
-            "day_name": day_start.strftime("%A"),
+            "date": delivery_date.strftime("%Y-%m-%d"),
+            "day_name": delivery_date.strftime("%A"),
             "revenue": revenue,
             "order_count": len(day_orders)
         })
