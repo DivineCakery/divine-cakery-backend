@@ -218,7 +218,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     marginRight: 0,
   },
-  actionButtonText: { color: '#fff', fontWeight: 'bold' },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   emptyContainer: { alignItems: 'center', paddingVertical: 60 },
   emptyText: { fontSize: 18, color: '#999', marginTop: 10 },
 });
