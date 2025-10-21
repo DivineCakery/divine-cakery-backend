@@ -74,6 +74,7 @@ export default function AdminLayout() {
         name="manage-users"
         options={{
           title: 'Users',
+          href: canShowTab('manage-users') ? undefined : null,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
