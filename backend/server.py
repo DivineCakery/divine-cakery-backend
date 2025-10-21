@@ -448,13 +448,17 @@ async def get_orders(
     query = {"user_id": current_user.id} if current_user.role != UserRole.ADMIN else {}
     
     # Add delivery date filter if provided
+    # Note: Since we don't store delivery_date separately, we filter by created_at
+    # assuming delivery is 1 day after order creation
     if delivery_date:
         try:
             # Parse the date string and create start and end of day
             filter_date = datetime.fromisoformat(delivery_date.replace('Z', '+00:00'))
-            start_of_day = filter_date.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_of_day = filter_date.replace(hour=23, minute=59, second=59, microsecond=999999)
-            query["delivery_date"] = {"$gte": start_of_day, "$lte": end_of_day}
+            # Orders created the day before the delivery date
+            order_date = filter_date - timedelta(days=1)
+            start_of_day = order_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_day = order_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+            query["created_at"] = {"$gte": start_of_day, "$lte": end_of_day}
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format")
     
