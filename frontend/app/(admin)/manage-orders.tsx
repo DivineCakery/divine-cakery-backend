@@ -167,19 +167,37 @@ export default function ManageOrdersScreen() {
 
       <View style={styles.actionButtons}>
         {item.order_status === 'pending' && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.pendingButton]}
-            onPress={() => confirmOrder(item.id, item)}
-          >
-            <Ionicons name="time-outline" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Pending - Tap to Confirm</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.pendingButton]}
+              onPress={() => confirmOrder(item.id, item)}
+            >
+              <Ionicons name="time-outline" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Pending - Tap to Confirm</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={() => cancelOrder(item.id)}
+            >
+              <Ionicons name="close-circle" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </>
         )}
         {item.order_status === 'confirmed' && (
-          <View style={[styles.actionButton, styles.confirmedButton]}>
-            <Ionicons name="checkmark-circle" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Confirmed ✓</Text>
-          </View>
+          <>
+            <View style={[styles.actionButton, styles.confirmedButton]}>
+              <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Confirmed ✓</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={() => cancelOrder(item.id)}
+            >
+              <Ionicons name="close-circle" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </>
         )}
         {item.order_status === 'processing' && (
           <View style={[styles.actionButton, { backgroundColor: '#2196F3' }]}>
@@ -191,6 +209,12 @@ export default function ManageOrdersScreen() {
           <View style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}>
             <Ionicons name="checkmark-done" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Delivered</Text>
+          </View>
+        )}
+        {item.order_status === 'cancelled' && (
+          <View style={[styles.actionButton, { backgroundColor: '#999' }]}>
+            <Ionicons name="ban" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>Cancelled</Text>
           </View>
         )}
       </View>
