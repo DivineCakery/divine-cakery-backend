@@ -130,6 +130,8 @@ class OrderCreate(BaseModel):
 
 class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
+    order_status: Optional[OrderStatus] = None
+    payment_status: Optional[str] = None
     notes: Optional[str] = None
 
 
