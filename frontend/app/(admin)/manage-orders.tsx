@@ -65,6 +65,7 @@ export default function ManageOrdersScreen() {
   };
 
   const confirmOrder = async (orderId: string, order: any) => {
+    console.log('Confirm Order clicked for:', orderId);
     try {
       // Update both order status and payment status to mark as sale
       await apiService.updateOrder(orderId, { 
@@ -72,12 +73,15 @@ export default function ManageOrdersScreen() {
         payment_status: 'completed'  // Mark as completed sale
       });
       
+      console.log('Order updated successfully');
+      
       // Automatically send WhatsApp notification
       await sendWhatsAppMessage(order);
       
       await fetchOrders();
       Alert.alert('Success', 'Order confirmed and marked as sale');
     } catch (error) {
+      console.error('Error confirming order:', error);
       Alert.alert('Error', 'Failed to confirm order');
     }
   };
