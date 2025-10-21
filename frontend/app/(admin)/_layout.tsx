@@ -38,6 +38,9 @@ export default function AdminLayout() {
           left: 0,
           right: 0,
         },
+        tabBarLabelStyle: {
+          fontSize: 11,
+        },
       }}
     >
       <Tabs.Screen
@@ -81,6 +84,26 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="manage-discounts"
+        options={{
+          title: 'Discounts',
+          href: canShowTab('manage-discounts') ? undefined : null,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="pricetag" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="delivery-settings"
+        options={{
+          title: 'Delivery',
+          href: canShowTab('delivery-settings') ? undefined : null,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="admin-profile"
         options={{
           title: 'Profile',
@@ -111,7 +134,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          href: canShowTab('reports') ? undefined : null,
+          href: null,
         }}
       />
     </Tabs>
