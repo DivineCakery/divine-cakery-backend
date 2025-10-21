@@ -113,22 +113,24 @@ export default function ManageOrdersScreen() {
       <View style={styles.actionButtons}>
         {item.order_status === 'pending' && (
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
-            onPress={() => updateOrderStatus(item.id, 'confirmed', item)}
+            style={[styles.actionButton, styles.pendingButton]}
+            onPress={() => confirmOrder(item.id, item)}
           >
-            <Text style={styles.actionButtonText}>Confirm</Text>
+            <Ionicons name="time-outline" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>Pending - Tap to Confirm</Text>
           </TouchableOpacity>
         )}
         {item.order_status === 'confirmed' && (
           <>
-            <View style={[styles.actionButton, { backgroundColor: '#9E9E9E' }]}>
-              <Text style={styles.actionButtonText}>Confirmed</Text>
+            <View style={[styles.actionButton, styles.confirmedButton]}>
+              <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Confirmed ✓</Text>
             </View>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
+              style={[styles.actionButton, { backgroundColor: '#2196F3', marginTop: 8 }]}
               onPress={() => updateOrderStatus(item.id, 'processing', item)}
             >
-              <Text style={styles.actionButtonText}>Process</Text>
+              <Text style={styles.actionButtonText}>Mark as Processing</Text>
             </TouchableOpacity>
           </>
         )}
