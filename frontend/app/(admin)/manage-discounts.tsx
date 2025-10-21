@@ -18,6 +18,7 @@ export default function ManageDiscountsScreen() {
   const [discounts, setDiscounts] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingDiscount, setEditingDiscount] = useState<any>(null);
   const [formData, setFormData] = useState({
