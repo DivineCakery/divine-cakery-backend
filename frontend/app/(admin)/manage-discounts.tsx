@@ -241,16 +241,8 @@ export default function ManageDiscountsScreen() {
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <TouchableOpacity 
-            style={styles.modalContent} 
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{editingDiscount ? 'Edit' : 'Add'} Discount</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -261,7 +253,7 @@ export default function ManageDiscountsScreen() {
             <ScrollView 
               style={styles.form}
               showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps="always"
             >
               <Text style={styles.label}>Customer *</Text>
               <View style={styles.pickerContainer}>
@@ -277,7 +269,10 @@ export default function ManageDiscountsScreen() {
                         styles.customerChip,
                         formData.customer_id === u.id && styles.customerChipActive,
                       ]}
-                      onPress={() => setFormData({ ...formData, customer_id: u.id })}
+                      onPress={() => {
+                        console.log('Customer selected:', u.username);
+                        setFormData({ ...formData, customer_id: u.id });
+                      }}
                     >
                       <Text style={[
                         styles.customerChipText,
@@ -297,7 +292,10 @@ export default function ManageDiscountsScreen() {
                     styles.typeButton,
                     formData.discount_type === 'percentage' && styles.typeButtonActive,
                   ]}
-                  onPress={() => setFormData({ ...formData, discount_type: 'percentage' })}
+                  onPress={() => {
+                    console.log('Type selected: percentage');
+                    setFormData({ ...formData, discount_type: 'percentage' });
+                  }}
                 >
                   <Text style={[
                     styles.typeButtonText,
@@ -312,7 +310,10 @@ export default function ManageDiscountsScreen() {
                     styles.typeButton,
                     formData.discount_type === 'fixed' && styles.typeButtonActive,
                   ]}
-                  onPress={() => setFormData({ ...formData, discount_type: 'fixed' })}
+                  onPress={() => {
+                    console.log('Type selected: fixed');
+                    setFormData({ ...formData, discount_type: 'fixed' });
+                  }}
                 >
                   <Text style={[
                     styles.typeButtonText,
@@ -330,7 +331,10 @@ export default function ManageDiscountsScreen() {
                 style={styles.input}
                 placeholder={formData.discount_type === 'percentage' ? 'e.g. 10' : 'e.g. 50'}
                 value={formData.discount_value}
-                onChangeText={(text) => setFormData({ ...formData, discount_value: text })}
+                onChangeText={(text) => {
+                  console.log('Value changed:', text);
+                  setFormData({ ...formData, discount_value: text });
+                }}
                 keyboardType="numeric"
               />
 
@@ -352,8 +356,12 @@ export default function ManageDiscountsScreen() {
 
               <TouchableOpacity 
                 style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
-                onPress={handleSave}
+                onPress={() => {
+                  console.log('Save button pressed!');
+                  handleSave();
+                }}
                 disabled={saving}
+                activeOpacity={0.7}
               >
                 {saving ? (
                   <ActivityIndicator color="#fff" />
@@ -364,8 +372,8 @@ export default function ManageDiscountsScreen() {
                 )}
               </TouchableOpacity>
             </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );
