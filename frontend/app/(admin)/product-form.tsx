@@ -126,6 +126,7 @@ export default function ProductFormScreen() {
         unit: formData.unit,
         description: formData.description || undefined,
         remarks: formData.remarks || undefined,
+        image_base64: formData.image_base64 || undefined,
         is_available: true,
       };
 
