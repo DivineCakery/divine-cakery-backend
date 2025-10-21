@@ -132,7 +132,7 @@ export default function CustomerFormScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEdit ? 'Edit Customer' : 'Add Customer'}</Text>
+        <Text style={styles.headerTitle}>{isEdit ? 'Edit User' : 'Add User'}</Text>
         <View style={{ width: 24 }} />
       </View>
 
