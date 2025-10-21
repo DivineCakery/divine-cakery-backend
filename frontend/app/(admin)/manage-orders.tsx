@@ -355,6 +355,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 10,
     gap: 8,
+    marginBottom: 8,
   },
   pendingButton: {
     backgroundColor: '#FF9800',
@@ -363,7 +364,11 @@ const styles = StyleSheet.create({
   },
   confirmedButton: {
     backgroundColor: '#4CAF50',
-    marginRight: 0,
+    flex: 1,
+  },
+  cancelButton: {
+    backgroundColor: '#f44336',
+    minWidth: 100,
   },
   actionButtonText: {
     color: '#fff',
