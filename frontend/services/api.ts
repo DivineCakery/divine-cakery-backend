@@ -197,6 +197,11 @@ class ApiService {
 
   // Delivery Charge Settings
   async getDeliveryCharge() {
+    const response = await this.api.get('/settings/delivery-charge');
+    return response.data;
+  }
+
+  async getDeliveryChargeAdmin() {
     const response = await this.api.get('/admin/settings/delivery-charge');
     return response.data;
   }
