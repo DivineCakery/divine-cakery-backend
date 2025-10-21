@@ -174,6 +174,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Refined order status buttons: 1) Made Pending/Confirmed buttons consistent in size and shape using statusButton style 2) When order is cancelled, only 'Cancelled' badge shows (no action buttons) 3) Removed Cancel button from confirmed orders 4) Added consistent gap styling between buttons 5) All status buttons now have unified appearance with minHeight: 48"
+        - working: "NA"
+          agent: "main"
+          comment: "Fixed button uniformity and cancel functionality: 1) Applied statusButton style to Cancel button for uniform sizing with Pending/Confirmed 2) Changed Pending button text to 'Tap to Confirm' for clarity 3) Removed minWidth constraint from Cancel button to allow flex sizing 4) Both buttons in pending state now have identical dimensions with flex: 1"
 
   - task: "API service for daily revenue"
     implemented: true
