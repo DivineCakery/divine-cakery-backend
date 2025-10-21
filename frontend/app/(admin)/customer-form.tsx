@@ -30,6 +30,8 @@ export default function CustomerFormScreen() {
     business_name: '',
     address: '',
     can_topup_wallet: true,
+    role: 'customer',
+    admin_access_level: 'full',
   });
 
   useEffect(() => {
@@ -52,10 +54,12 @@ export default function CustomerFormScreen() {
           business_name: user.business_name || '',
           address: user.address || '',
           can_topup_wallet: user.can_topup_wallet !== false,
+          role: user.role || 'customer',
+          admin_access_level: user.admin_access_level || 'full',
         });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load customer');
+      Alert.alert('Error', 'Failed to load user');
       router.back();
     } finally {
       setLoading(false);
