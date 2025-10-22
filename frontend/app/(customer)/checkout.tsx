@@ -174,41 +174,78 @@ export default function CheckoutScreen() {
       };
 
       if (paymentMethod === 'upi') {
-        Alert.alert(
-          'UPI Payment',
-          `Pay ₹${totalAmount.toFixed(2)} via UPI?\\n\\nNote: Razorpay integration will be added when credentials are provided.`,
-          [
-            { text: 'Cancel', style: 'cancel', onPress: () => setPlacing(false) },
-            {
-              text: 'Simulate Payment',
-              onPress: async () => {
-                try {
-                  // Mock UPI payment success
-                  Alert.alert('Payment Simulated', 'Order will be placed with mocked payment');
-                  
-                  // Place order
-                  const response = await apiService.createOrder(orderData);
-                  
-                  clearCart();
-                  await refreshUser();
-                  
-                  // Send WhatsApp message
-                  if (response && response.id) {
-                    await sendWhatsAppMessage(response.id);
-                  }
-                  
-                  Alert.alert('Success', 'Order placed successfully! WhatsApp message sent.', [
-                    { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
-                  ]);
-                } catch (error: any) {
-                  Alert.alert('Error', error.response?.data?.detail || 'Failed to place order');
-                } finally {
-                  setPlacing(false);
-                }
-              },
+        try {
+          // Create Razorpay order
+          const paymentOrderResponse = await apiService.createPaymentOrder({
+            amount: totalAmount,
+            transaction_type: 'order_payment',
+            notes: `Order payment for ${items.length} items`
+          });
+
+          // Razorpay checkout options
+          const options = {
+            description: 'Divine Cakery Order Payment',
+            image: 'https://i.imgur.com/3g7nmJC.png', // Your logo URL
+            currency: 'INR',
+            key: paymentOrderResponse.razorpay_key_id,
+            amount: paymentOrderResponse.amount,
+            name: 'Divine Cakery',
+            order_id: paymentOrderResponse.order_id,
+            prefill: {
+              email: user?.email || '',
+              contact: user?.phone || '',
+              name: user?.username || ''
             },
-          ]
-        );
+            theme: { color: '#8B4513' }
+          };
+
+          // Open Razorpay Checkout
+          RazorpayCheckout.open(options)
+            .then(async (data: any) => {
+              // Payment Success
+              console.log('Razorpay payment success:', data);
+              
+              try {
+                // Verify payment on backend
+                await apiService.verifyPayment({
+                  razorpay_order_id: data.razorpay_order_id,
+                  razorpay_payment_id: data.razorpay_payment_id,
+                  razorpay_signature: data.razorpay_signature,
+                  transaction_id: paymentOrderResponse.transaction_id
+                });
+
+                // Place order after payment verification
+                const response = await apiService.createOrder(orderData);
+                
+                clearCart();
+                await refreshUser();
+                
+                // Send WhatsApp message
+                if (response && response.id) {
+                  await sendWhatsAppMessage(response.id);
+                }
+                
+                Alert.alert('Success', 'Payment successful! Order placed and confirmation sent via WhatsApp.', [
+                  { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
+                ]);
+              } catch (error: any) {
+                console.error('Error after payment:', error);
+                Alert.alert('Error', 'Payment successful but failed to place order. Please contact support.');
+              } finally {
+                setPlacing(false);
+              }
+            })
+            .catch((error: any) => {
+              // Payment Failed/Cancelled
+              console.log('Razorpay error:', error);
+              Alert.alert('Payment Failed', error.description || 'Payment was cancelled or failed');
+              setPlacing(false);
+            });
+        } catch (error: any) {
+          console.error('Error creating payment order:', error);
+          Alert.alert('Error', 'Failed to initiate payment');
+          setPlacing(false);
+        }
       } else {
         // Wallet payment
         const response = await apiService.createOrder(orderData);
