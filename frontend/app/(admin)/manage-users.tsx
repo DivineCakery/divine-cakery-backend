@@ -272,6 +272,20 @@ export default function ManageUsersScreen() {
           </View>
         }
       />
+      
+      {selectionMode && selectedUsers.length > 0 && (
+        <View style={styles.bulkDeleteContainer}>
+          <TouchableOpacity
+            style={styles.bulkDeleteButton}
+            onPress={handleBulkDelete}
+          >
+            <Ionicons name="trash" size={20} color="#fff" />
+            <Text style={styles.bulkDeleteText}>
+              Delete Selected ({selectedUsers.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
