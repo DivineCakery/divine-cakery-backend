@@ -56,6 +56,11 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
+        <Image 
+          source={require('../../assets/images/icon.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <View style={styles.profileIconContainer}>
           <Ionicons name="person" size={60} color="#fff" />
         </View>
