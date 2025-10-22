@@ -11,6 +11,9 @@ import {
   Linking,
   Modal,
   Platform,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
