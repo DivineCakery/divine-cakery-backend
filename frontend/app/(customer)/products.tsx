@@ -86,6 +86,7 @@ export default function ProductsScreen() {
 
   useEffect(() => {
     fetchProducts();
+    fetchFavorites();
   }, []);
 
   useEffect(() => {
