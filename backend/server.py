@@ -406,6 +406,13 @@ async def create_order(
     else:
         payment_status = "pending"
     
+    # Calculate delivery date (1 day after order for orders placed after 4 AM, same day if before 4 AM)
+    now = datetime.utcnow()
+    current_hour = now.hour
+    delivery_date = now
+    if current_hour >= 4:
+        delivery_date = now + timedelta(days=1)
+    
     # Create order
     order_id = str(uuid.uuid4())
     order_dict = {
@@ -421,6 +428,7 @@ async def create_order(
         "order_status": OrderStatus.PENDING,
         "order_type": order_data.order_type,
         "delivery_address": order_data.delivery_address or current_user.address,
+        "delivery_date": delivery_date,
         "notes": order_data.notes,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
