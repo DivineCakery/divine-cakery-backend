@@ -185,6 +185,9 @@ export default function OrdersScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Orders</Text>
+        <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
+          <Ionicons name="chatbubble-ellipses-outline" size={22} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <FlatList
