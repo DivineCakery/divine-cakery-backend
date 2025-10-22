@@ -48,6 +48,7 @@ export default function DashboardScreen() {
   useEffect(() => {
     fetchStats();
     fetchDailyRevenue();
+    fetchPendingApprovals();
   }, []);
 
   const fetchStats = async () => {
@@ -71,10 +72,21 @@ export default function DashboardScreen() {
     }
   };
 
+  const fetchPendingApprovals = async () => {
+    try {
+      const data = await apiService.getPendingUsers();
+      setPendingApprovalsCount(data.length);
+    } catch (error) {
+      console.error('Error fetching pending approvals:', error);
+      setPendingApprovalsCount(0);
+    }
+  };
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchStats();
     fetchDailyRevenue();
+    fetchPendingApprovals();
   };
 
   if (loading) {
