@@ -59,17 +59,32 @@ export default function RegisterScreen() {
         business_name: formData.business_name || undefined,
         address: formData.address || undefined,
       });
-      // Show success message
+      
+      // Send WhatsApp notification to admin
+      try {
+        const adminMessage = `🔔 New Customer Registration!\n\nUsername: ${formData.username}\nBusiness: ${formData.business_name}\nPhone: ${formData.phone}\nAddress: ${formData.address}\n\nPlease review and approve in Pending Approvals section.`;
+        const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(adminMessage)}`;
+        
+        const canOpen = await Linking.canOpenURL(whatsappUrl);
+        if (canOpen) {
+          await Linking.openURL(whatsappUrl);
+        } else {
+          const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(adminMessage)}`;
+          await Linking.openURL(webUrl);
+        }
+      } catch (error) {
+        console.log('WhatsApp notification error:', error);
+      }
+
+      // Show success popup
       Alert.alert(
-        'Registration Successful!',
-        'Welcome to Divine Cakery! You are now logged in.',
+        '✅ Registration Successful!',
+        'Your account will be approved by the admin within 1 day. You will receive a WhatsApp confirmation once approved.',
         [
           {
             text: 'OK',
-            onPress: () => {
-              // Navigation will be handled by index.tsx after successful registration
-            }
-          }
+            onPress: () => router.replace('/login' as any),
+          },
         ]
       );
     } catch (error: any) {
