@@ -516,8 +516,8 @@ async def create_order(
     if current_hour >= 4:
         delivery_date = now + timedelta(days=1)
     
-    # Create order
-    order_id = str(uuid.uuid4())
+    # Create order with new format order number
+    order_id = await generate_order_number()
     order_dict = {
         "id": order_id,
         "user_id": current_user.id,
