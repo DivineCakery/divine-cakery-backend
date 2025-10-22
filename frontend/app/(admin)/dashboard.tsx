@@ -59,6 +59,13 @@ export default function DashboardScreen() {
     }, [])
   );
 
+  // Refresh pending approvals count when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchPendingApprovals();
+    }, [])
+  );
+
   const fetchStats = async () => {
     try {
       const data = await apiService.getAdminStats();
