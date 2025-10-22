@@ -193,6 +193,11 @@ class ApiService {
     return response.data;
   }
 
+  async bulkDeleteUsers(userIds: string[]) {
+    const response = await this.api.post('/admin/users/bulk-delete', userIds);
+    return response.data;
+  }
+
   async getAdminStats() {
     const response = await this.api.get('/admin/stats');
     return response.data;
