@@ -152,6 +152,9 @@ async def register(user_data: UserCreate):
     }
     await db.wallets.insert_one(wallet_dict)
     
+    # Note: Admin WhatsApp notification will be handled by frontend
+    # to open WhatsApp app directly after registration
+    
     return User(**user_dict)
 
 
