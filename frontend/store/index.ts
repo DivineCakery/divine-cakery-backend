@@ -58,8 +58,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (userData: any) => {
     try {
       const user = await apiService.register(userData);
-      // After registration, log the user in
-      await get().login(userData.username, userData.password);
+      // Don't auto-login since new users need admin approval
+      return user;
     } catch (error: any) {
       console.error('Register error:', error);
       throw error;
