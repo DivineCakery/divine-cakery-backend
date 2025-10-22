@@ -59,31 +59,34 @@ export default function RegisterScreen() {
         business_name: formData.business_name || undefined,
         address: formData.address || undefined,
       });
-      
-      // Send WhatsApp notification to admin
-      try {
-        const adminMessage = `🔔 New Customer Registration!\n\nUsername: ${formData.username}\nBusiness: ${formData.business_name}\nPhone: ${formData.phone}\nAddress: ${formData.address}\n\nPlease review and approve in Pending Approvals section.`;
-        const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(adminMessage)}`;
-        
-        const canOpen = await Linking.canOpenURL(whatsappUrl);
-        if (canOpen) {
-          await Linking.openURL(whatsappUrl);
-        } else {
-          const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(adminMessage)}`;
-          await Linking.openURL(webUrl);
-        }
-      } catch (error) {
-        console.log('WhatsApp notification error:', error);
-      }
 
-      // Show success popup
+      // Show success popup first, then send WhatsApp
       Alert.alert(
         '✅ Registration Successful!',
-        'Your account will be approved by the admin within 1 day. You will receive a WhatsApp confirmation once approved.',
+        'Your account will be approved by the admin within 1 day. You will receive a WhatsApp confirmation once approved.\n\nA notification will be sent to the admin.',
         [
           {
             text: 'OK',
-            onPress: () => router.replace('/login' as any),
+            onPress: async () => {
+              // Send WhatsApp notification to admin after user confirms
+              try {
+                const adminMessage = `🔔 New Customer Registration!\n\nUsername: ${formData.username}\nBusiness: ${formData.business_name || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nAddress: ${formData.address || 'N/A'}\n\nPlease review and approve in Pending Approvals section.`;
+                const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(adminMessage)}`;
+                
+                const canOpen = await Linking.canOpenURL(whatsappUrl);
+                if (canOpen) {
+                  await Linking.openURL(whatsappUrl);
+                } else {
+                  const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(adminMessage)}`;
+                  await Linking.openURL(webUrl);
+                }
+              } catch (error) {
+                console.log('WhatsApp notification error:', error);
+              }
+              
+              // Navigate to login after WhatsApp attempt
+              router.replace('/login' as any);
+            },
           },
         ]
       );
