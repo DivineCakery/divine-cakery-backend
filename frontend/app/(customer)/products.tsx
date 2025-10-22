@@ -324,6 +324,14 @@ const styles = StyleSheet.create({
     color: '#FFF8DC',
     marginTop: 2,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  contactButton: {
+    padding: 8,
+  },
   logoutButton: {
     padding: 8,
   },
