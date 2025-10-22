@@ -251,7 +251,8 @@ export default function ProductsScreen() {
         </View>
       </View>
     </View>
-  );
+    );
+  };
 
   if (loading) {
     return (
