@@ -803,8 +803,7 @@ async def add_wallet_balance_by_admin(
     await db.wallets.update_one(
         {"user_id": user_id},
         {
-            "$set": {"balance": new_balance, "updated_at": datetime.utcnow()},
-            "$inc": {"balance": 0}  # Ensures balance field exists
+            "$set": {"balance": new_balance, "updated_at": datetime.utcnow()}
         }
     )
     
