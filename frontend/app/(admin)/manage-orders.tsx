@@ -165,7 +165,7 @@ export default function ManageOrdersScreen() {
       // Find the order to get customer details
       const order = orders.find((o: any) => o.id === editingOrderId);
       
-      if (order && order.phone) {
+      if (order && order.user_phone) {
         // Send WhatsApp notification to customer
         const formattedDate = editingDeliveryDate.toLocaleDateString('en-IN', {
           year: 'numeric',
@@ -174,7 +174,9 @@ export default function ManageOrdersScreen() {
         });
         const message = `Hello! Your order #${order.id.slice(0, 8)} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
         
-        const whatsappUrl = `whatsapp://send?phone=91${order.phone}&text=${encodeURIComponent(message)}`;
+        // Remove any non-digit characters and ensure phone number format
+        const phoneNumber = order.user_phone.replace(/\D/g, '');
+        const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
         
         try {
           const canOpen = await Linking.canOpenURL(whatsappUrl);
@@ -182,13 +184,15 @@ export default function ManageOrdersScreen() {
             await Linking.openURL(whatsappUrl);
           } else {
             // Fallback to web WhatsApp
-            const webUrl = `https://wa.me/91${order.phone}?text=${encodeURIComponent(message)}`;
+            const webUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
             await Linking.openURL(webUrl);
           }
         } catch (error) {
           console.log('WhatsApp notification error:', error);
           // Don't fail the whole operation if WhatsApp fails
         }
+      } else {
+        console.log('No phone number available for customer notification');
       }
       
       await fetchOrders();
