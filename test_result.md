@@ -205,6 +205,18 @@ frontend:
           agent: "main"
           comment: "Added getDailyRevenue() method to API service to fetch daily revenue data from backend."
 
+  - task: "Admin UI to edit order delivery date with WhatsApp notification"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/manage-orders.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added complete delivery date override UI: 1) Display current delivery date with 'Edit' button next to each order 2) Date picker modal for iOS/Android with platform-specific handling 3) confirmDateChange function that updates delivery_date via API and sends WhatsApp notification to customer 4) WhatsApp message format: 'Your order #XXX delivery date has been updated to [date]' 5) Handles both WhatsApp app and web fallback 6) Installed @react-native-community/datetimepicker package 7) No date restrictions - any date can be selected"
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
