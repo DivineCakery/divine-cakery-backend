@@ -368,14 +368,22 @@ export default function ManageUsersScreen() {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
-                onPress={() => setShowAddBalanceModal(false)}
+                onPress={() => {
+                  console.log('Cancel pressed');
+                  setShowAddBalanceModal(false);
+                }}
+                activeOpacity={0.7}
               >
                 <Text style={styles.modalCancelText}>Cancel</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 style={styles.modalAddButton}
-                onPress={confirmAddBalance}
+                onPress={() => {
+                  console.log('Add Balance pressed, amount:', balanceAmount);
+                  confirmAddBalance();
+                }}
+                activeOpacity={0.7}
               >
                 <Text style={styles.modalAddText}>Add Balance</Text>
               </TouchableOpacity>
