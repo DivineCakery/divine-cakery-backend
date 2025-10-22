@@ -65,6 +65,58 @@ export default function ManageUsersScreen() {
     );
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedUsers([]);
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    if (selectedUsers.includes(userId)) {
+      setSelectedUsers(selectedUsers.filter(id => id !== userId));
+    } else {
+      setSelectedUsers([...selectedUsers, userId]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    const customerUsers = users.filter((u: any) => u.role === 'customer');
+    if (selectedUsers.length === customerUsers.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(customerUsers.map((u: any) => u.id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedUsers.length === 0) return;
+
+    Alert.alert(
+      'Confirm Bulk Delete',
+      `Are you sure you want to delete ${selectedUsers.length} user(s)? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await apiService.bulkDeleteUsers(selectedUsers);
+              Alert.alert(
+                'Bulk Delete Complete',
+                `${result.deleted_count} user(s) deleted${result.skipped_count > 0 ? `, ${result.skipped_count} skipped` : ''}${result.errors.length > 0 ? `\n\n${result.errors.join('\n')}` : ''}`
+              );
+              setSelectedUsers([]);
+              setSelectionMode(false);
+              fetchUsers();
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.detail || 'Failed to delete users');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderUser = ({ item }: any) => {
     const isAdmin = item.role === 'admin';
     const accessLevelLabel = item.admin_access_level === 'full' ? 'Full Access' 
