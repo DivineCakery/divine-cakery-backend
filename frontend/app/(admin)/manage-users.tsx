@@ -166,6 +166,7 @@ export default function ManageUsersScreen() {
       onPress={() => canSelect && toggleUserSelection(item.id)}
       disabled={!selectionMode}
       activeOpacity={selectionMode ? 0.7 : 1}
+      pointerEvents={selectionMode ? 'auto' : 'box-none'}
     >
       <View style={styles.userHeader}>
         {selectionMode && (
