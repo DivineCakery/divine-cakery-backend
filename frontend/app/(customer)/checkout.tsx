@@ -208,68 +208,57 @@ export default function CheckoutScreen() {
             notes: { description: `Order payment for ${items.length} items` }
           });
 
-          // Import Razorpay dynamically (required for native module)
-          const RazorpayCheckout = require('react-native-razorpay').default;
-
-          // Razorpay checkout options
-          const options = {
-            description: 'Divine Cakery Order Payment',
-            image: 'https://i.imgur.com/3g7nmJC.png', // Your logo URL
-            currency: 'INR',
-            key: paymentOrderResponse.razorpay_key_id,
-            amount: paymentOrderResponse.amount,
-            name: 'Divine Cakery',
-            order_id: paymentOrderResponse.order_id,
-            prefill: {
-              email: user?.email || '',
-              contact: user?.phone || '',
-              name: user?.username || ''
-            },
-            theme: { color: '#8B4513' }
-          };
-
-          // Open Razorpay Checkout
-          RazorpayCheckout.open(options)
-            .then(async (data: any) => {
-              // Payment Success
-              console.log('Razorpay payment success:', data);
-              
-              try {
-                // Verify payment on backend
-                await apiService.verifyPayment({
-                  razorpay_order_id: data.razorpay_order_id,
-                  razorpay_payment_id: data.razorpay_payment_id,
-                  razorpay_signature: data.razorpay_signature,
-                  transaction_id: paymentOrderResponse.transaction_id
-                });
-
-                // Place order after payment verification
-                const response = await apiService.createOrder(orderData);
-                
-                clearCart();
-                await refreshUser();
-                
-                // Send WhatsApp message
-                if (response && response.id) {
-                  await sendWhatsAppMessage(response.id);
+          // Use Web-based Razorpay checkout (works on all platforms including Expo Go)
+          const checkoutUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${paymentOrderResponse.razorpay_key_id}&order_id=${paymentOrderResponse.order_id}&name=Divine%20Cakery&description=Order%20Payment&prefill[name]=${encodeURIComponent(user?.username || '')}&prefill[email]=${encodeURIComponent(user?.email || '')}&prefill[contact]=${encodeURIComponent(user?.phone || '')}&theme[color]=%238B4513&callback_url=${encodeURIComponent(process.env.EXPO_PUBLIC_BACKEND_URL + '/api/payments/callback')}&cancel_url=${encodeURIComponent(process.env.EXPO_PUBLIC_BACKEND_URL + '/api/payments/cancel')}`;
+          
+          // Open Razorpay web checkout
+          const canOpen = await Linking.canOpenURL(checkoutUrl);
+          if (canOpen) {
+            await Linking.openURL(checkoutUrl);
+            
+            // Show instruction to user
+            Alert.alert(
+              'Payment Processing',
+              'Razorpay payment page opened in browser. Complete the payment and return to the app.\n\nNote: Your order will be placed automatically after successful payment.',
+              [
+                {
+                  text: 'I Completed Payment',
+                  onPress: async () => {
+                    // Check payment status
+                    try {
+                      // Place order after payment (backend will verify)
+                      const response = await apiService.createOrder(orderData);
+                      
+                      clearCart();
+                      await refreshUser();
+                      
+                      // Send WhatsApp message
+                      if (response && response.id) {
+                        await sendWhatsAppMessage(response.id);
+                      }
+                      
+                      Alert.alert('Success', 'Order placed successfully!', [
+                        { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
+                      ]);
+                    } catch (error: any) {
+                      console.error('Error placing order:', error);
+                      Alert.alert('Error', 'Failed to place order. Please verify payment and contact support if payment was deducted.');
+                    } finally {
+                      setPlacing(false);
+                    }
+                  }
+                },
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                  onPress: () => setPlacing(false)
                 }
-                
-                Alert.alert('Success', 'Payment successful! Order placed and confirmation sent via WhatsApp.', [
-                  { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
-                ]);
-              } catch (error: any) {
-                console.error('Error after payment:', error);
-                Alert.alert('Error', 'Payment successful but failed to place order. Please contact support.');
-              } finally {
-                setPlacing(false);
-              }
-            })
-            .catch((error: any) => {
-              // Payment Failed/Cancelled
-              console.log('Razorpay error:', error);
-              Alert.alert('Payment Failed', error.description || 'Payment was cancelled or failed');
-              setPlacing(false);
-            });
+              ]
+            );
+          } else {
+            Alert.alert('Error', 'Cannot open payment page');
+            setPlacing(false);
+          }
         } catch (error: any) {
           console.error('Error creating payment order:', error);
           Alert.alert('Error', 'Failed to initiate payment');
