@@ -229,6 +229,18 @@ export default function DashboardScreen() {
             <>
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/pending-approvals' as any)}
+              >
+                <Ionicons name="person-add" size={24} color="#FF5722" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Pending Approvals</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Approve or reject new customer registrations</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
                 onPress={() => router.push('/(admin)/manage-discounts' as any)}
               >
                 <Ionicons name="pricetag-outline" size={24} color="#8B4513" />
