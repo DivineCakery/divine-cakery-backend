@@ -60,31 +60,15 @@ export default function RegisterScreen() {
         address: formData.address || undefined,
       });
 
-      // Show success popup first, then send WhatsApp to admin
+      // Show success popup
       Alert.alert(
         'Registration Pending Approval',
         `✅ Thank you for registering with Divine Cakery!\n\n📋 Registration Details:\n• Username: ${formData.username}\n• Business: ${formData.business_name || 'N/A'}\n\n⏳ Your account is pending admin approval. You will be notified via WhatsApp within 1 day once approved.\n\nThank you for your patience!`,
         [
           {
             text: 'OK',
-            onPress: async () => {
-              // Send WhatsApp notification to admin only
-              try {
-                const adminMessage = `🔔 *New Customer Registration!*\n\nUsername: ${formData.username}\nBusiness: ${formData.business_name || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nEmail: ${formData.email || 'N/A'}\nAddress: ${formData.address || 'N/A'}\n\n⚠️ Please review and approve in Pending Approvals section.\n\nOnce approved, send WhatsApp confirmation to customer.`;
-                const adminWhatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(adminMessage)}`;
-                
-                const canOpenAdmin = await Linking.canOpenURL(adminWhatsappUrl);
-                if (canOpenAdmin) {
-                  await Linking.openURL(adminWhatsappUrl);
-                } else {
-                  const webAdminUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(adminMessage)}`;
-                  await Linking.openURL(webAdminUrl);
-                }
-              } catch (error) {
-                console.log('Admin WhatsApp notification error:', error);
-              }
-              
-              // Navigate to login after WhatsApp attempt
+            onPress: () => {
+              // Navigate to login
               router.replace('/login' as any);
             },
           },
