@@ -219,6 +219,9 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Added complete delivery date override UI: 1) Display current delivery date with 'Edit' button next to each order 2) Date picker modal for iOS/Android with platform-specific handling 3) confirmDateChange function that updates delivery_date via API and sends WhatsApp notification to customer 4) WhatsApp message format: 'Your order #XXX delivery date has been updated to [date]' 5) Handles both WhatsApp app and web fallback 6) Installed @react-native-community/datetimepicker package 7) No date restrictions - any date can be selected"
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 FIXED ISSUES reported by user: 1) Backend now enriches orders with user_name and user_phone when fetching orders (modified GET /api/orders endpoint) 2) Frontend updated to use user_phone field for WhatsApp notification 3) Phone number formatting improved to handle various formats 4) Added console logging when phone number is not available"
 
 metadata:
   created_by: "main_agent"
