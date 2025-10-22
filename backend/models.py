@@ -152,6 +152,7 @@ class Order(BaseModel):
     order_status: OrderStatus = OrderStatus.PENDING
     order_type: str = "delivery"  # "delivery" or "pickup"
     delivery_address: Optional[str] = None
+    delivery_date: Optional[datetime] = None  # Actual delivery date (can be edited by admin)
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
