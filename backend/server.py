@@ -137,7 +137,9 @@ async def register(user_data: UserCreate):
         "can_topup_wallet": user_data.can_topup_wallet,
         "hashed_password": hashed_password,
         "created_at": datetime.utcnow(),
-        "is_active": True
+        "is_active": True,
+        "is_approved": False,  # New customers need admin approval
+        "favorite_products": []
     }
     
     await db.users.insert_one(user_dict)
