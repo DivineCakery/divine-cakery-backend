@@ -172,7 +172,7 @@ async def login(user_data: UserLogin):
     if user_dict.get("role") == UserRole.CUSTOMER and not user_dict.get("is_approved", True):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Your account is pending admin approval. You will be notified within 1 day.",
+            detail="Registration pending approval from admin. You will be notified within 1 day.",
         )
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
