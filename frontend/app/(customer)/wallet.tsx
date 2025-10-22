@@ -9,11 +9,13 @@ import {
   Alert,
   ScrollView,
   RefreshControl,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
+import { DIVINE_WHATSAPP_NUMBER } from '../../constants/whatsapp';
 
 export default function WalletScreen() {
   const [wallet, setWallet] = useState<any>(null);
