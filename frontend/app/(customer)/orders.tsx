@@ -225,11 +225,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
     padding: 20,
     paddingTop: 50,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  contactButton: {
+    padding: 8,
   },
   listContainer: {
     padding: 15,
