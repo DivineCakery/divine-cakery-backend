@@ -369,6 +369,12 @@ class DivineCakeryTester:
             wallet_update = self.session.put(f"{BACKEND_URL}/admin/users/{customer_id}", 
                                            json={"wallet_balance": 2000.0})
             
+            if wallet_update.status_code != 200:
+                self.log_result("Wallet Update", False, f"Failed to update wallet: {wallet_update.status_code} - {wallet_update.text}")
+                return False
+            
+            self.log_result("Wallet Update", True, "Customer wallet balance updated to 2000.0")
+            
             # Create a test order
             order_data = {
                 "items": [
