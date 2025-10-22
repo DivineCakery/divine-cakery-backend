@@ -102,6 +102,22 @@ class ApiService {
     return response.data;
   }
 
+  // User Approval APIs
+  async getPendingUsers() {
+    const response = await this.api.get('/admin/pending-users');
+    return response.data;
+  }
+
+  async approveUser(userId: string) {
+    const response = await this.api.put(`/admin/users/${userId}/approve`);
+    return response.data;
+  }
+
+  async rejectUser(userId: string) {
+    const response = await this.api.put(`/admin/users/${userId}/reject`);
+    return response.data;
+  }
+
   // Wallet APIs
   async getWallet() {
     const response = await this.api.get('/wallet');
