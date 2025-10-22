@@ -55,6 +55,34 @@ export default function ProductsScreen() {
     );
   };
 
+  const handleContactUs = () => {
+    Alert.alert(
+      'Contact Divine Cakery',
+      'Please leave us a message if phone is unanswered. We will respond as soon as possible.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Open WhatsApp',
+          onPress: async () => {
+            try {
+              const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_CUSTOMER_SUPPORT}`;
+              const canOpen = await Linking.canOpenURL(whatsappUrl);
+              if (canOpen) {
+                await Linking.openURL(whatsappUrl);
+              } else {
+                // Fallback to web WhatsApp
+                const webUrl = `https://wa.me/${DIVINE_WHATSAPP_CUSTOMER_SUPPORT}`;
+                await Linking.openURL(webUrl);
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Could not open WhatsApp');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
