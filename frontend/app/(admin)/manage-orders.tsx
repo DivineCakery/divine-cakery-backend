@@ -551,6 +551,62 @@ export default function ManageOrdersScreen() {
           />
         )
       )}
+
+      {/* Customer Edit Modal */}
+      <Modal
+        visible={showCustomerEditModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={cancelCustomerEdit}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.customerModalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>Edit Customer Details</Text>
+              <Text style={styles.modalSubtitle}>Changes will update customer's profile permanently</Text>
+
+              <Text style={styles.inputLabel}>Customer Name</Text>
+              <TextInput
+                style={styles.input}
+                value={editingCustomerName}
+                onChangeText={setEditingCustomerName}
+                placeholder="Enter customer name"
+                placeholderTextColor="#999"
+              />
+
+              <Text style={styles.inputLabel}>Address</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={editingCustomerAddress}
+                onChangeText={setEditingCustomerAddress}
+                placeholder="Enter delivery address"
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={cancelCustomerEdit}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmModalButton]}
+                  onPress={saveCustomerDetails}
+                >
+                  <Text style={styles.modalButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 
