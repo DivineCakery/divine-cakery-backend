@@ -340,6 +340,49 @@ export default function ManageUsersScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Add Balance Modal */}
+      <Modal
+        visible={showAddBalanceModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAddBalanceModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add Wallet Balance</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter amount to add to {selectedUsername}'s wallet:
+            </Text>
+            
+            <TextInput
+              style={styles.modalInput}
+              value={balanceAmount}
+              onChangeText={setBalanceAmount}
+              keyboardType="numeric"
+              placeholder="Enter amount"
+              placeholderTextColor="#999"
+              autoFocus={true}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowAddBalanceModal(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.modalAddButton}
+                onPress={confirmAddBalance}
+              >
+                <Text style={styles.modalAddText}>Add Balance</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
