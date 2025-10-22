@@ -134,6 +134,77 @@ export default function ManageOrdersScreen() {
     }
   };
 
+  const openDeliveryDateEditor = (order: any) => {
+    setEditingOrderId(order.id);
+    // Use existing delivery_date or default to current date
+    const currentDate = order.delivery_date ? new Date(order.delivery_date) : new Date();
+    setEditingDeliveryDate(currentDate);
+    setShowDatePicker(true);
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setEditingDeliveryDate(selectedDate);
+    }
+  };
+
+  const confirmDateChange = async () => {
+    if (!editingOrderId) return;
+    
+    try {
+      setShowDatePicker(false);
+      
+      // Update the order with new delivery date
+      await apiService.updateOrder(editingOrderId, { 
+        delivery_date: editingDeliveryDate.toISOString() 
+      });
+      
+      // Find the order to get customer details
+      const order = orders.find((o: any) => o.id === editingOrderId);
+      
+      if (order && order.phone) {
+        // Send WhatsApp notification to customer
+        const formattedDate = editingDeliveryDate.toLocaleDateString('en-IN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+        const message = `Hello! Your order #${order.id.slice(0, 8)} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
+        
+        const whatsappUrl = `whatsapp://send?phone=91${order.phone}&text=${encodeURIComponent(message)}`;
+        
+        try {
+          const canOpen = await Linking.canOpenURL(whatsappUrl);
+          if (canOpen) {
+            await Linking.openURL(whatsappUrl);
+          } else {
+            // Fallback to web WhatsApp
+            const webUrl = `https://wa.me/91${order.phone}?text=${encodeURIComponent(message)}`;
+            await Linking.openURL(webUrl);
+          }
+        } catch (error) {
+          console.log('WhatsApp notification error:', error);
+          // Don't fail the whole operation if WhatsApp fails
+        }
+      }
+      
+      await fetchOrders();
+      Alert.alert('Success', 'Delivery date updated successfully');
+      setEditingOrderId(null);
+    } catch (error) {
+      console.error('Error updating delivery date:', error);
+      Alert.alert('Error', 'Failed to update delivery date');
+    }
+  };
+
+  const cancelDateChange = () => {
+    setShowDatePicker(false);
+    setEditingOrderId(null);
+  };
+
   const changeDate = (days: number) => {
     const newDate = selectedDate ? new Date(selectedDate) : new Date();
     newDate.setDate(newDate.getDate() + days);
