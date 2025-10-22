@@ -773,6 +773,64 @@ async def update_user_by_admin(
     return User(**updated_user)
 
 
+@api_router.post("/admin/users/{user_id}/add-wallet-balance")
+async def add_wallet_balance_by_admin(
+    user_id: str,
+    amount: float,
+    current_user: User = Depends(get_current_admin)
+):
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than 0")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get or create wallet
+    wallet = await db.wallets.find_one({"user_id": user_id})
+    if not wallet:
+        wallet = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "balance": 0.0,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        await db.wallets.insert_one(wallet)
+    
+    # Update wallet balance
+    new_balance = wallet.get("balance", 0.0) + amount
+    await db.wallets.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {"balance": new_balance, "updated_at": datetime.utcnow()},
+            "$inc": {"balance": 0}  # Ensures balance field exists
+        }
+    )
+    
+    # Create transaction record
+    transaction_id = str(uuid.uuid4())
+    transaction_dict = {
+        "id": transaction_id,
+        "user_id": user_id,
+        "amount": amount,
+        "transaction_type": TransactionType.WALLET_TOPUP,
+        "payment_method": "admin_credit",
+        "status": TransactionStatus.COMPLETED,
+        "notes": {"added_by_admin": current_user.username, "admin_id": current_user.id},
+        "created_at": datetime.utcnow()
+    }
+    await db.transactions.insert_one(transaction_dict)
+    
+    return {
+        "message": "Wallet balance added successfully",
+        "user_id": user_id,
+        "amount_added": amount,
+        "new_balance": new_balance,
+        "transaction_id": transaction_id
+    }
+
+
 @api_router.delete("/admin/users/{user_id}")
 async def delete_user_by_admin(
     user_id: str,
