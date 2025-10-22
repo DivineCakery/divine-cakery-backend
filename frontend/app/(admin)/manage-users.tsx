@@ -193,14 +193,50 @@ export default function ManageUsersScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Users</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => router.push('/(admin)/customer-form')}
-        >
-          <Ionicons name="add-circle" size={28} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          {!selectionMode ? (
+            <>
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={toggleSelectionMode}
+              >
+                <Ionicons name="checkmark-circle-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => router.push('/(admin)/customer-form')}
+              >
+                <Ionicons name="add-circle" size={28} color="#fff" />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={toggleSelectionMode}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      <Text style={styles.headerSubtitle}>{users.length} Users Total</Text>
+      {selectionMode ? (
+        <View style={styles.selectionHeader}>
+          <TouchableOpacity
+            style={styles.selectAllButton}
+            onPress={toggleSelectAll}
+          >
+            <Ionicons 
+              name={selectedUsers.length === users.filter((u: any) => u.role === 'customer').length ? "checkbox" : "square-outline"} 
+              size={24} 
+              color="#8B4513" 
+            />
+            <Text style={styles.selectAllText}>Select All Customers</Text>
+          </TouchableOpacity>
+          <Text style={styles.selectedCount}>{selectedUsers.length} selected</Text>
+        </View>
+      ) : (
+        <Text style={styles.headerSubtitle}>{users.length} Users Total</Text>
+      )}
 
       <FlatList
         data={users}
