@@ -216,6 +216,42 @@ export default function ManageOrdersScreen() {
     setEditingOrderId(null);
   };
 
+  const openCustomerEditor = (order: any) => {
+    setEditingCustomer({
+      user_id: order.user_id,
+      user_name: order.user_name,
+      address: order.delivery_address,
+    });
+    setEditingCustomerName(order.user_name || '');
+    setEditingCustomerAddress(order.delivery_address || '');
+    setShowCustomerEditModal(true);
+  };
+
+  const saveCustomerDetails = async () => {
+    if (!editingCustomer) return;
+    
+    try {
+      // Update the user profile with new username and address
+      await apiService.updateUserByAdmin(editingCustomer.user_id, {
+        username: editingCustomerName,
+        address: editingCustomerAddress,
+      });
+      
+      setShowCustomerEditModal(false);
+      await fetchOrders();
+      Alert.alert('Success', 'Customer details updated successfully. These changes will reflect in the customer\'s profile.');
+      setEditingCustomer(null);
+    } catch (error) {
+      console.error('Error updating customer details:', error);
+      Alert.alert('Error', 'Failed to update customer details');
+    }
+  };
+
+  const cancelCustomerEdit = () => {
+    setShowCustomerEditModal(false);
+    setEditingCustomer(null);
+  };
+
   const changeDate = (days: number) => {
     const newDate = selectedDate ? new Date(selectedDate) : new Date();
     newDate.setDate(newDate.getDate() + days);
