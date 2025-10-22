@@ -42,6 +42,40 @@ export default function ManageUsersScreen() {
     fetchUsers();
   };
 
+  const handleAddBalance = async (userId: string, username: string) => {
+    Alert.prompt(
+      'Add Wallet Balance',
+      `Enter amount to add to ${username}'s wallet:`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Add',
+          onPress: async (amount) => {
+            const amountNum = parseFloat(amount || '0');
+            if (amountNum <= 0) {
+              Alert.alert('Invalid Amount', 'Please enter a valid amount greater than 0');
+              return;
+            }
+
+            try {
+              const result = await apiService.addWalletBalanceByAdmin(userId, amountNum);
+              await fetchUsers();
+              Alert.alert(
+                'Success',
+                `₹${amountNum.toFixed(2)} added to ${username}'s wallet.\n\nNew Balance: ₹${result.new_balance.toFixed(2)}`
+              );
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.detail || 'Failed to add wallet balance');
+            }
+          },
+        },
+      ],
+      'plain-text',
+      '',
+      'numeric'
+    );
+  };
+
   const handleDelete = async (userId: string, username: string) => {
     Alert.alert(
       'Delete Customer',
