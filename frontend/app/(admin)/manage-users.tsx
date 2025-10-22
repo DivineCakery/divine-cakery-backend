@@ -123,9 +123,15 @@ export default function ManageUsersScreen() {
       : item.admin_access_level === 'limited' ? 'Limited Access' 
       : item.admin_access_level === 'reports_only' ? 'Reports Only' 
       : '';
+    const isSelected = selectedUsers.includes(item.id);
+    const canSelect = !isAdmin && selectionMode;
     
     return (
-    <View style={styles.userCard}>
+    <TouchableOpacity 
+      style={[styles.userCard, isSelected && styles.selectedCard]}
+      onPress={() => canSelect && toggleUserSelection(item.id)}
+      disabled={!canSelect && !selectionMode}
+    >
       <View style={styles.userHeader}>
         <View style={[styles.avatar, isAdmin && styles.adminAvatar]}>
           <Ionicons name={isAdmin ? "shield-checkmark" : "person"} size={30} color={isAdmin ? "#fff" : "#8B4513"} />
