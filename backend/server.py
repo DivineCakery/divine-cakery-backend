@@ -453,7 +453,7 @@ async def create_order(
     return Order(**order_dict)
 
 
-@api_router.get("/orders", response_model=List[Order])
+@api_router.get("/orders")
 async def get_orders(
     delivery_date: Optional[str] = None,
     current_user: User = Depends(get_current_user)
@@ -476,7 +476,19 @@ async def get_orders(
             raise HTTPException(status_code=400, detail="Invalid date format")
     
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
-    return [Order(**order) for order in orders]
+    
+    # Enrich orders with user information for admin view
+    enriched_orders = []
+    for order in orders:
+        order_dict = dict(order)
+        # Fetch user information
+        user = await db.users.find_one({"id": order["user_id"]})
+        if user:
+            order_dict["user_name"] = user.get("username", "N/A")
+            order_dict["user_phone"] = user.get("phone", None)
+        enriched_orders.append(order_dict)
+    
+    return enriched_orders
 
 
 @api_router.get("/orders/{order_id}", response_model=Order)
