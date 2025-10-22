@@ -133,6 +133,19 @@ export default function ManageUsersScreen() {
       disabled={!canSelect && !selectionMode}
     >
       <View style={styles.userHeader}>
+        {selectionMode && (
+          <View style={styles.checkboxContainer}>
+            {!isAdmin ? (
+              <Ionicons 
+                name={isSelected ? "checkbox" : "square-outline"} 
+                size={28} 
+                color={isSelected ? "#4CAF50" : "#999"} 
+              />
+            ) : (
+              <View style={styles.checkboxPlaceholder} />
+            )}
+          </View>
+        )}
         <View style={[styles.avatar, isAdmin && styles.adminAvatar]}>
           <Ionicons name={isAdmin ? "shield-checkmark" : "person"} size={30} color={isAdmin ? "#fff" : "#8B4513"} />
         </View>
