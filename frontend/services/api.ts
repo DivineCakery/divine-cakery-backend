@@ -124,6 +124,13 @@ class ApiService {
     return response.data;
   }
 
+  async addWalletBalanceByAdmin(userId: string, amount: number) {
+    const response = await this.api.post(`/admin/users/${userId}/add-wallet-balance`, null, {
+      params: { amount }
+    });
+    return response.data;
+  }
+
   // Payment APIs
   async createPaymentOrder(data: { amount: number; transaction_type: string; notes?: any } | number, transactionType?: string, notes?: any) {
     // Support both old signature (amount, type, notes) and new signature (object)
