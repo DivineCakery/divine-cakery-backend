@@ -699,6 +699,48 @@ async def create_user_by_admin(
     return User(**user_dict)
 
 
+@api_router.get("/admin/pending-users", response_model=List[User])
+async def get_pending_users(current_user: User = Depends(get_current_admin)):
+    """Get all users pending approval"""
+    users = await db.users.find({"is_approved": False}).to_list(1000)
+    return [User(**user) for user in users]
+
+
+@api_router.put("/admin/users/{user_id}/approve")
+async def approve_user(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Approve a pending user"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_approved": True}}
+    )
+    
+    return {"message": "User approved successfully", "user_id": user_id, "phone": user.get("phone")}
+
+
+@api_router.put("/admin/users/{user_id}/reject")
+async def reject_user(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Reject a pending user"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Optionally delete the user or mark as rejected
+    await db.users.delete_one({"id": user_id})
+    await db.wallets.delete_one({"user_id": user_id})
+    
+    return {"message": "User rejected successfully", "user_id": user_id, "phone": user.get("phone")}
+
+
 @api_router.put("/admin/users/{user_id}", response_model=User)
 async def update_user_by_admin(
     user_id: str,
