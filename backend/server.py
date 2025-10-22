@@ -815,7 +815,7 @@ async def add_wallet_balance_by_admin(
         "amount": amount,
         "transaction_type": TransactionType.WALLET_TOPUP,
         "payment_method": "admin_credit",
-        "status": TransactionStatus.COMPLETED,
+        "status": TransactionStatus.SUCCESS,
         "notes": {"added_by_admin": current_user.username, "admin_id": current_user.id},
         "created_at": datetime.utcnow()
     }
