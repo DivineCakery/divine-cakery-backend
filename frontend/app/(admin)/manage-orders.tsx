@@ -637,8 +637,8 @@ const styles = StyleSheet.create({
   customerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 6,
-    gap: 6,
   },
   customerTitle: {
     fontSize: 13,
