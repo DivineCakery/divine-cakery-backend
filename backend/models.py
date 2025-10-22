@@ -69,6 +69,7 @@ class User(UserBase):
     created_at: datetime
     is_active: bool = True
     favorite_products: List[str] = []
+    is_approved: bool = True  # True by default for backward compatibility
 
 
 class UserInDB(User):
