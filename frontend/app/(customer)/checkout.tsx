@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import RazorpayCheckout from 'react-native-razorpay';
 import apiService from '../../services/api';
 import { useCartStore, useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_NUMBER, getOrderConfirmationMessage, DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
