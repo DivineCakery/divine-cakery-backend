@@ -125,12 +125,19 @@ class ApiService {
   }
 
   // Payment APIs
-  async createPaymentOrder(amount: number, transactionType: string, notes?: any) {
-    const response = await this.api.post('/payments/create-order', {
-      amount,
-      transaction_type: transactionType,
-      notes,
-    });
+  async createPaymentOrder(data: { amount: number; transaction_type: string; notes?: any } | number, transactionType?: string, notes?: any) {
+    // Support both old signature (amount, type, notes) and new signature (object)
+    let payload;
+    if (typeof data === 'object') {
+      payload = data;
+    } else {
+      payload = {
+        amount: data,
+        transaction_type: transactionType!,
+        notes,
+      };
+    }
+    const response = await this.api.post('/payments/create-order', payload);
     return response.data;
   }
 
