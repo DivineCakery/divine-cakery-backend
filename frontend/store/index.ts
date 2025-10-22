@@ -13,6 +13,7 @@ interface User {
   wallet_balance: number;
   created_at: string;
   is_active: boolean;
+  can_topup_wallet?: boolean;
 }
 
 interface AuthState {
