@@ -674,7 +674,9 @@ async def create_user_by_admin(
         "can_topup_wallet": user_data.can_topup_wallet,
         "hashed_password": hashed_password,
         "created_at": datetime.utcnow(),
-        "is_active": True
+        "is_active": True,
+        "is_approved": True,  # Admin-created users are pre-approved
+        "favorite_products": []
     }
     
     await db.users.insert_one(user_dict)
