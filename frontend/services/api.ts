@@ -86,6 +86,22 @@ class ApiService {
     return response.data;
   }
 
+  // Favorites APIs
+  async addToFavorites(productId: string) {
+    const response = await this.api.post(`/favorites/add/${productId}`);
+    return response.data;
+  }
+
+  async removeFromFavorites(productId: string) {
+    const response = await this.api.delete(`/favorites/remove/${productId}`);
+    return response.data;
+  }
+
+  async getFavorites() {
+    const response = await this.api.get('/favorites');
+    return response.data;
+  }
+
   // Wallet APIs
   async getWallet() {
     const response = await this.api.get('/wallet');
