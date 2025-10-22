@@ -106,6 +106,32 @@ export default function ProductsScreen() {
     }
   };
 
+  const fetchFavorites = async () => {
+    try {
+      const favorites = await apiService.getFavorites();
+      setFavoriteIds(favorites.map((fav: any) => fav.id));
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async (productId: string) => {
+    try {
+      const isFavorite = favoriteIds.includes(productId);
+      
+      if (isFavorite) {
+        await apiService.removeFromFavorites(productId);
+        setFavoriteIds(favoriteIds.filter(id => id !== productId));
+      } else {
+        await apiService.addToFavorites(productId);
+        setFavoriteIds([...favoriteIds, productId]);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      Alert.alert('Error', 'Failed to update favorites');
+    }
+  };
+
   const filterProducts = () => {
     let filtered = products;
 
