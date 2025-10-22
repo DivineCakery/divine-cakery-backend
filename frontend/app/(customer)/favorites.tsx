@@ -26,6 +26,14 @@ export default function FavoritesScreen() {
     fetchFavorites();
   }, []);
 
+  // Refresh favorites when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation?.addListener?.('focus', () => {
+      fetchFavorites();
+    });
+    return unsubscribe;
+  }, []);
+
   const fetchFavorites = async () => {
     try {
       const data = await apiService.getFavorites();
