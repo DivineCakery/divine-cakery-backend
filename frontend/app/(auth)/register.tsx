@@ -62,7 +62,7 @@ export default function RegisterScreen() {
 
       // Show success popup first, then send WhatsApp
       Alert.alert(
-        '✅ Registration Successful!',
+        'Registration pending approval',
         'Your account will be approved by the admin within 1 day. You will receive a WhatsApp confirmation once approved.\n\nA notification will be sent to the admin.',
         [
           {
