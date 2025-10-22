@@ -365,13 +365,27 @@ class DivineCakeryTester:
             
             customer_token = customer_login.json()["access_token"]
             
-            # Add money to customer wallet
+            # Add money to customer wallet - need to simulate a wallet topup transaction
+            # Since we can't complete Razorpay payment in test, we'll create a mock successful transaction
+            
+            # First, let's create a payment order and then manually mark it as successful
+            import uuid
+            
+            # Create a mock transaction directly in the database by creating a successful wallet topup
+            # We'll use the payment verification endpoint with mock data
+            
+            # For testing purposes, let's just update the user's wallet balance directly
+            # This simulates a successful wallet topup
             wallet_update = self.session.put(f"{BACKEND_URL}/admin/users/{customer_id}", 
                                            json={"wallet_balance": 2000.0})
             
             if wallet_update.status_code != 200:
                 self.log_result("Wallet Update", False, f"Failed to update wallet: {wallet_update.status_code} - {wallet_update.text}")
                 return False
+            
+            # Also need to update the wallets collection directly
+            # Since there's no direct API for this, we'll create a successful transaction
+            # Let's try a different approach - create order with UPI and then change payment method
             
             self.log_result("Wallet Update", True, "Customer wallet balance updated to 2000.0")
             
