@@ -206,7 +206,7 @@ export default function CheckoutScreen() {
           const paymentOrderResponse = await apiService.createPaymentOrder({
             amount: totalAmount,
             transaction_type: 'order_payment',
-            notes: `Order payment for ${items.length} items`
+            notes: { description: `Order payment for ${items.length} items` }
           });
 
           // Razorpay checkout options
