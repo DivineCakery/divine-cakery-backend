@@ -226,12 +226,7 @@ export default function CheckoutScreen() {
         clearCart();
         await refreshUser();
         
-        // Send WhatsApp message
-        if (response && response.id) {
-          await sendWhatsAppMessage(response.id);
-        }
-        
-        Alert.alert('Success', 'Order placed successfully! WhatsApp message sent.', [
+        Alert.alert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
           { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
         ]);
         setPlacing(false);
