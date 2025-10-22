@@ -8,6 +8,8 @@ import {
   RefreshControl,
   Alert,
   TouchableOpacity,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +22,10 @@ export default function ManageUsersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [showAddBalanceModal, setShowAddBalanceModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUsername, setSelectedUsername] = useState('');
+  const [balanceAmount, setBalanceAmount] = useState('');
 
   useEffect(() => {
     fetchUsers();
