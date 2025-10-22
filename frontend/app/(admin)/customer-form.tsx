@@ -90,7 +90,14 @@ export default function CustomerFormScreen() {
         phone: formData.phone || undefined,
         business_name: formData.business_name || undefined,
         address: formData.address || undefined,
+        role: formData.role,
+        admin_access_level: formData.admin_access_level,
       };
+
+      // Only include can_topup_wallet for customers
+      if (formData.role === 'customer') {
+        customerData.can_topup_wallet = formData.can_topup_wallet;
+      }
 
       if (isEdit) {
         // Only include password if it's being changed
@@ -98,13 +105,13 @@ export default function CustomerFormScreen() {
           customerData.password = formData.password;
         }
         await apiService.updateUserByAdmin(userId, customerData);
-        Alert.alert('Success', 'Customer updated successfully', [
+        Alert.alert('Success', 'User updated successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } else {
         customerData.password = formData.password;
         await apiService.createUserByAdmin(customerData);
-        Alert.alert('Success', 'Customer created successfully', [
+        Alert.alert('Success', 'User created successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       }
