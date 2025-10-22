@@ -247,6 +247,66 @@ async def delete_product(
     return {"message": "Product deleted successfully"}
 
 
+# Favorites Routes
+@api_router.post("/favorites/add/{product_id}")
+async def add_to_favorites(
+    product_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    # Check if product exists
+    product = await db.products.find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Get user's current favorites
+    user = await db.users.find_one({"id": current_user.id})
+    favorite_products = user.get("favorite_products", [])
+    
+    # Add product if not already in favorites
+    if product_id not in favorite_products:
+        favorite_products.append(product_id)
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$set": {"favorite_products": favorite_products}}
+        )
+    
+    return {"message": "Product added to favorites", "favorite_products": favorite_products}
+
+
+@api_router.delete("/favorites/remove/{product_id}")
+async def remove_from_favorites(
+    product_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    # Get user's current favorites
+    user = await db.users.find_one({"id": current_user.id})
+    favorite_products = user.get("favorite_products", [])
+    
+    # Remove product if in favorites
+    if product_id in favorite_products:
+        favorite_products.remove(product_id)
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$set": {"favorite_products": favorite_products}}
+        )
+    
+    return {"message": "Product removed from favorites", "favorite_products": favorite_products}
+
+
+@api_router.get("/favorites", response_model=List[Product])
+async def get_favorites(current_user: User = Depends(get_current_user)):
+    # Get user's favorites
+    user = await db.users.find_one({"id": current_user.id})
+    favorite_product_ids = user.get("favorite_products", [])
+    
+    if not favorite_product_ids:
+        return []
+    
+    # Get products from favorites list
+    products = await db.products.find({"id": {"$in": favorite_product_ids}}).to_list(1000)
+    return [Product(**product) for product in products]
+
+
 # Wallet Routes
 @api_router.get("/wallet", response_model=WalletResponse)
 async def get_wallet(current_user: User = Depends(get_current_user)):
