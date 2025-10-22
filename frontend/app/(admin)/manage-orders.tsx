@@ -37,6 +37,10 @@ export default function ManageOrdersScreen() {
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [editingDeliveryDate, setEditingDeliveryDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCustomerEditModal, setShowCustomerEditModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [editingCustomerName, setEditingCustomerName] = useState('');
+  const [editingCustomerAddress, setEditingCustomerAddress] = useState('');
 
   useEffect(() => {
     fetchOrders();
