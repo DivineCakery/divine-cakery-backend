@@ -197,7 +197,7 @@ export default function ManageUsersScreen() {
           <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );};
 
   if (loading) {
