@@ -12,9 +12,10 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.divinecakery.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000"
+        "backgroundColor": "#FF6B35"
       },
       "edgeToEdgeEnabled": true
     },
