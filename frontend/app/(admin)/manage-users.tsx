@@ -261,7 +261,10 @@ export default function ManageUsersScreen() {
         data={users}
         renderItem={renderUser}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[
+          styles.listContainer,
+          selectionMode && selectedUsers.length > 0 && { paddingBottom: 100 }
+        ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B4513']} />
         }
