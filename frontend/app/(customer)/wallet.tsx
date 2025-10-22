@@ -60,72 +60,35 @@ export default function WalletScreen() {
       return;
     }
 
-    setAddingMoney(true);
-    try {
-      // Create Razorpay order
-      const orderData = await apiService.createPaymentOrder(
-        amountNum,
-        'wallet_topup',
-        { description: 'Wallet topup' }
-      );
-
-      // Import Razorpay dynamically
-      const RazorpayCheckout = require('react-native-razorpay').default;
-
-      // Razorpay checkout options
-      const options = {
-        description: 'Add Money to Wallet',
-        image: 'https://i.imgur.com/3g7nmJC.png', // Divine Cakery logo
-        currency: orderData.currency,
-        key: orderData.razorpay_key_id,
-        amount: orderData.amount,
-        name: 'Divine Cakery',
-        order_id: orderData.order_id,
-        prefill: {
-          email: user?.email || '',
-          contact: user?.phone || '',
-          name: user?.username || '',
-        },
-        theme: { color: '#8B4513' },
-      };
-
-      // Open Razorpay checkout
-      RazorpayCheckout.open(options)
-        .then(async (data: any) => {
-          // Payment successful, verify with backend
-          try {
-            const verifyResult = await apiService.verifyPayment({
-              razorpay_order_id: data.razorpay_order_id,
-              razorpay_payment_id: data.razorpay_payment_id,
-              razorpay_signature: data.razorpay_signature,
-            });
-
-            if (verifyResult.verified) {
-              Alert.alert('Success', 'Money added to wallet successfully!');
-              setAmount('');
-              await fetchWallet();
-              await refreshUser();
-            } else {
-              Alert.alert('Error', 'Payment verification failed');
+    Alert.alert(
+      'Wallet Top-Up - Important Notice',
+      'UPI/Card payment via Razorpay requires a custom development build and does not work in Expo Go.\n\nTo add money to wallet:\n1. Contact admin for manual wallet recharge\n2. Admin can add balance to your wallet directly\n\nWould you like to contact admin via WhatsApp?',
+      [
+        {
+          text: 'Contact Admin',
+          onPress: async () => {
+            try {
+              const message = `Hello! I would like to add ₹${amountNum.toFixed(2)} to my wallet.\n\nUsername: ${user?.username}\nPhone: ${user?.phone}`;
+              const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+              
+              const canOpen = await Linking.canOpenURL(whatsappUrl);
+              if (canOpen) {
+                await Linking.openURL(whatsappUrl);
+              } else {
+                const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+                await Linking.openURL(webUrl);
+              }
+            } catch (error) {
+              console.log('WhatsApp error:', error);
             }
-          } catch (error: any) {
-            Alert.alert('Error', 'Payment verification failed');
-            console.error('Payment verification error:', error);
-          } finally {
-            setAddingMoney(false);
           }
-        })
-        .catch((error: any) => {
-          // Payment failed or cancelled
-          console.log('Payment error:', error);
-          Alert.alert('Payment Cancelled', error.description || 'Payment was cancelled');
-          setAddingMoney(false);
-        });
-    } catch (error: any) {
-      console.error('Error creating payment order:', error);
-      Alert.alert('Error', 'Failed to initiate payment. Please try again.');
-      setAddingMoney(false);
-    }
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        }
+      ]
+    );
   };
 
   if (loading) {
