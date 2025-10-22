@@ -323,6 +323,209 @@ class DivineCakeryTester:
             self.log_result("Order Update", False, f"Order update test failed: {str(e)}")
             return False
     
+    def test_admin_delivery_date_override(self):
+        """Test admin delivery date override functionality - MAIN FEATURE TEST"""
+        try:
+            print("\n🎯 TESTING ADMIN DELIVERY DATE OVERRIDE FEATURE")
+            print("-" * 50)
+            
+            # Step 1: Create a test order for delivery date testing
+            print("📋 Step 1: Creating test order...")
+            
+            # First create a test customer
+            customer_data = {
+                "username": f"testcustomer_{int(datetime.now().timestamp())}",
+                "password": "testpass123",
+                "email": "test@example.com",
+                "phone": "9876543210",
+                "business_name": "Test Bakery Business",
+                "address": "123 Test Street, Test City",
+                "can_topup_wallet": True
+            }
+            
+            customer_response = self.session.post(f"{BACKEND_URL}/admin/users", json=customer_data)
+            
+            if customer_response.status_code != 200:
+                self.log_result("Create Test Customer", False, f"HTTP {customer_response.status_code}: {customer_response.text}")
+                return False
+            
+            customer = customer_response.json()
+            customer_id = customer["id"]
+            self.log_result("Create Test Customer", True, f"Customer created with ID: {customer_id}")
+            
+            # Login as customer to create order
+            customer_login = requests.post(f"{BACKEND_URL}/auth/login", json={
+                "username": customer_data["username"],
+                "password": customer_data["password"]
+            })
+            
+            if customer_login.status_code != 200:
+                self.log_result("Customer Login", False, f"HTTP {customer_login.status_code}: {customer_login.text}")
+                return False
+            
+            customer_token = customer_login.json()["access_token"]
+            
+            # Add money to customer wallet
+            wallet_update = self.session.put(f"{BACKEND_URL}/admin/users/{customer_id}", 
+                                           json={"wallet_balance": 2000.0})
+            
+            # Create a test order
+            order_data = {
+                "items": [
+                    {
+                        "product_id": "test-product-1",
+                        "product_name": "Chocolate Cake",
+                        "quantity": 2,
+                        "price": 500.0,
+                        "subtotal": 1000.0
+                    }
+                ],
+                "subtotal": 1000.0,
+                "delivery_charge": 50.0,
+                "discount_amount": 0.0,
+                "total_amount": 1050.0,
+                "payment_method": "wallet",
+                "order_type": "delivery",
+                "delivery_address": "123 Test Street, Test City",
+                "notes": "Test order for delivery date override testing"
+            }
+            
+            customer_headers = {"Authorization": f"Bearer {customer_token}"}
+            order_response = requests.post(f"{BACKEND_URL}/orders", json=order_data, headers=customer_headers)
+            
+            if order_response.status_code != 200:
+                self.log_result("Create Test Order", False, f"HTTP {order_response.status_code}: {order_response.text}")
+                return False
+            
+            order = order_response.json()
+            order_id = order["id"]
+            original_delivery_date = order.get("delivery_date")
+            
+            self.log_result("Create Test Order", True, f"Order created with ID: {order_id}")
+            print(f"   Original delivery date: {original_delivery_date}")
+            
+            # Step 2: Test delivery date update
+            print("\n📅 Step 2: Testing delivery date update...")
+            
+            new_delivery_date = "2025-06-20T00:00:00Z"
+            update_data = {"delivery_date": new_delivery_date}
+            
+            update_response = self.session.put(f"{BACKEND_URL}/orders/{order_id}", json=update_data)
+            
+            if update_response.status_code != 200:
+                self.log_result("Delivery Date Update", False, f"HTTP {update_response.status_code}: {update_response.text}")
+                return False
+            
+            updated_order = update_response.json()
+            
+            # Verify delivery_date was updated
+            if "delivery_date" in updated_order:
+                returned_date = updated_order["delivery_date"]
+                try:
+                    expected_dt = datetime.fromisoformat(new_delivery_date.replace('Z', '+00:00'))
+                    returned_dt = datetime.fromisoformat(returned_date.replace('Z', '+00:00'))
+                    
+                    if expected_dt.date() == returned_dt.date():
+                        self.log_result("Delivery Date Update", True, f"Date updated to {returned_dt.date()}")
+                    else:
+                        self.log_result("Delivery Date Update", False, f"Expected {expected_dt.date()}, got {returned_dt.date()}")
+                        return False
+                except Exception as e:
+                    self.log_result("Delivery Date Update", False, f"Error parsing dates: {str(e)}")
+                    return False
+            else:
+                self.log_result("Delivery Date Update", False, "delivery_date field missing from response")
+                return False
+            
+            # Verify other fields are preserved
+            if updated_order.get("order_status") == order.get("order_status"):
+                self.log_result("Order Status Preservation", True, "Order status preserved during update")
+            else:
+                self.log_result("Order Status Preservation", False, "Order status changed unexpectedly")
+                return False
+            
+            # Step 3: Test persistence
+            print("\n💾 Step 3: Testing delivery date persistence...")
+            
+            get_response = self.session.get(f"{BACKEND_URL}/orders/{order_id}")
+            
+            if get_response.status_code != 200:
+                self.log_result("Fetch Updated Order", False, f"HTTP {get_response.status_code}: {get_response.text}")
+                return False
+            
+            persisted_order = get_response.json()
+            
+            if "delivery_date" in persisted_order:
+                delivery_date = persisted_order["delivery_date"]
+                try:
+                    parsed_date = datetime.fromisoformat(delivery_date.replace('Z', '+00:00'))
+                    if parsed_date.year == 2025 and parsed_date.month == 6 and parsed_date.day == 20:
+                        self.log_result("Delivery Date Persistence", True, "Date update persisted in database")
+                    else:
+                        self.log_result("Delivery Date Persistence", False, f"Expected 2025-06-20, got {parsed_date.date()}")
+                        return False
+                except Exception as e:
+                    self.log_result("Delivery Date Persistence", False, f"Error parsing persisted date: {str(e)}")
+                    return False
+            else:
+                self.log_result("Delivery Date Persistence", False, "delivery_date field missing from persisted order")
+                return False
+            
+            # Step 4: Test different date formats
+            print("\n🔄 Step 4: Testing date format variations...")
+            
+            test_dates = [
+                "2025-07-15T10:30:00Z",  # With time and Z
+                "2025-08-20T00:00:00",   # Without timezone
+                "2025-09-25T15:45:30+05:30"  # With timezone offset
+            ]
+            
+            for i, test_date in enumerate(test_dates):
+                update_data = {"delivery_date": test_date}
+                
+                response = self.session.put(f"{BACKEND_URL}/orders/{order_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    updated_order = response.json()
+                    if "delivery_date" in updated_order:
+                        self.log_result(f"Date Format {i+1}", True, f"Format accepted: {test_date}")
+                    else:
+                        self.log_result(f"Date Format {i+1}", False, f"delivery_date missing for {test_date}")
+                        return False
+                else:
+                    self.log_result(f"Date Format {i+1}", False, f"HTTP {response.status_code} for {test_date}")
+                    return False
+            
+            # Step 5: Test authorization
+            print("\n🔒 Step 5: Testing admin authorization...")
+            
+            # Test without token
+            update_data = {"delivery_date": "2025-12-25T00:00:00Z"}
+            response = requests.put(f"{BACKEND_URL}/orders/{order_id}", json=update_data)
+            
+            if response.status_code == 401:
+                self.log_result("Unauthorized Access Block", True, "Properly blocked access without token")
+            else:
+                self.log_result("Unauthorized Access Block", False, f"Expected 401, got {response.status_code}")
+                return False
+            
+            # Test with invalid token
+            headers = {"Authorization": "Bearer invalid_token_123"}
+            response = requests.put(f"{BACKEND_URL}/orders/{order_id}", json=update_data, headers=headers)
+            
+            if response.status_code == 401:
+                self.log_result("Invalid Token Rejection", True, "Invalid token properly rejected")
+            else:
+                self.log_result("Invalid Token Rejection", False, f"Expected 401, got {response.status_code}")
+                return False
+            
+            print("\n✅ ADMIN DELIVERY DATE OVERRIDE FEATURE: ALL TESTS PASSED")
+            return True
+            
+        except Exception as e:
+            self.log_result("Admin Delivery Date Override", False, f"Exception: {str(e)}")
+            return False
+    
     def test_admin_stats_endpoint(self):
         """Test admin stats endpoint for comparison"""
         try:
