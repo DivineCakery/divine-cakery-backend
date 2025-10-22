@@ -802,6 +802,55 @@ async def delete_user_by_admin(
     return {"message": "User deleted successfully"}
 
 
+@api_router.post("/admin/users/bulk-delete")
+async def bulk_delete_users_by_admin(
+    user_ids: List[str],
+    current_user: User = Depends(get_current_admin)
+):
+    """Bulk delete multiple users at once"""
+    deleted_count = 0
+    skipped_count = 0
+    errors = []
+    
+    for user_id in user_ids:
+        try:
+            # Prevent admin from deleting themselves
+            if user_id == current_user.id:
+                errors.append(f"Skipped: Cannot delete your own account")
+                skipped_count += 1
+                continue
+            
+            user = await db.users.find_one({"id": user_id})
+            if not user:
+                errors.append(f"User {user_id} not found")
+                skipped_count += 1
+                continue
+            
+            # Prevent deleting other admins
+            if user.get("role") == "admin":
+                errors.append(f"Skipped: Cannot delete admin account ({user.get('username')})")
+                skipped_count += 1
+                continue
+            
+            # Delete user's wallet
+            await db.wallets.delete_one({"user_id": user_id})
+            
+            # Delete user
+            await db.users.delete_one({"id": user_id})
+            deleted_count += 1
+            
+        except Exception as e:
+            errors.append(f"Error deleting user {user_id}: {str(e)}")
+            skipped_count += 1
+    
+    return {
+        "message": f"Deleted {deleted_count} user(s), skipped {skipped_count}",
+        "deleted_count": deleted_count,
+        "skipped_count": skipped_count,
+        "errors": errors
+    }
+
+
 @api_router.get("/admin/stats")
 async def get_admin_stats(current_user: User = Depends(get_current_admin)):
     total_users = await db.users.count_documents({"role": UserRole.CUSTOMER})
