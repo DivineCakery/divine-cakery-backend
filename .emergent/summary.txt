@@ -1,89 +1,66 @@
 <analysis>
-The previous AI engineer undertook a comprehensive series of enhancements for the Divine Cakery app, iteratively addressing user feedback and new feature requests. The work can be broadly categorized into: UI/UX refinements (e.g., button consistency, modal behavior, input auto-capitalization), critical backend data model and API synchronization (fixing order status updates, handling new order fields, ensuring date consistency across reports), and significant feature implementations. Key features added include dynamic delivery date logic based on order time, a robust admin-controlled discount system, a pickup/delivery option for customers with associated delivery charges, and full product image upload capabilities. Navigation was also refined, moving certain admin settings to dashboard shortcuts. The Razorpay payment gateway was successfully integrated. The trajectory concludes with the engineer initiating the implementation of an admin feature to override order delivery dates.
+The AI engineer inherited a robust Expo/FastAPI application and systematically implemented a wide range of features and fixes. Key developments include adding an admin delivery date override with WhatsApp notifications, enabling admin editing of customer details from order sheets, and introducing a customer-facing Contact Us button across main customer pages. A significant Favorites feature was built for customers, complete with backend integration, a dedicated tab, and synchronized heart icons. The engineer also implemented a structured order numbering system (YYMMDDXXXX) and a comprehensive customer approval workflow, featuring admin management, role-based access, and automated WhatsApp messages for both customers and admins. UI/UX enhancements included a dynamic pending approvals badge on the admin dashboard and a bulk user deletion feature for admins. Several critical bugs were addressed, such as frontend-backend synchronization issues for delivery dates, WhatsApp notification failures due to missing user data, and UI visibility for the bulk delete button. The latest work focuses on refining registration-related alert messages.
 </analysis>
 
 <product_requirements>
-The Divine Cakery app is a native mobile platform for wholesale bakery customers, featuring user authentication, product browsing, ordering, and account management. A key wallet system allows customers to manage credits and view orders. The admin panel facilitates comprehensive management of products, orders, users, and admin credentials, with UI adapting based on user role.
+The Divine Cakery application is a native mobile platform designed for wholesale bakery customers, facilitating user authentication, product browsing, ordering, and account management, including a wallet system. The admin panel offers extensive controls for products, orders, users, and admin credentials, with UI adapting to user roles.
 
-Recent additions include:
-- Date-wise revenue breakdown (last 7 days), now reflecting delivery date.
-- Automated WhatsApp notifications.
-- Full CRUD for products (with MRP, Price, Packet size, Remarks, and product images).
-- Dynamic quantity controls.
-- Cancel Order and Place Order buttons in cart (with improved UI).
-- Delivery date displayed (dynamic, based on 4 AM cutoff).
-- Role-based admin access control (3 levels), with admin user editing.
-- Streamlined order status management (single toggle, auto WhatsApp, sale conversion).
-- Pickup/Delivery options with automatic delivery charges for customers.
-- Admin panel for delivery charge settings.
-- Admin-controlled customer discount system (percentage/money value, period-based).
-- Registration success pop-up and auto-capitalization disabled for input fields.
-- Full Razorpay payment gateway integration.
-- Admin ability to override order delivery date.
+Previous features included: date-wise revenue reports, WhatsApp notifications, comprehensive product CRUD (with images), dynamic quantity controls, cart improvements, dynamic delivery date calculation, role-based admin access (3 levels), streamlined order status, pickup/delivery options with charges, admin delivery charge settings, admin-controlled discounts, registration success pop-ups, Razorpay integration, and initial admin delivery date override.
+
+**New Features Implemented in this Trajectory:**
+*   **Admin Delivery Date Override:** Admins can change order delivery dates, triggering customer WhatsApp notifications.
+*   **Admin Customer Details Edit:** Admins can permanently amend customer names and addresses from order sheets.
+*   **Customer Contact Us Button:** Added to customer dashboard, orders, and checkout, displaying a pre-WhatsApp message popup.
+*   **Customer Favorites List:** Customers can favorite products, view them on a dedicated tab, with synchronized updates.
+*   **Structured Order Numbers:** Orders now use a  format (YearYearMonthMonthDayDayNumberNumberNumberNumber).
+*   **Customer Approval Workflow:** New user registrations require admin approval. Admins manage approvals via a dedicated page, and automated WhatsApp messages are sent to customers on approval/rejection, and to admins on new registrations. A dashboard badge shows pending approvals count.
+*   **Admin Bulk User Deletion:** Admins can select and delete multiple users.
+*   **App Branding:** Integration of a custom app icon.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: Expo, React Native, Expo Router (file-based routing), Zustand (state management), Axios (API client), , .
--   **Backend**: FastAPI, MongoDB, Pydantic (data models), .
--   **Core Features**: JWT Authentication, Role-based Access Control, CRUD operations, Wallet system, WhatsApp integration, Environment variables, UI/UX principles (Flexbox, Tab-based navigation, KeyboardAvoidingView, Modals, Touch areas).
+- **Frontend**: Expo, React Native, Expo Router (), Zustand, Axios, , , , .
+- **Backend**: FastAPI, MongoDB (with counters), Pydantic, , JWT Authentication.
+- **Core Features**: Role-based Access Control, CRUD, Wallet system, WhatsApp integration, Environment variables, UI/UX.
 </key_technical_concepts>
 
 <code_architecture>
+The Divine Cakery application is structured as a full-stack system: an Expo/React Native frontend and a FastAPI backend with a MongoDB database.
 
--   **/app/backend/.env**: Environment variables.
-    -   *Changes*: Added  and .
--   **/app/backend/server.py**: Main FastAPI application.
-    -   *Changes*: Updated  to filter by  (adjusted for delivery).  and ,  updated to use delivery date and exclude cancelled orders. New endpoints for  (admin & public) and  (CRUD).  modified to handle , , , , , and calculate . Moved discount/delivery charge API definitions before .
--   **/app/backend/models.py**: MongoDB data models.
-    -   *Changes*:  now accepts  and .  model now includes , , , , ,  (all made optional with defaults for backward compatibility). New models for , , , , .
--   **/app/frontend/app/_layout.tsx**: Root layout for Expo Router.
-    -   *Changes*: Adjusted visibility of admin tabs (, , , ,  hidden from bottom tabs;  restored).
--   **/app/frontend/app/(auth)/login.tsx**: Login screen.
-    -   *Changes*: Added  and  to password input.
--   **/app/frontend/app/(auth)/register.tsx**: Registration screen.
-    -   *Changes*: Added success confirmation popup. Added  and  to username and password inputs.
--   **/app/frontend/app/(customer)/cart.tsx**: Customer shopping cart.
-    -   *Changes*: Updated  logic to implement 4 AM cutoff for same-day/next-day delivery.
--   **/app/frontend/app/(customer)/checkout.tsx**: Customer checkout screen.
-    -   *Changes*: Updated  logic. Integrated UI for order type (pickup/delivery) selection, dynamic delivery charge, discount application, and price breakdown. Replaced mocked UPI payment with Razorpay integration.
--   **/app/frontend/app/(admin)/dashboard.tsx**: Admin dashboard.
-    -   *Changes*: Removed Total Revenue card. Added shortcut buttons for Manage Discounts and Delivery Settings. Revenue figures updated to reflect delivery date.
--   **/app/frontend/app/(admin)/manage-orders.tsx**: Admin order management.
-    -   *Changes*: Refined Pending/Confirmed/Cancelled button styling and state transitions. Added optional chaining () for new order fields to prevent errors with old data. UI for date filtering based on  (adjusted).
--   **/app/frontend/app/(admin)/manage-users.tsx**: Admin user management.
-    -   *Changes*: Modified to fetch and display all users (customers and admins) with their roles and . Added specific styling for admin users.
--   **/app/frontend/app/(admin)/product-form.tsx**: Admin form for products.
-    -   *Changes*: Integrated  for single product image upload (base64). Added image preview, handling  in submission, and image compression.
--   **/app/frontend/app/(admin)/customer-form.tsx**: Admin form for adding/editing customers.
-    -   *Changes*: Added UI elements for selecting user role and  when editing/creating users.
--   **/app/frontend/app/(admin)/reports.tsx**: Admin reports screen.
-    -   *Changes*: Daily item reports now exclude cancelled orders. Date-wise revenue calculations now reflect delivery date. Fixed  for .
--   **/app/frontend/app/(admin)/manage-discounts.tsx**: *New file*.
-    -   *Summary*: Admin interface for managing discounts (CRUD).
-    -   *Changes*: Created as a new screen. Implemented UI for listing, adding, editing, and deleting discounts. Underwent multiple iterations to fix modal touch issues, eventually adopting a full-screen modal approach. Added  to address tab bar overlap.
--   **/app/frontend/app/(admin)/delivery-settings.tsx**: *New file*.
-    -   *Summary*: Admin interface for configuring delivery charges.
-    -   *Changes*: Created as a new screen. Added  to address tab bar overlap.
--   **/app/frontend/services/api.ts**: Centralized API service.
-    -   *Changes*: Updated  to accept an optional date parameter. Added new methods for fetching/updating  (admin & public endpoints), and  (CRUD), and .
--   **/app/frontend/package.json**: Frontend dependencies.
-    -   *Changes*: Added  and .
+**Detailed Directory Structure:**
+
+
+**Key Files and Changes:**
+*   **/app/backend/models.py**: Updated  and  models with .  model now includes  (List[str]) and  (bool).
+*   **/app/backend/server.py**: Contains main API logic. Modified  to filter by  (adjusted for delivery) and enrich with user info. Added new endpoints for  and  (CRUD),  (CRUD), , , .  was updated for new order number format (YYMMDDXXXX) and to calculate . User registration and login logic (, ) now handle  status and admin WhatsApp notifications.
+*   **/app/frontend/app/_layout.tsx (Admin)**:  added but hidden from bottom tabs (), accessible via dashboard.
+*   **/app/frontend/app/(customer)/_layout.tsx**: Added new 'Favorites' tab in the bottom navigation.
+*   **/app/frontend/app/(auth)/login.tsx**: Updated to display a clear message if an account is pending admin approval.
+*   **/app/frontend/app/(auth)/register.tsx**: Modified to show Registration pending approval after success and trigger WhatsApp notification to admin. WhatsApp opening re-sequenced to after alert dismissal.
+*   **/app/frontend/app/(customer)/products.tsx**: Includes  button logic, and  now displays a toggleable heart icon for favorites.  fetches favorites on screen focus.
+*   **/app/frontend/app/(customer)/orders.tsx**: Added a  button.
+*   **/app/frontend/app/(customer)/checkout.tsx**: Added a  button.
+*   **/app/frontend/app/(customer)/favorites.tsx**: **New file**. Dedicated screen for viewing favorited products, uses  for refreshing.
+*   **/app/frontend/app/(admin)/dashboard.tsx**: Added shortcut buttons for Manage Discounts, Delivery Settings, and Pending Approvals. Displays a dynamic red badge with the count of pending approvals, refreshed on focus.
+*   **/app/frontend/app/(admin)/manage-orders.tsx**: UI added for displaying and editing  using a date picker. Admin can now edit customer  and  via a modal. Fixed Android  race condition.
+*   **/app/frontend/app/(admin)/manage-users.tsx**: Implemented multi-selection with checkboxes for bulk deletion. A floating Delete Selected button is now present, with several UI position fixes.
+*   **/app/frontend/app/(admin)/pending-approvals.tsx**: **New file**. Admin interface to view and manage (approve/reject) customer registrations.
+*   **/app/frontend/services/api.ts**: Centralized API service. Updated with new methods for , , , , , , and .
+*   **/app/frontend/package.json**: Added , , .
+*   **/app/frontend/app.json**: Updated for custom app icon, adaptive icon, and splash screen, using the provided .
+*   **/app/DIVINE_CAKERY_USER_MANUAL.md**: **New file**. Contains a comprehensive user manual.
 </code_architecture>
 
 <pending_tasks>
--   Frontend UI for admin to display and edit the delivery date for existing orders on the  page.
+- Update the alert title from Registration Failed to Registration pending approval in the popup window that appears after a new user successfully registers, not the login screen.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was tasked with adding a feature for admins to change or override the delivery date for orders.
+Immediately before this summary request, the AI engineer was addressing a user-reported UI issue on the frontend. Specifically, after a new customer successfully registers, a popup window appears, and its title incorrectly states Registration Failed. The user explicitly requested this title to be changed to Registration pending approval.
 
-The work completed so far includes:
-1.  **Backend Model Update**: The  field (as ) was added to the  and  models in .
-2.  **Backend Order Creation Logic**: The  endpoint in  was modified to correctly calculate and store the  based on the 4 AM cutoff rule during order creation.
-
-The current stage of development is focused on the frontend implementation. The AI engineer's last action was preparing to add the frontend UI to display and edit delivery date in the admin manage-orders page, specifically targeting the  file.
+The AI engineer has identified the issue as being within the  file, specifically targeting the  component's title parameter that displays after a successful registration attempt. The task is to modify this hardcoded title to reflect the new user approval workflow more accurately. This is a continuation of the customer approval workflow implementation and aims to refine the user experience during registration. The backend message for unapproved login was already updated, but this specific alert title on registration success still needs modification.
 </current_work>
 
 <optional_next_step>
-Implement the frontend UI to display and edit the delivery date for orders in .
+Modify the alert title in  from Registration Failed to Registration pending approval.
 </optional_next_step>
