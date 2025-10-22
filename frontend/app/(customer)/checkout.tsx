@@ -208,6 +208,9 @@ export default function CheckoutScreen() {
             notes: { description: `Order payment for ${items.length} items` }
           });
 
+          // Import Razorpay dynamically (required for native module)
+          const RazorpayCheckout = require('react-native-razorpay').default;
+
           // Razorpay checkout options
           const options = {
             description: 'Divine Cakery Order Payment',
