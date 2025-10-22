@@ -164,7 +164,8 @@ export default function ManageUsersScreen() {
     <TouchableOpacity 
       style={[styles.userCard, isSelected && styles.selectedCard]}
       onPress={() => canSelect && toggleUserSelection(item.id)}
-      disabled={!canSelect && !selectionMode}
+      disabled={!selectionMode}
+      activeOpacity={selectionMode ? 0.7 : 1}
     >
       <View style={styles.userHeader}>
         {selectionMode && (
