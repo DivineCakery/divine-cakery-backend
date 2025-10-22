@@ -225,10 +225,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Date-wise revenue API endpoint"
-    - "Display 7-day revenue breakdown on dashboard"
-    - "Auto WhatsApp message on order confirmation"
-    - "Change button color/text after order confirmation"
+    - "Admin delivery date override - backend support"
+    - "Admin UI to edit order delivery date with WhatsApp notification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
