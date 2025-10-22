@@ -285,6 +285,13 @@ export default function ManageOrdersScreen() {
         <View style={styles.customerHeader}>
           <Ionicons name="person-circle" size={20} color="#8B4513" />
           <Text style={styles.customerTitle}>Customer</Text>
+          <TouchableOpacity 
+            style={styles.editCustomerButton}
+            onPress={() => openCustomerEditor(item)}
+          >
+            <Ionicons name="pencil" size={14} color="#8B4513" />
+            <Text style={styles.editCustomerText}>Edit</Text>
+          </TouchableOpacity>
         </View>
         <Text style={styles.customerName}>{item.user_name || 'N/A'}</Text>
         {item.delivery_address && (
