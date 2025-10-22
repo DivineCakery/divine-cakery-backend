@@ -216,11 +216,15 @@ export default function ManageUsersScreen() {
         </View>
       )}
 
-      <View style={styles.actionButtons}>
+      <View style={styles.actionButtons} pointerEvents="box-none">
         {!isAdmin && (
           <TouchableOpacity
             style={styles.walletButton}
-            onPress={() => handleAddBalance(item.id, item.username)}
+            onPress={() => {
+              console.log('Add Balance clicked for:', item.username);
+              handleAddBalance(item.id, item.username);
+            }}
+            activeOpacity={0.7}
           >
             <Ionicons name="wallet" size={18} color="#fff" />
             <Text style={styles.walletButtonText}>Add Balance</Text>
@@ -230,6 +234,7 @@ export default function ManageUsersScreen() {
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => router.push(`/(admin)/customer-form?id=${item.id}`)}
+          activeOpacity={0.7}
         >
           <Ionicons name="create" size={18} color="#fff" />
           <Text style={styles.editButtonText}>Edit</Text>
@@ -238,6 +243,7 @@ export default function ManageUsersScreen() {
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDelete(item.id, item.username)}
+          activeOpacity={0.7}
         >
           <Ionicons name="trash" size={18} color="#fff" />
           <Text style={styles.deleteButtonText}>Delete</Text>
