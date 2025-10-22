@@ -480,9 +480,11 @@ async def get_orders(
     # Enrich orders with user information for admin view
     enriched_orders = []
     for order in orders:
+        # Remove MongoDB _id field to avoid serialization issues
+        order.pop('_id', None)
         order_dict = dict(order)
         # Fetch user information
-        user = await db.users.find_one({"id": order["user_id"]})
+        user = await db.users.find_one({"id": order_dict["user_id"]})
         if user:
             order_dict["user_name"] = user.get("username", "N/A")
             order_dict["user_phone"] = user.get("phone", None)
