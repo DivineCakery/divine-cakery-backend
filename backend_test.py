@@ -329,100 +329,97 @@ class DivineCakeryTester:
             print("\n🎯 TESTING ADMIN DELIVERY DATE OVERRIDE FEATURE")
             print("-" * 50)
             
-            # Step 1: Create a test order for delivery date testing
-            print("📋 Step 1: Creating test order...")
+            # Step 1: Get an existing order to test delivery date override
+            print("📋 Step 1: Getting existing order for testing...")
             
-            # First create a test customer
-            customer_data = {
-                "username": f"testcustomer_{int(datetime.now().timestamp())}",
-                "password": "testpass123",
-                "email": "test@example.com",
-                "phone": "9876543210",
-                "business_name": "Test Bakery Business",
-                "address": "123 Test Street, Test City",
-                "can_topup_wallet": True
-            }
+            # Get existing orders
+            orders_response = self.session.get(f"{BACKEND_URL}/orders")
             
-            customer_response = self.session.post(f"{BACKEND_URL}/admin/users", json=customer_data)
-            
-            if customer_response.status_code != 200:
-                self.log_result("Create Test Customer", False, f"HTTP {customer_response.status_code}: {customer_response.text}")
+            if orders_response.status_code != 200:
+                self.log_result("Get Existing Orders", False, f"HTTP {orders_response.status_code}: {orders_response.text}")
                 return False
             
-            customer = customer_response.json()
-            customer_id = customer["id"]
-            self.log_result("Create Test Customer", True, f"Customer created with ID: {customer_id}")
+            orders = orders_response.json()
             
-            # Login as customer to create order
-            customer_login = requests.post(f"{BACKEND_URL}/auth/login", json={
-                "username": customer_data["username"],
-                "password": customer_data["password"]
-            })
-            
-            if customer_login.status_code != 200:
-                self.log_result("Customer Login", False, f"HTTP {customer_login.status_code}: {customer_login.text}")
-                return False
-            
-            customer_token = customer_login.json()["access_token"]
-            
-            # Add money to customer wallet - need to simulate a wallet topup transaction
-            # Since we can't complete Razorpay payment in test, we'll create a mock successful transaction
-            
-            # First, let's create a payment order and then manually mark it as successful
-            import uuid
-            
-            # Create a mock transaction directly in the database by creating a successful wallet topup
-            # We'll use the payment verification endpoint with mock data
-            
-            # For testing purposes, let's just update the user's wallet balance directly
-            # This simulates a successful wallet topup
-            wallet_update = self.session.put(f"{BACKEND_URL}/admin/users/{customer_id}", 
-                                           json={"wallet_balance": 2000.0})
-            
-            if wallet_update.status_code != 200:
-                self.log_result("Wallet Update", False, f"Failed to update wallet: {wallet_update.status_code} - {wallet_update.text}")
-                return False
-            
-            # Also need to update the wallets collection directly
-            # Since there's no direct API for this, we'll create a successful transaction
-            # Let's try a different approach - create order with UPI and then change payment method
-            
-            self.log_result("Wallet Update", True, "Customer wallet balance updated to 2000.0")
-            
-            # Create a test order
-            order_data = {
-                "items": [
-                    {
-                        "product_id": "test-product-1",
-                        "product_name": "Chocolate Cake",
-                        "quantity": 2,
-                        "price": 500.0,
-                        "subtotal": 1000.0
-                    }
-                ],
-                "subtotal": 1000.0,
-                "delivery_charge": 50.0,
-                "discount_amount": 0.0,
-                "total_amount": 1050.0,
-                "payment_method": "wallet",
-                "order_type": "delivery",
-                "delivery_address": "123 Test Street, Test City",
-                "notes": "Test order for delivery date override testing"
-            }
-            
-            customer_headers = {"Authorization": f"Bearer {customer_token}"}
-            order_response = requests.post(f"{BACKEND_URL}/orders", json=order_data, headers=customer_headers)
-            
-            if order_response.status_code != 200:
-                self.log_result("Create Test Order", False, f"HTTP {order_response.status_code}: {order_response.text}")
-                return False
-            
-            order = order_response.json()
-            order_id = order["id"]
-            original_delivery_date = order.get("delivery_date")
-            
-            self.log_result("Create Test Order", True, f"Order created with ID: {order_id}")
-            print(f"   Original delivery date: {original_delivery_date}")
+            if not orders:
+                # If no orders exist, create a simple UPI order (which doesn't require wallet balance)
+                print("📋 No existing orders found, creating a UPI order for testing...")
+                
+                # Create a test customer
+                customer_data = {
+                    "username": f"testcustomer_{int(datetime.now().timestamp())}",
+                    "password": "testpass123",
+                    "email": "test@example.com",
+                    "phone": "9876543210",
+                    "business_name": "Test Bakery Business",
+                    "address": "123 Test Street, Test City",
+                    "can_topup_wallet": True
+                }
+                
+                customer_response = self.session.post(f"{BACKEND_URL}/admin/users", json=customer_data)
+                
+                if customer_response.status_code != 200:
+                    self.log_result("Create Test Customer", False, f"HTTP {customer_response.status_code}: {customer_response.text}")
+                    return False
+                
+                customer = customer_response.json()
+                customer_id = customer["id"]
+                self.log_result("Create Test Customer", True, f"Customer created with ID: {customer_id}")
+                
+                # Login as customer
+                customer_login = requests.post(f"{BACKEND_URL}/auth/login", json={
+                    "username": customer_data["username"],
+                    "password": customer_data["password"]
+                })
+                
+                if customer_login.status_code != 200:
+                    self.log_result("Customer Login", False, f"HTTP {customer_login.status_code}: {customer_login.text}")
+                    return False
+                
+                customer_token = customer_login.json()["access_token"]
+                
+                # Create a UPI order (doesn't require wallet balance)
+                order_data = {
+                    "items": [
+                        {
+                            "product_id": "test-product-1",
+                            "product_name": "Chocolate Cake",
+                            "quantity": 1,
+                            "price": 500.0,
+                            "subtotal": 500.0
+                        }
+                    ],
+                    "subtotal": 500.0,
+                    "delivery_charge": 50.0,
+                    "discount_amount": 0.0,
+                    "total_amount": 550.0,
+                    "payment_method": "upi",  # Use UPI instead of wallet
+                    "order_type": "delivery",
+                    "delivery_address": "123 Test Street, Test City",
+                    "notes": "Test order for delivery date override testing"
+                }
+                
+                customer_headers = {"Authorization": f"Bearer {customer_token}"}
+                order_response = requests.post(f"{BACKEND_URL}/orders", json=order_data, headers=customer_headers)
+                
+                if order_response.status_code != 200:
+                    self.log_result("Create Test Order", False, f"HTTP {order_response.status_code}: {order_response.text}")
+                    return False
+                
+                order = order_response.json()
+                order_id = order["id"]
+                original_delivery_date = order.get("delivery_date")
+                
+                self.log_result("Create Test Order", True, f"Order created with ID: {order_id}")
+                print(f"   Original delivery date: {original_delivery_date}")
+            else:
+                # Use the first existing order
+                order = orders[0]
+                order_id = order["id"]
+                original_delivery_date = order.get("delivery_date")
+                
+                self.log_result("Use Existing Order", True, f"Using existing order ID: {order_id}")
+                print(f"   Original delivery date: {original_delivery_date}")
             
             # Step 2: Test delivery date update
             print("\n📅 Step 2: Testing delivery date update...")
