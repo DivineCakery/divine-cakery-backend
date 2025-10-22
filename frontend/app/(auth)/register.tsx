@@ -62,29 +62,47 @@ export default function RegisterScreen() {
 
       // Show success popup first, then send WhatsApp
       Alert.alert(
-        'Registration pending approval',
-        'Your account will be approved by the admin within 1 day. You will receive a WhatsApp confirmation once approved.\n\nA notification will be sent to the admin.',
+        'Registration Pending Approval',
+        'Your registration is successful! Your account will be approved by the admin within 1 day.\n\nYou will receive a WhatsApp confirmation once approved.',
         [
           {
             text: 'OK',
             onPress: async () => {
-              // Send WhatsApp notification to admin after user confirms
-              try {
-                const adminMessage = `🔔 New Customer Registration!\n\nUsername: ${formData.username}\nBusiness: ${formData.business_name || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nAddress: ${formData.address || 'N/A'}\n\nPlease review and approve in Pending Approvals section.`;
-                const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(adminMessage)}`;
-                
-                const canOpen = await Linking.canOpenURL(whatsappUrl);
-                if (canOpen) {
-                  await Linking.openURL(whatsappUrl);
-                } else {
-                  const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(adminMessage)}`;
-                  await Linking.openURL(webUrl);
+              // Send WhatsApp notification to USER first
+              if (formData.phone) {
+                try {
+                  const userMessage = `✅ *Registration Pending Approval*\n\nDear ${formData.username},\n\nThank you for registering with Divine Cakery!\n\nYour account is currently pending admin approval. You will be notified within 1 day once your account is approved.\n\n*Registration Details:*\nUsername: ${formData.username}\nBusiness: ${formData.business_name || 'N/A'}\n\nThank you for your patience!\n\n- Divine Cakery Team`;
+                  const userWhatsappUrl = `whatsapp://send?phone=${formData.phone}&text=${encodeURIComponent(userMessage)}`;
+                  
+                  const canOpenUser = await Linking.canOpenURL(userWhatsappUrl);
+                  if (canOpenUser) {
+                    await Linking.openURL(userWhatsappUrl);
+                  } else {
+                    const webUserUrl = `https://wa.me/${formData.phone}?text=${encodeURIComponent(userMessage)}`;
+                    await Linking.openURL(webUserUrl);
+                  }
+                } catch (error) {
+                  console.log('User WhatsApp notification error:', error);
                 }
-              } catch (error) {
-                console.log('WhatsApp notification error:', error);
               }
               
-              // Navigate to login after WhatsApp attempt
+              // Then send WhatsApp notification to admin
+              try {
+                const adminMessage = `🔔 *New Customer Registration!*\n\nUsername: ${formData.username}\nBusiness: ${formData.business_name || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nAddress: ${formData.address || 'N/A'}\n\nPlease review and approve in Pending Approvals section.`;
+                const adminWhatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(adminMessage)}`;
+                
+                const canOpenAdmin = await Linking.canOpenURL(adminWhatsappUrl);
+                if (canOpenAdmin) {
+                  await Linking.openURL(adminWhatsappUrl);
+                } else {
+                  const webAdminUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(adminMessage)}`;
+                  await Linking.openURL(webAdminUrl);
+                }
+              } catch (error) {
+                console.log('Admin WhatsApp notification error:', error);
+              }
+              
+              // Navigate to login after WhatsApp attempts
               router.replace('/login' as any);
             },
           },
