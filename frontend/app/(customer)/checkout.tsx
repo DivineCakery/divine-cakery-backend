@@ -525,6 +525,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  contactButton: {
+    padding: 8,
+  },
   section: {
     padding: 15,
   },
