@@ -94,11 +94,11 @@ export default function WalletScreen() {
         .then(async (data: any) => {
           // Payment successful, verify with backend
           try {
-            const verifyResult = await apiService.verifyPayment(
-              data.razorpay_order_id,
-              data.razorpay_payment_id,
-              data.razorpay_signature
-            );
+            const verifyResult = await apiService.verifyPayment({
+              razorpay_order_id: data.razorpay_order_id,
+              razorpay_payment_id: data.razorpay_payment_id,
+              razorpay_signature: data.razorpay_signature,
+            });
 
             if (verifyResult.verified) {
               Alert.alert('Success', 'Money added to wallet successfully!');
