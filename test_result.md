@@ -120,6 +120,18 @@ backend:
           agent: "testing"
           comment: "✅ TESTED: Daily revenue API endpoint working correctly. Returns proper 7-day breakdown with date, day_name, revenue, and order_count fields. Requires admin authentication. API structure and data types are correct."
 
+  - task: "Admin delivery date override - backend support"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Backend already supports delivery_date field in OrderUpdate model. The PUT /api/orders/{order_id} endpoint accepts delivery_date as Optional[datetime] and updates it in database. No backend changes needed."
+
   - task: "WhatsApp order confirmation - backend support"
     implemented: true
     working: true
