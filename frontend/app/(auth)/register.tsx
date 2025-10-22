@@ -34,8 +34,10 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!formData.username || !formData.password || !formData.confirmPassword) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    // Check all fields are filled
+    if (!formData.username || !formData.password || !formData.confirmPassword || 
+        !formData.email || !formData.phone || !formData.business_name || !formData.address) {
+      Alert.alert('Error', 'All fields are mandatory. Please fill in all fields.');
       return;
     }
 
@@ -46,6 +48,20 @@ export default function RegisterScreen() {
 
     if (formData.password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    // Validate phone format (basic validation for 10 digits)
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
       return;
     }
 
