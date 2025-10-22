@@ -152,6 +152,11 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     alignItems: 'center',
   },
+  logoImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 15,
+  },
   profileIconContainer: {
     width: 120,
     height: 120,
