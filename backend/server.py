@@ -343,7 +343,10 @@ async def create_payment_order(
 ):
     try:
         # Create order in Razorpay
-        receipt = f"rcpt_{current_user.id}_{int(datetime.utcnow().timestamp())}"
+        # Receipt must be max 40 characters, use short UUID + timestamp
+        short_user_id = str(current_user.id)[:8]  # First 8 chars of UUID
+        timestamp = int(datetime.utcnow().timestamp())
+        receipt = f"rcpt_{short_user_id}_{timestamp}"[:40]  # Ensure max 40 chars
         order_data = {
             "amount": int(payment_data.amount * 100),  # Convert to paise
             "currency": "INR",
