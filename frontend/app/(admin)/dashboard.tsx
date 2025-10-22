@@ -22,6 +22,7 @@ export default function DashboardScreen() {
   const [dailyRevenue, setDailyRevenue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const { logout, user } = useAuthStore();
 
   const accessLevel = user?.admin_access_level || 'full';
