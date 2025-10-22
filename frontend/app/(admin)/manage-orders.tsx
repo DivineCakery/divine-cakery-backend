@@ -440,11 +440,60 @@ export default function ManageOrdersScreen() {
             value={editingDeliveryDate}
             mode="date"
             display="default"
-            onChange={(event, date) => {
-              handleDateChange(event, date);
+            onChange={async (event, date) => {
               if (event.type === 'set' && date) {
                 setEditingDeliveryDate(date);
-                confirmDateChange();
+                setShowDatePicker(false);
+                
+                // Directly use the date parameter instead of waiting for state update
+                if (!editingOrderId) return;
+                
+                try {
+                  // Update the order with new delivery date
+                  await apiService.updateOrder(editingOrderId, { 
+                    delivery_date: date.toISOString() 
+                  });
+                  
+                  // Find the order to get customer details
+                  const order = orders.find((o: any) => o.id === editingOrderId);
+                  
+                  if (order && order.user_phone) {
+                    // Send WhatsApp notification to customer
+                    const formattedDate = date.toLocaleDateString('en-IN', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    });
+                    const message = `Hello! Your order #${order.id.slice(0, 8)} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
+                    
+                    // Remove any non-digit characters and ensure phone number format
+                    const phoneNumber = order.user_phone.replace(/\D/g, '');
+                    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+                    
+                    try {
+                      const canOpen = await Linking.canOpenURL(whatsappUrl);
+                      if (canOpen) {
+                        await Linking.openURL(whatsappUrl);
+                      } else {
+                        // Fallback to web WhatsApp
+                        const webUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                        await Linking.openURL(webUrl);
+                      }
+                    } catch (error) {
+                      console.log('WhatsApp notification error:', error);
+                      // Don't fail the whole operation if WhatsApp fails
+                    }
+                  } else {
+                    console.log('No phone number available for customer notification');
+                  }
+                  
+                  await fetchOrders();
+                  Alert.alert('Success', 'Delivery date updated successfully');
+                  setEditingOrderId(null);
+                } catch (error) {
+                  console.error('Error updating delivery date:', error);
+                  Alert.alert('Error', 'Failed to update delivery date');
+                }
               } else {
                 cancelDateChange();
               }
