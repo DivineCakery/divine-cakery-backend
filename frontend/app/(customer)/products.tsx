@@ -225,9 +225,14 @@ export default function ProductsScreen() {
           <Text style={styles.headerTitle}>Divine Cakery</Text>
           <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
         </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
+            <Ionicons name="chatbubble-ellipses-outline" size={22} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Ionicons name="log-out-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
