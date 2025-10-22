@@ -62,33 +62,68 @@ export default function WalletScreen() {
 
     setAddingMoney(true);
     try {
-      // Mock payment - in real app, this would open Razorpay
-      Alert.alert(
-        'Add Money to Wallet',
-        `Add ₹${amountNum.toFixed(2)} to your wallet?\n\nNote: Payment integration will be added when Razorpay credentials are provided.`,
-        [
-          { text: 'Cancel', style: 'cancel', onPress: () => setAddingMoney(false) },
-          {
-            text: 'Simulate Success',
-            onPress: async () => {
-              try {
-                // In real app: Create Razorpay order, open checkout, verify payment
-                // For now, we'll just show success
-                Alert.alert('Success', 'Money added to wallet successfully!\n(Mocked transaction)');
-                setAmount('');
-                await fetchWallet();
-                await refreshUser();
-              } catch (error) {
-                Alert.alert('Error', 'Failed to add money');
-              } finally {
-                setAddingMoney(false);
-              }
-            },
-          },
-        ]
+      // Create Razorpay order
+      const orderData = await apiService.createPaymentOrder(
+        amountNum,
+        'wallet_topup',
+        { description: 'Wallet topup' }
       );
-    } catch (error) {
-      Alert.alert('Error', 'Failed to initiate payment');
+
+      // Import Razorpay dynamically
+      const RazorpayCheckout = require('react-native-razorpay').default;
+
+      // Razorpay checkout options
+      const options = {
+        description: 'Add Money to Wallet',
+        image: 'https://i.imgur.com/3g7nmJC.png', // Divine Cakery logo
+        currency: orderData.currency,
+        key: orderData.razorpay_key_id,
+        amount: orderData.amount,
+        name: 'Divine Cakery',
+        order_id: orderData.order_id,
+        prefill: {
+          email: user?.email || '',
+          contact: user?.phone || '',
+          name: user?.username || '',
+        },
+        theme: { color: '#8B4513' },
+      };
+
+      // Open Razorpay checkout
+      RazorpayCheckout.open(options)
+        .then(async (data: any) => {
+          // Payment successful, verify with backend
+          try {
+            const verifyResult = await apiService.verifyPayment(
+              data.razorpay_order_id,
+              data.razorpay_payment_id,
+              data.razorpay_signature
+            );
+
+            if (verifyResult.verified) {
+              Alert.alert('Success', 'Money added to wallet successfully!');
+              setAmount('');
+              await fetchWallet();
+              await refreshUser();
+            } else {
+              Alert.alert('Error', 'Payment verification failed');
+            }
+          } catch (error: any) {
+            Alert.alert('Error', 'Payment verification failed');
+            console.error('Payment verification error:', error);
+          } finally {
+            setAddingMoney(false);
+          }
+        })
+        .catch((error: any) => {
+          // Payment failed or cancelled
+          console.log('Payment error:', error);
+          Alert.alert('Payment Cancelled', error.description || 'Payment was cancelled');
+          setAddingMoney(false);
+        });
+    } catch (error: any) {
+      console.error('Error creating payment order:', error);
+      Alert.alert('Error', 'Failed to initiate payment. Please try again.');
       setAddingMoney(false);
     }
   };
