@@ -181,6 +181,16 @@ export default function ManageUsersScreen() {
       )}
 
       <View style={styles.actionButtons}>
+        {!isAdmin && (
+          <TouchableOpacity
+            style={styles.walletButton}
+            onPress={() => handleAddBalance(item.id, item.username)}
+          >
+            <Ionicons name="wallet" size={18} color="#fff" />
+            <Text style={styles.walletButtonText}>Add Balance</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => router.push(`/(admin)/customer-form?id=${item.id}`)}
