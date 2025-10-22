@@ -28,6 +28,7 @@ export default function ProductsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const addItem = useCartStore((state) => state.addItem);
   const { items: cartItems } = useCartStore();
   const { logout } = useAuthStore();
