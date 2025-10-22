@@ -264,7 +264,19 @@ export default function ManageOrdersScreen() {
 
       <View style={styles.orderDetails}>
         <Text style={styles.detailText}>Payment: {item.payment_method}</Text>
-        <Text style={styles.detailText}>Date: {new Date(item.created_at).toLocaleDateString('en-IN')}</Text>
+        <Text style={styles.detailText}>Order Date: {new Date(item.created_at).toLocaleDateString('en-IN')}</Text>
+        <View style={styles.deliveryDateContainer}>
+          <Text style={styles.detailText}>
+            Delivery: {item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('en-IN') : 'Not set'}
+          </Text>
+          <TouchableOpacity 
+            style={styles.editDateButton}
+            onPress={() => openDeliveryDateEditor(item)}
+          >
+            <Ionicons name="calendar" size={16} color="#8B4513" />
+            <Text style={styles.editDateText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.statusContainer}>
