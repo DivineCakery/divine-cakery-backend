@@ -185,20 +185,35 @@ export default function ProductsScreen() {
     fetchProducts();
   };
 
-  const renderProduct = ({ item }: any) => (
-    <View style={styles.productCard}>
-      {item.image_base64 ? (
-        <Image
-          source={{ uri: item.image_base64 }}
-          style={styles.productImage}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={[styles.productImage, styles.placeholderImage]}>
-          <MaterialCommunityIcons name="bread-slice" size={50} color="#8B4513" />
+  const renderProduct = ({ item }: any) => {
+    const isFavorite = favoriteIds.includes(item.id);
+    
+    return (
+      <View style={styles.productCard}>
+        <View style={styles.imageContainer}>
+          {item.image_base64 ? (
+            <Image
+              source={{ uri: item.image_base64 }}
+              style={styles.productImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.productImage, styles.placeholderImage]}>
+              <MaterialCommunityIcons name="bread-slice" size={50} color="#8B4513" />
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.heartButton}
+            onPress={() => toggleFavorite(item.id)}
+          >
+            <Ionicons
+              name={isFavorite ? "heart" : "heart-outline"}
+              size={24}
+              color={isFavorite ? "#FF0000" : "#666"}
+            />
+          </TouchableOpacity>
         </View>
-      )}
-      <View style={styles.productInfo}>
+        <View style={styles.productInfo}>
         <Text style={styles.productName}>{item.name}</Text>
         <Text style={styles.productCategory}>{item.category}</Text>
         {item.description && (
