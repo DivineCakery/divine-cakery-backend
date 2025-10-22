@@ -134,11 +134,11 @@ class ApiService {
     return response.data;
   }
 
-  async verifyPayment(razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string) {
+  async verifyPayment(data: any) {
     const response = await this.api.post('/payments/verify', {
-      razorpay_order_id: razorpayOrderId,
-      razorpay_payment_id: razorpayPaymentId,
-      razorpay_signature: razorpaySignature,
+      razorpay_order_id: data.razorpay_order_id,
+      razorpay_payment_id: data.razorpay_payment_id,
+      razorpay_signature: data.razorpay_signature,
     });
     return response.data;
   }
