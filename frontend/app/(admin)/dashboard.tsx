@@ -52,16 +52,10 @@ export default function DashboardScreen() {
     fetchPendingApprovals();
   }, []);
 
-  // Refresh pending approvals count when screen comes into focus
+  // Refresh stats and pending approvals when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
-      fetchPendingApprovals();
-    }, [])
-  );
-
-  // Refresh pending approvals count when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
+      fetchStats();
       fetchPendingApprovals();
     }, [])
   );
