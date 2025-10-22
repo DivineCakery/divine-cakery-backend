@@ -582,6 +582,10 @@ class DivineCakeryTester:
         self.test_order_update_endpoint()
         self.test_admin_stats_endpoint()
         
+        # MAIN FEATURE TEST: Admin Delivery Date Override
+        print("\n🎯 MAIN FEATURE TEST...")
+        self.test_admin_delivery_date_override()
+        
         # Summary
         print("\n" + "=" * 50)
         print("📋 TEST SUMMARY")
