@@ -394,6 +394,60 @@ export default function ManageOrdersScreen() {
           </View>
         }
       />
+
+      {/* Date Picker Modal */}
+      {Platform.OS === 'ios' ? (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={cancelDateChange}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Delivery Date</Text>
+              <DateTimePicker
+                value={editingDeliveryDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                style={styles.datePicker}
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={cancelDateChange}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmModalButton]}
+                  onPress={confirmDateChange}
+                >
+                  <Text style={styles.modalButtonText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={editingDeliveryDate}
+            mode="date"
+            display="default"
+            onChange={(event, date) => {
+              handleDateChange(event, date);
+              if (event.type === 'set' && date) {
+                setEditingDeliveryDate(date);
+                confirmDateChange();
+              } else {
+                cancelDateChange();
+              }
+            }}
+          />
+        )
+      )}
     </View>
   );
 
