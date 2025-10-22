@@ -23,17 +23,12 @@ export default function FavoritesScreen() {
   
   const addToCart = useCartStore((state) => state.addToCart);
 
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
   // Refresh favorites when screen comes into focus
-  useEffect(() => {
-    const unsubscribe = navigation?.addListener?.('focus', () => {
+  useFocusEffect(
+    React.useCallback(() => {
       fetchFavorites();
-    });
-    return unsubscribe;
-  }, []);
+    }, [])
+  );
 
   const fetchFavorites = async () => {
     try {
