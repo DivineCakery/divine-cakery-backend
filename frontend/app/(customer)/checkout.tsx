@@ -311,7 +311,9 @@ export default function CheckoutScreen() {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
+          <Ionicons name="chatbubble-ellipses-outline" size={22} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
