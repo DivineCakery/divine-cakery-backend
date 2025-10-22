@@ -122,15 +122,18 @@ backend:
 
   - task: "Admin delivery date override - backend support"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py, /app/backend/models.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Backend already supports delivery_date field in OrderUpdate model. The PUT /api/orders/{order_id} endpoint accepts delivery_date as Optional[datetime] and updates it in database. No backend changes needed."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING COMPLETE: Admin delivery date override feature fully tested and working correctly. All test scenarios passed: 1) Admin authentication with proper credentials (admin/admin123) ✅ 2) Order creation and retrieval ✅ 3) Delivery date update via PUT /api/orders/{order_id} with delivery_date field ✅ 4) Date persistence verification in database ✅ 5) Multiple ISO date format support (with/without timezone, different formats) ✅ 6) Authorization checks (blocks unauthorized access, rejects invalid tokens) ✅ 7) Order field preservation during updates ✅. Backend API correctly accepts delivery_date as Optional[datetime], updates database, and maintains data integrity. Feature is production-ready."
 
   - task: "WhatsApp order confirmation - backend support"
     implemented: true
