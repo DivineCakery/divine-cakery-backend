@@ -18,6 +18,8 @@ export default function ManageUsersScreen() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
