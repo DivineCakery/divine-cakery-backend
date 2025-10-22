@@ -205,7 +205,7 @@ export default function WalletScreen() {
               </TouchableOpacity>
 
               <Text style={styles.paymentNote}>
-                Note: UPI payment integration (Razorpay) will be activated when credentials are provided.
+                Secure payments powered by Razorpay. Pay using UPI, Cards, or Net Banking.
               </Text>
             </View>
           </>
