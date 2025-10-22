@@ -68,6 +68,7 @@ class User(UserBase):
     wallet_balance: float = 0.0
     created_at: datetime
     is_active: bool = True
+    favorite_products: List[str] = []
 
 
 class UserInDB(User):
