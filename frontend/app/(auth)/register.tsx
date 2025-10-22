@@ -126,7 +126,7 @@ export default function RegisterScreen() {
             <MaterialCommunityIcons name="email" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Email (optional)"
+              placeholder="Email *"
               value={formData.email}
               onChangeText={(text) => setFormData({ ...formData, email: text })}
               autoCapitalize="none"
@@ -139,10 +139,11 @@ export default function RegisterScreen() {
             <MaterialCommunityIcons name="phone" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Phone (optional)"
+              placeholder="Phone (10 digits) *"
               value={formData.phone}
               onChangeText={(text) => setFormData({ ...formData, phone: text })}
               keyboardType="phone-pad"
+              maxLength={10}
               editable={!loading}
             />
           </View>
@@ -151,7 +152,7 @@ export default function RegisterScreen() {
             <MaterialCommunityIcons name="store" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Business Name (optional)"
+              placeholder="Business Name *"
               value={formData.business_name}
               onChangeText={(text) => setFormData({ ...formData, business_name: text })}
               editable={!loading}
@@ -162,7 +163,7 @@ export default function RegisterScreen() {
             <MaterialCommunityIcons name="map-marker" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Address (optional)"
+              placeholder="Address *"
               value={formData.address}
               onChangeText={(text) => setFormData({ ...formData, address: text })}
               multiline
