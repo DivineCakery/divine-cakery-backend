@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   selectedCount: { fontSize: 14, color: '#666' },
   bulkDeleteContainer: { 
     position: 'absolute', 
-    bottom: 100, 
+    bottom: 130, 
     left: 20, 
     right: 20, 
     zIndex: 1000,
