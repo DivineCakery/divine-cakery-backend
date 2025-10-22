@@ -35,7 +35,13 @@ export default function LoginScreen() {
       await login(username, password);
       // Navigation will be handled by index.tsx
     } catch (error: any) {
-      Alert.alert('Login Failed', error.response?.data?.detail || 'Invalid credentials');
+      const errorMessage = error.response?.data?.detail || 'Invalid credentials';
+      const isApprovalPending = errorMessage.includes('pending approval');
+      
+      Alert.alert(
+        isApprovalPending ? 'Registration Pending Approval' : 'Login Failed',
+        errorMessage
+      );
     } finally {
       setLoading(false);
     }
