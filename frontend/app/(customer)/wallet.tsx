@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 
@@ -25,6 +26,13 @@ export default function WalletScreen() {
   useEffect(() => {
     fetchWallet();
   }, []);
+
+  // Refresh user permissions in real-time when screen gains focus
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshUser();
+    }, [])
+  );
 
   const fetchWallet = async () => {
     try {
