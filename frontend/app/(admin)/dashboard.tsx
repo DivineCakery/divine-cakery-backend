@@ -115,7 +115,6 @@ export default function DashboardScreen() {
       }
     >
       <View style={styles.header}>
-        <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>Admin Dashboard</Text>
           <Text style={styles.headerSubtitle}>Divine Cakery Management</Text>
