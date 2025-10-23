@@ -19,8 +19,6 @@ import apiService from '../../services/api';
 import { useCartStore, useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
 
-const CATEGORIES = ['All', 'Bread', 'Cakes', 'Muffins', 'Brownies', 'Cookies', 'Donuts'];
-
 export default function ProductsScreen() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
