@@ -440,6 +440,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 5,
   },
+  noCategoriesText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+    marginTop: 5,
+  },
   categoryChip: {
     paddingHorizontal: 15,
     paddingVertical: 8,
