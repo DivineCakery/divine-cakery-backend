@@ -225,12 +225,12 @@ export default function CartScreen() {
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={handleCancelOrder}>
-                <Ionicons name="close-circle" size={20} color="#fff" />
+                <Ionicons name="close-circle" size={18} color="#fff" />
                 <Text style={styles.cancelButtonText}>Cancel Order</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
                 <Text style={styles.checkoutButtonText}>Place Order</Text>
-                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                <Ionicons name="checkmark-circle" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
