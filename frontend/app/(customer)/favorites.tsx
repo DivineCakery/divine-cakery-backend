@@ -177,7 +177,7 @@ export default function FavoritesScreen() {
         data={favorites}
         renderItem={renderFavoriteItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[styles.listContainer, cartItems.length > 0 && { paddingBottom: 180 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B4513']} />
         }
