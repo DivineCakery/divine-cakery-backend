@@ -67,8 +67,12 @@ export default function CustomerLayout() {
         name="favorites"
         options={{
           title: 'Favorites',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons 
+              name={favoritesCount > 0 ? "heart" : "heart-outline"} 
+              size={size} 
+              color={favoritesCount > 0 ? "#FF0000" : color} 
+            />
           ),
         }}
       />
