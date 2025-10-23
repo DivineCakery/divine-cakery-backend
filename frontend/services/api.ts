@@ -118,6 +118,27 @@ class ApiService {
     return response.data;
   }
 
+  // Category APIs
+  async getCategories() {
+    const response = await this.api.get('/categories');
+    return response.data;
+  }
+
+  async createCategory(data: { name: string; display_order: number }) {
+    const response = await this.api.post('/admin/categories', data);
+    return response.data;
+  }
+
+  async updateCategory(id: string, data: { name?: string; display_order?: number }) {
+    const response = await this.api.put(`/admin/categories/${id}`, data);
+    return response.data;
+  }
+
+  async deleteCategory(id: string) {
+    const response = await this.api.delete(`/admin/categories/${id}`);
+    return response.data;
+  }
+
   // Wallet APIs
   async getWallet() {
     const response = await this.api.get('/wallet');
