@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useCartStore, useAuthStore } from '../../store';
+import { DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
 
 export default function CartScreen() {
   const router = useRouter();
