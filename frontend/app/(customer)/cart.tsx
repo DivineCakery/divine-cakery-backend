@@ -247,14 +247,14 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#8B4513',
-    padding: 12,
-    paddingTop: 40,
+    padding: 8,
+    paddingTop: 35,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
