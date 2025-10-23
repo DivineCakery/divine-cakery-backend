@@ -530,24 +530,24 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   productInfo: {
-    padding: 15,
+    padding: 10,
   },
   productName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   productCategory: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#8B4513',
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   productDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   productFooter: {
     flexDirection: 'row',
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   productPrice: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#8B4513',
   },
