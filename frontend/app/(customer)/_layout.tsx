@@ -1,10 +1,30 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState } from 'react';
+import apiService from '../../services/api';
 
 export default function CustomerLayout() {
   const insets = useSafeAreaInsets();
+  const [favoritesCount, setFavoritesCount] = useState(0);
+
+  // Fetch favorites count
+  const fetchFavoritesCount = async () => {
+    try {
+      const favorites = await apiService.getFavorites();
+      setFavoritesCount(favorites.length);
+    } catch (error) {
+      console.error('Error fetching favorites count:', error);
+    }
+  };
+
+  // Refresh favorites count when screen gains focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFavoritesCount();
+    }, [])
+  );
   
   return (
     <Tabs
