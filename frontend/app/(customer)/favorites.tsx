@@ -13,7 +13,7 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import apiService from '../../services/api';
-import { useCartStore } from '../../store';
+import { useCartStore, useAuthStore } from '../../store';
 
 export default function FavoritesScreen() {
   const router = useRouter();
