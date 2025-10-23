@@ -141,30 +141,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
     padding: 30,
     paddingTop: 60,
+    paddingBottom: 40,
     alignItems: 'center',
-  },
-  logoImage: {
-    width: 80,
-    height: 80,
-    marginBottom: 15,
-  },
-  profileIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
   },
   headerName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 5,
   },
   headerEmail: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#FFF8DC',
   },
   content: {
