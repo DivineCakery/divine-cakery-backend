@@ -390,7 +390,6 @@ export default function CheckoutScreen() {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Notes (Optional)</Text>
         <View style={styles.card}>
           <TextInput
             style={styles.notesInput}
