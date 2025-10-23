@@ -203,21 +203,6 @@ export default function FavoritesScreen() {
           </View>
         }
       />
-
-      {cartItems.length > 0 && (
-        <View style={styles.proceedButtonContainer}>
-          <TouchableOpacity
-            style={styles.proceedButton}
-            onPress={() => router.push('/(customer)/checkout')}
-          >
-            <Ionicons name="cart" size={24} color="#fff" />
-            <Text style={styles.proceedButtonText}>
-              Proceed to Buy ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
-            </Text>
-            <Ionicons name="arrow-forward" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 }
