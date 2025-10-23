@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_NUMBER } from '../../constants/whatsapp';
