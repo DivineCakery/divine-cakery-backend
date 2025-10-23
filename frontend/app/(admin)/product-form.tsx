@@ -38,10 +38,25 @@ export default function ProductFormScreen() {
   });
 
   useEffect(() => {
+    fetchCategories();
     if (isEdit) {
       fetchProduct();
     }
   }, [productId]);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      setCategories(data);
+      // Set first category as default if creating new product
+      if (!isEdit && data.length > 0) {
+        setFormData(prev => ({ ...prev, category: data[0].name }));
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      Alert.alert('Error', 'Failed to load categories');
+    }
+  };
 
   const fetchProduct = async () => {
     try {
