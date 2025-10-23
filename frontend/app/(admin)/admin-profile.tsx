@@ -65,10 +65,8 @@ export default function AdminProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF8DC' },
-  header: { backgroundColor: '#8B4513', paddingTop: 50, paddingBottom: 30, alignItems: 'center' },
-  logoImage: { width: 80, height: 80, marginBottom: 15 },
-  avatarContainer: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#A0522D', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  userName: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  header: { backgroundColor: '#8B4513', paddingTop: 50, paddingBottom: 40, alignItems: 'center' },
+  userName: { fontSize: 28, fontWeight: 'bold', color: '#fff', marginBottom: 5 },
   userRole: { fontSize: 16, color: '#FFF8DC', marginTop: 5 },
   section: { padding: 20 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 15 },
