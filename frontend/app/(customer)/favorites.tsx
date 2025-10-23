@@ -183,8 +183,13 @@ export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="heart" size={24} color="#fff" />
-        <Text style={styles.headerTitle}>My Favorites</Text>
+        <View style={styles.headerLeft}>
+          <Ionicons name="heart" size={24} color="#fff" />
+          <Text style={styles.headerTitle}>My Favorites</Text>
+        </View>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <FlatList
