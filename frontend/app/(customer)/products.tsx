@@ -100,9 +100,10 @@ export default function ProductsScreen() {
     }
   };
 
-  // Refresh favorites when screen comes into focus (for two-way sync with Favorites page)
+  // Refresh favorites and categories when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
+      fetchCategories();
       fetchFavorites();
     }, [])
   );
