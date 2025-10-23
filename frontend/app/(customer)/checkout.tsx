@@ -332,7 +332,6 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Type</Text>
         <View style={styles.orderTypeContainer}>
           <TouchableOpacity
             style={[styles.orderTypeButton, orderType === 'delivery' && styles.orderTypeButtonActive]}
