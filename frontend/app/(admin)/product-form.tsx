@@ -228,16 +228,19 @@ export default function ProductFormScreen() {
           </View>
 
           <Text style={styles.label}>Category *</Text>
-          <View style={styles.categoryContainer}>
-            {CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryChip,
-                  formData.category === cat && styles.categoryChipActive,
-                ]}
-                onPress={() => setFormData({ ...formData, category: cat })}
-                disabled={loading}
+          {categories.length === 0 ? (
+            <Text style={styles.noCategoriesText}>No categories available. Please create categories first.</Text>
+          ) : (
+            <View style={styles.categoryContainer}>
+              {categories.map((cat: any) => (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[
+                    styles.categoryChip,
+                    formData.category === cat.name && styles.categoryChipActive,
+                  ]}
+                  onPress={() => setFormData({ ...formData, category: cat.name })}
+                  disabled={loading}
               >
                 <Text
                   style={[
