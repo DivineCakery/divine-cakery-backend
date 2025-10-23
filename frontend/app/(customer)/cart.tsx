@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#fff',
     padding: 6,
-    paddingBottom: 65,
+    paddingBottom: 50,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     elevation: 10,
