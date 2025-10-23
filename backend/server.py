@@ -658,7 +658,16 @@ async def get_transactions(current_user: User = Depends(get_current_user)):
 @api_router.get("/admin/users", response_model=List[User])
 async def get_all_users(current_user: User = Depends(get_current_admin)):
     users = await db.users.find().to_list(1000)
-    return [User(**user) for user in users]
+    
+    # Enrich users with wallet balance
+    enriched_users = []
+    for user in users:
+        # Fetch wallet balance for each user
+        wallet = await db.wallets.find_one({"user_id": user["id"]})
+        user["wallet_balance"] = wallet.get("balance", 0.0) if wallet else 0.0
+        enriched_users.append(User(**user))
+    
+    return enriched_users
 
 
 @api_router.post("/admin/users", response_model=User)
