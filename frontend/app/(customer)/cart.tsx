@@ -419,14 +419,14 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   totalAmount: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#8B4513',
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
+    gap: 8,
+    marginTop: 8,
   },
   cancelButton: {
     flex: 1,
@@ -434,14 +434,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 8,
   },
   cancelButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginLeft: 6,
   },
   checkoutButton: {
     flex: 1,
