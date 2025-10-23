@@ -270,6 +270,18 @@ export default function DashboardScreen() {
 
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/manage-categories' as any)}
+              >
+                <Ionicons name="albums-outline" size={24} color="#8B4513" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Manage Categories</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Add and organize product categories</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
                 onPress={() => router.push('/(admin)/manage-discounts' as any)}
               >
                 <Ionicons name="pricetag-outline" size={24} color="#8B4513" />
