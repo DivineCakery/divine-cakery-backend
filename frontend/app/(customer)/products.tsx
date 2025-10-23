@@ -329,7 +329,7 @@ export default function ProductsScreen() {
         data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[styles.listContainer, cartItems.length > 0 && { paddingBottom: 100 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B4513']} />
         }
@@ -340,6 +340,21 @@ export default function ProductsScreen() {
           </View>
         }
       />
+
+      {cartItems.length > 0 && (
+        <View style={styles.proceedButtonContainer}>
+          <TouchableOpacity
+            style={styles.proceedButton}
+            onPress={() => router.push('/(customer)/checkout')}
+          >
+            <Ionicons name="cart" size={24} color="#fff" />
+            <Text style={styles.proceedButtonText}>
+              Proceed to Buy ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
+            </Text>
+            <Ionicons name="arrow-forward" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
