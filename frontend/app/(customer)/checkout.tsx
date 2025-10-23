@@ -211,25 +211,48 @@ export default function CheckoutScreen() {
       };
 
       if (paymentMethod === 'upi') {
+        // UPI/Razorpay payment
+        const paymentOrderData = await apiService.createPaymentOrder(totalAmount);
+        
+        // Open Razorpay payment page in browser
+        const razorpayUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${paymentOrderData.key_id}&order_id=${paymentOrderData.order_id}&amount=${paymentOrderData.amount}&currency=INR&name=Divine Cakery&description=Order Payment&prefill[name]=${user?.name || user?.username}&prefill[contact]=${user?.phone || ''}`;
+        
+        const result = await WebBrowser.openBrowserAsync(razorpayUrl);
+        
+        if (result.type === 'cancel' || result.type === 'dismiss') {
+          Alert.alert('Payment Cancelled', 'Payment was cancelled. Order not placed.');
+          setPlacing(false);
+          return;
+        }
+
+        // After payment completion, create the order
         Alert.alert(
-          'UPI Payment - Important Notice',
-          'UPI/Card payment via Razorpay requires a custom development build and does not work in Expo Go.\n\nOptions:\n1. Use Wallet Payment instead (load wallet first)\n2. Contact admin for manual payment instructions\n\nWould you like to switch to Wallet Payment?',
+          'Payment Verification',
+          'Did you complete the payment successfully?',
           [
             {
-              text: 'Switch to Wallet',
-              onPress: () => {
-                setPaymentMethod('wallet');
+              text: 'Yes, Place Order',
+              onPress: async () => {
+                try {
+                  const response = await apiService.createOrder(orderData);
+                  clearCart();
+                  await refreshUser();
+                  Alert.alert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
+                    { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
+                  ]);
+                } catch (error: any) {
+                  Alert.alert('Error', error.response?.data?.detail || 'Failed to place order');
+                }
                 setPlacing(false);
               }
             },
             {
-              text: 'Cancel',
+              text: 'No, Cancel',
               style: 'cancel',
               onPress: () => setPlacing(false)
             }
           ]
         );
-        return;
       } else {
         // Wallet payment
         const response = await apiService.createOrder(orderData);
