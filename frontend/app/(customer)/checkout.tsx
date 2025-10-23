@@ -68,6 +68,14 @@ export default function CheckoutScreen() {
     fetchCustomerDiscount();
   }, []);
 
+  // Refresh wallet balance when screen gains focus (real-time update)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchWallet();
+      refreshUser(); // Update user data in store including wallet balance
+    }, [])
+  );
+
   const fetchWallet = async () => {
     try {
       const data = await apiService.getWallet();
