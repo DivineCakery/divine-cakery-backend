@@ -16,12 +16,14 @@ import apiService from '../../services/api';
 import { useCartStore } from '../../store';
 
 export default function FavoritesScreen() {
+  const router = useRouter();
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   
   const addToCart = useCartStore((state) => state.addToCart);
+  const cartItems = useCartStore((state) => state.items);
 
   // Refresh favorites when screen comes into focus
   useFocusEffect(
