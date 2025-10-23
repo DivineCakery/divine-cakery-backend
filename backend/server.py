@@ -406,33 +406,50 @@ async def create_payment_order(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        # Create order in Razorpay
-        # Receipt must be max 40 characters, use short UUID + timestamp
-        short_user_id = str(current_user.id)[:8]  # First 8 chars of UUID
+        # Create transaction record first
+        transaction_id = str(uuid.uuid4())
+        
+        # Create Payment Link in Razorpay
+        short_user_id = str(current_user.id)[:8]
         timestamp = int(datetime.utcnow().timestamp())
-        receipt = f"rcpt_{short_user_id}_{timestamp}"[:40]  # Ensure max 40 chars
-        order_data = {
+        reference_id = f"txn_{short_user_id}_{timestamp}"[:40]
+        
+        payment_link_data = {
             "amount": int(payment_data.amount * 100),  # Convert to paise
             "currency": "INR",
-            "receipt": receipt,
+            "description": f"{payment_data.transaction_type.title()} - Divine Cakery",
+            "customer": {
+                "name": current_user.name or current_user.username,
+                "contact": current_user.phone or "",
+                "email": current_user.email or ""
+            },
+            "notify": {
+                "sms": False,
+                "email": False
+            },
+            "reminder_enable": False,
+            "reference_id": reference_id,
             "notes": {
                 "user_id": current_user.id,
+                "transaction_id": transaction_id,
                 "transaction_type": payment_data.transaction_type,
                 **(payment_data.notes or {})
-            }
+            },
+            "callback_url": f"{os.environ.get('BACKEND_URL', 'http://localhost:8001')}/api/payments/callback",
+            "callback_method": "get"
         }
         
-        razorpay_order = razorpay_client.order.create(data=order_data)
+        payment_link = razorpay_client.payment_link.create(payment_link_data)
         
         # Create transaction record
-        transaction_id = str(uuid.uuid4())
         transaction_dict = {
             "id": transaction_id,
             "user_id": current_user.id,
             "amount": payment_data.amount,
             "transaction_type": payment_data.transaction_type,
             "payment_method": "upi",
-            "razorpay_order_id": razorpay_order["id"],
+            "razorpay_order_id": payment_link.get("id"),
+            "razorpay_payment_link_id": payment_link.get("id"),
             "status": TransactionStatus.PENDING,
             "notes": payment_data.notes,
             "created_at": datetime.utcnow()
@@ -441,15 +458,15 @@ async def create_payment_order(
         await db.transactions.insert_one(transaction_dict)
         
         return {
-            "order_id": razorpay_order["id"],
-            "amount": razorpay_order["amount"],
-            "currency": razorpay_order["currency"],
-            "razorpay_key_id": os.environ.get("RAZORPAY_KEY_ID", ""),
+            "payment_link_url": payment_link.get("short_url"),
+            "payment_link_id": payment_link.get("id"),
+            "amount": payment_link.get("amount"),
+            "currency": payment_link.get("currency"),
             "transaction_id": transaction_id
         }
     
     except Exception as e:
-        logger.error(f"Error creating payment order: {str(e)}")
+        logger.error(f"Error creating payment link: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
