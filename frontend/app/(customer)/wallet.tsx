@@ -153,7 +153,7 @@ export default function WalletScreen() {
 
       <View style={styles.balanceCard}>
         <View style={styles.balanceIcon}>
-          <Ionicons name="wallet" size={50} color="#8B4513" />
+          <Ionicons name="wallet" size={40} color="#8B4513" />
         </View>
         <Text style={styles.balanceLabel}>Current Balance</Text>
         <Text style={styles.balanceAmount}>₹{wallet?.balance?.toFixed(2) || '0.00'}</Text>
