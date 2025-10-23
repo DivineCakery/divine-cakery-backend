@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 12,
-    paddingBottom: 180,
+    paddingBottom: 200,
   },
   cartItem: {
     backgroundColor: '#fff',
