@@ -359,11 +359,11 @@ export default function ProductsScreen() {
             style={styles.proceedButton}
             onPress={() => router.push('/(customer)/checkout')}
           >
-            <Ionicons name="cart" size={24} color="#fff" />
+            <Ionicons name="cart" size={20} color="#fff" />
             <Text style={styles.proceedButtonText}>
               Proceed to Buy ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
             </Text>
-            <Ionicons name="arrow-forward" size={24} color="#fff" />
+            <Ionicons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       )}
