@@ -365,7 +365,6 @@ export default function CheckoutScreen() {
 
       {orderType === 'delivery' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Expected Delivery</Text>
           <View style={styles.card}>
             <View style={styles.deliveryInfo}>
               <Ionicons name="calendar" size={20} color="#8B4513" />
