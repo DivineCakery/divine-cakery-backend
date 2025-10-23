@@ -78,35 +78,52 @@ export default function WalletScreen() {
       return;
     }
 
-    Alert.alert(
-      'Wallet Top-Up - Important Notice',
-      'UPI/Card payment via Razorpay requires a custom development build and does not work in Expo Go.\n\nTo add money to wallet:\n1. Contact admin for manual wallet recharge\n2. Admin can add balance to your wallet directly\n\nWould you like to contact admin via WhatsApp?',
-      [
-        {
-          text: 'Contact Admin',
-          onPress: async () => {
-            try {
-              const message = `Hello! I would like to add ₹${amountNum.toFixed(2)} to my wallet.\n\nUsername: ${user?.username}\nPhone: ${user?.phone}`;
-              const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
-              
-              const canOpen = await Linking.canOpenURL(whatsappUrl);
-              if (canOpen) {
-                await Linking.openURL(whatsappUrl);
-              } else {
-                const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-                await Linking.openURL(webUrl);
-              }
-            } catch (error) {
-              console.log('WhatsApp error:', error);
+    setAddingMoney(true);
+
+    try {
+      // Create Razorpay order
+      const orderData = await apiService.createPaymentOrder(amountNum);
+      
+      // Open Razorpay payment page in browser
+      const razorpayUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${orderData.key_id}&order_id=${orderData.order_id}&amount=${orderData.amount}&currency=INR&name=Divine Cakery&description=Wallet Top-up&prefill[name]=${user?.name || user?.username}&prefill[contact]=${user?.phone || ''}`;
+      
+      const result = await WebBrowser.openBrowserAsync(razorpayUrl);
+      
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        Alert.alert('Payment Cancelled', 'Payment was cancelled. Please try again.');
+        setAddingMoney(false);
+        return;
+      }
+
+      // Show manual verification option
+      Alert.alert(
+        'Payment Verification',
+        'If you completed the payment, please wait a moment and refresh your wallet balance. If payment was successful, your balance will be updated automatically.\n\nDid you complete the payment?',
+        [
+          {
+            text: 'Yes, Refresh',
+            onPress: async () => {
+              await fetchWallet();
+              await refreshUser();
+              setAmount('');
+              Alert.alert('Success', 'Wallet balance refreshed. If payment is completed, balance will be updated.');
+            }
+          },
+          {
+            text: 'No, Try Again',
+            style: 'cancel',
+            onPress: () => {
+              setAmount('');
             }
           }
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        }
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      Alert.alert('Error', error.response?.data?.detail || 'Failed to initiate payment');
+    } finally {
+      setAddingMoney(false);
+    }
   };
 
   if (loading) {
