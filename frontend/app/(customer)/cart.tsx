@@ -212,7 +212,7 @@ export default function CartScreen() {
 
           <View style={styles.footer}>
             <View style={styles.deliveryDateContainer}>
-              <Ionicons name="calendar" size={20} color="#8B4513" />
+              <Ionicons name="calendar" size={16} color="#8B4513" />
               <View style={styles.deliveryDateInfo}>
                 <Text style={styles.deliveryDateLabel}>Expected Delivery:</Text>
                 <Text style={styles.deliveryDateText}>{getDeliveryDate()}</Text>
@@ -225,12 +225,12 @@ export default function CartScreen() {
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={handleCancelOrder}>
-                <Ionicons name="close-circle" size={18} color="#fff" />
-                <Text style={styles.cancelButtonText}>Cancel Order</Text>
+                <Ionicons name="close-circle" size={16} color="#fff" />
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
                 <Text style={styles.checkoutButtonText}>Place Order</Text>
-                <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                <Ionicons name="checkmark-circle" size={16} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
