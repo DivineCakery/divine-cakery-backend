@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Image,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
