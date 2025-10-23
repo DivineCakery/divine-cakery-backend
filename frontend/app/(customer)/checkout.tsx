@@ -294,7 +294,6 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Order Summary</Text>
         <View style={styles.card}>
           {items.map((item) => (
             <View key={item.product_id} style={styles.orderItem}>
