@@ -81,13 +81,15 @@ export default function WalletScreen() {
     setAddingMoney(true);
 
     try {
-      // Create Razorpay order
-      const orderData = await apiService.createPaymentOrder(amountNum);
+      // Create Razorpay payment link
+      const paymentData = await apiService.createPaymentOrder(amountNum);
       
-      // Open Razorpay payment page in browser
-      const razorpayUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${orderData.key_id}&order_id=${orderData.order_id}&amount=${orderData.amount}&currency=INR&name=Divine Cakery&description=Wallet Top-up&prefill[name]=${user?.name || user?.username}&prefill[contact]=${user?.phone || ''}`;
+      if (!paymentData.payment_link_url) {
+        throw new Error('Failed to create payment link');
+      }
       
-      const result = await WebBrowser.openBrowserAsync(razorpayUrl);
+      // Open Razorpay payment link in browser
+      const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
       
       if (result.type === 'cancel' || result.type === 'dismiss') {
         Alert.alert('Payment Cancelled', 'Payment was cancelled. Please try again.');
