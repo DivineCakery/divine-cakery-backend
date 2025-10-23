@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
   },
   proceedButtonContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 70,
     left: 0,
     right: 0,
     padding: 15,
