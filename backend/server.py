@@ -21,7 +21,8 @@ from models import (
     OrderCreate, OrderUpdate, Order, OrderStatus,
     Wallet, Transaction, TransactionCreate, TransactionType, TransactionStatus,
     PaymentOrderCreate, PaymentVerification, MessageResponse, WalletResponse,
-    Discount, DiscountCreate, DiscountUpdate, DiscountType
+    Discount, DiscountCreate, DiscountUpdate, DiscountType,
+    Category, CategoryCreate, CategoryUpdate
 )
 
 
