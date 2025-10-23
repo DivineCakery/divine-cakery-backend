@@ -188,6 +188,69 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+# Category Routes
+@api_router.get("/categories", response_model=List[Category])
+async def get_all_categories():
+    categories = await db.categories.find().sort("display_order", 1).to_list(1000)
+    return [Category(**cat) for cat in categories]
+
+@api_router.post("/admin/categories", response_model=Category)
+async def create_category(
+    category: CategoryCreate,
+    current_user: User = Depends(get_current_admin)
+):
+    # Check if category already exists
+    existing = await db.categories.find_one({"name": category.name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Category already exists")
+    
+    category_dict = category.model_dump()
+    category_dict["id"] = str(uuid.uuid4())
+    category_dict["created_at"] = datetime.utcnow()
+    
+    await db.categories.insert_one(category_dict)
+    return Category(**category_dict)
+
+@api_router.put("/admin/categories/{category_id}", response_model=Category)
+async def update_category(
+    category_id: str,
+    category: CategoryUpdate,
+    current_user: User = Depends(get_current_admin)
+):
+    existing = await db.categories.find_one({"id": category_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    update_data = {k: v for k, v in category.model_dump().items() if v is not None}
+    
+    if update_data:
+        await db.categories.update_one(
+            {"id": category_id},
+            {"$set": update_data}
+        )
+    
+    updated = await db.categories.find_one({"id": category_id})
+    return Category(**updated)
+
+@api_router.delete("/admin/categories/{category_id}")
+async def delete_category(
+    category_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    # Check if category is used by any products
+    products_using = await db.products.find_one({"category": category_id})
+    if products_using:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete category that is being used by products"
+        )
+    
+    result = await db.categories.delete_one({"id": category_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    return {"message": "Category deleted successfully"}
+
 # Product Routes
 @api_router.post("/products", response_model=Product)
 async def create_product(
