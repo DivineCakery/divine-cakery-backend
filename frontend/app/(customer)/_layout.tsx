@@ -45,6 +45,7 @@ export default function CustomerLayout() {
         name="products"
         options={{
           title: 'Products',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="bread-slice" size={size} color={color} />
           ),
