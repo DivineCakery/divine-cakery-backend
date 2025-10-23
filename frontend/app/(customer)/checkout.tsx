@@ -403,8 +403,6 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Payment Method</Text>
-        
         <TouchableOpacity
           style={[
             styles.paymentOption,
