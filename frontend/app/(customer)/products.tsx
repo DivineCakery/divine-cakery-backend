@@ -279,7 +279,8 @@ export default function ProductsScreen() {
         </View>
         <View style={styles.headerButtons}>
           <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
-            <Ionicons name="chatbubble-ellipses-outline" size={22} color="#fff" />
+            <MaterialCommunityIcons name="whatsapp" size={20} color="#25D366" />
+            <Text style={styles.contactButtonText}>Contact Us</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
             <Ionicons name="log-out-outline" size={24} color="#fff" />
