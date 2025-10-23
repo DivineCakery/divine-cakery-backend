@@ -223,6 +223,45 @@ frontend:
           agent: "main"
           comment: "Added getDailyRevenue() method to API service to fetch daily revenue data from backend."
 
+  - task: "Dynamic category management - Admin UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/manage-categories.tsx, /app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Created manage-categories.tsx screen with full CRUD functionality. Features: 1) List all categories with display order 2) Add new category button 3) Edit existing categories 4) Delete categories with confirmation 5) Pull-to-refresh 6) Modal form for create/edit operations. Added API methods: getCategories(), createCategory(), updateCategory(), deleteCategory()."
+
+  - task: "Dynamic categories in product form"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/product-form.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Updated product form to fetch categories dynamically from API. Added useFocusEffect to refresh categories when screen gains focus. Category selection dropdown now uses real-time data from backend."
+
+  - task: "Dynamic categories in customer product listing"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(customer)/products.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Removed hardcoded CATEGORIES array. Implemented dynamic category fetching from API. Added useFocusEffect to refresh categories in real-time. Category filter now uses dynamic data with 'All' as default option."
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 CRITICAL FIX: Fixed undefined variable error. Changed FlatList data prop from 'CATEGORIES' to 'categories' state. App now loads successfully. Frontend error resolved."
+
   - task: "Admin UI to edit order delivery date with WhatsApp notification"
     implemented: true
     working: "NA"
