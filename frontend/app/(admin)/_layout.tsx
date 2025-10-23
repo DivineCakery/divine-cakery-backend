@@ -122,6 +122,12 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="manage-categories"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="delivery-settings"
         options={{
           href: null,
