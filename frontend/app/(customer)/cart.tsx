@@ -458,13 +458,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 8,
+    padding: 8,
+    borderRadius: 6,
   },
   checkoutButtonText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 'bold',
-    marginRight: 5,
+    marginRight: 4,
   },
 });
