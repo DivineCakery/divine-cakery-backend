@@ -12,7 +12,7 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_NUMBER } from '../../constants/whatsapp';
