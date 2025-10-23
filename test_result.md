@@ -285,8 +285,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin delivery date override - backend support"
-    - "Admin UI to edit order delivery date with WhatsApp notification"
+    - "Dynamic category management - Backend API"
+    - "Dynamic category management - Admin UI"
+    - "Dynamic categories in product form"
+    - "Dynamic categories in customer product listing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
