@@ -425,8 +425,8 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
+    gap: 6,
+    marginTop: 6,
   },
   cancelButton: {
     flex: 1,
@@ -434,14 +434,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
   },
   cancelButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
-    marginLeft: 6,
+    marginLeft: 5,
   },
   checkoutButton: {
     flex: 1,
