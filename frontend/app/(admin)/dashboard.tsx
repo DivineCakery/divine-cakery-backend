@@ -150,19 +150,6 @@ export default function DashboardScreen() {
                 <Text style={styles.statLabel}>Products</Text>
                 <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.statsRow}>
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: '#FF9800' }]}
-                onPress={() => router.push('/(admin)/manage-orders')}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons name="clipboard-text" size={40} color="#fff" />
-                <Text style={styles.statNumber}>{stats?.total_orders || 0}</Text>
-                <Text style={styles.statLabel}>Total Orders</Text>
-                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-              </TouchableOpacity>
 
               <TouchableOpacity 
                 style={[styles.statCard, { backgroundColor: '#f44336' }]}
