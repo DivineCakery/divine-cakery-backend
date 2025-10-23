@@ -616,18 +616,18 @@ const styles = StyleSheet.create({
   },
   orderTypeContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   orderTypeButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    padding: 15,
+    gap: 6,
+    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 2,
+    borderRadius: 10,
+    borderWidth: 1.5,
     borderColor: '#8B4513',
   },
   orderTypeButtonActive: {
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     borderColor: '#8B4513',
   },
   orderTypeText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#8B4513',
   },
