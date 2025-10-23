@@ -419,7 +419,7 @@ async def create_payment_order(
             "currency": "INR",
             "description": f"{payment_data.transaction_type.title()} - Divine Cakery",
             "customer": {
-                "name": current_user.name or current_user.username,
+                "name": current_user.business_name or current_user.username,
                 "contact": current_user.phone or "",
                 "email": current_user.email or ""
             },
