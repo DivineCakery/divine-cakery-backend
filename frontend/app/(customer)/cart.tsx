@@ -282,12 +282,12 @@ const styles = StyleSheet.create({
   },
   clearCartContainer: {
     backgroundColor: '#8B4513',
-    paddingHorizontal: 15,
-    paddingBottom: 10,
+    paddingHorizontal: 12,
+    paddingBottom: 6,
   },
   clearText: {
     color: '#FFF8DC',
-    fontSize: 14,
+    fontSize: 12,
   },
   emptyContainer: {
     flex: 1,
