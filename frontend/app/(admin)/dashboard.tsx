@@ -13,7 +13,6 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
-import { DIVINE_LOGO } from '../../constants/logo';
 import { useAuthStore } from '../../store';
 
 export default function DashboardScreen() {
