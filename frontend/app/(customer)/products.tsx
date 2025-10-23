@@ -313,7 +313,7 @@ export default function ProductsScreen() {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={CATEGORIES}
+          data={categories}
           keyExtractor={(item) => item}
           renderItem={({ item }) => (
             <TouchableOpacity
