@@ -212,12 +212,14 @@ export default function CheckoutScreen() {
 
       if (paymentMethod === 'upi') {
         // UPI/Razorpay payment
-        const paymentOrderData = await apiService.createPaymentOrder(totalAmount);
+        const paymentData = await apiService.createPaymentOrder(totalAmount);
         
-        // Open Razorpay payment page in browser
-        const razorpayUrl = `https://api.razorpay.com/v1/checkout/embedded?key_id=${paymentOrderData.key_id}&order_id=${paymentOrderData.order_id}&amount=${paymentOrderData.amount}&currency=INR&name=Divine Cakery&description=Order Payment&prefill[name]=${user?.name || user?.username}&prefill[contact]=${user?.phone || ''}`;
+        if (!paymentData.payment_link_url) {
+          throw new Error('Failed to create payment link');
+        }
         
-        const result = await WebBrowser.openBrowserAsync(razorpayUrl);
+        // Open Razorpay payment link in browser
+        const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
         
         if (result.type === 'cancel' || result.type === 'dismiss') {
           Alert.alert('Payment Cancelled', 'Payment was cancelled. Order not placed.');
