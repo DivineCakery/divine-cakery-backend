@@ -55,6 +55,7 @@ export default function CustomerLayout() {
         name="cart"
         options={{
           title: 'Cart',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cart-outline" size={size} color={color} />
           ),
@@ -64,6 +65,7 @@ export default function CustomerLayout() {
         name="favorites"
         options={{
           title: 'Favorites',
+          headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons 
               name={favoritesCount > 0 ? "heart" : "heart-outline"} 
@@ -77,6 +79,7 @@ export default function CustomerLayout() {
         name="wallet"
         options={{
           title: 'Wallet',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="wallet" size={size} color={color} />
           ),
@@ -86,6 +89,7 @@ export default function CustomerLayout() {
         name="orders"
         options={{
           title: 'Orders',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <FontAwesome5 name="clipboard-list" size={size} color={color} />
           ),
@@ -95,6 +99,7 @@ export default function CustomerLayout() {
         name="profile"
         options={{
           title: 'Profile',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
@@ -104,6 +109,7 @@ export default function CustomerLayout() {
         name="checkout"
         options={{
           href: null,
+          headerShown: false,
         }}
       />
     </Tabs>
