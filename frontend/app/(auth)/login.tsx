@@ -33,7 +33,16 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(username, password);
-      // Navigation will be handled by index.tsx
+      
+      // Get the updated user from store to determine navigation
+      const user = useAuthStore.getState().user;
+      
+      // Navigate based on user role
+      if (user?.role === 'admin') {
+        router.replace('/(admin)/dashboard');
+      } else {
+        router.replace('/(customer)/products');
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Invalid credentials';
       const isApprovalPending = errorMessage.includes('pending approval');
@@ -42,7 +51,6 @@ export default function LoginScreen() {
         isApprovalPending ? 'Registration Pending Approval' : 'Login Failed',
         errorMessage
       );
-    } finally {
       setLoading(false);
     }
   };
