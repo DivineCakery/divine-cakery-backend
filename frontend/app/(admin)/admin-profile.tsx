@@ -25,14 +25,6 @@ export default function AdminProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
       <View style={styles.header}>
-        <Image 
-          source={require('../../assets/images/icon.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
-        <View style={styles.avatarContainer}>
-          <Ionicons name="shield-checkmark" size={60} color="#fff" />
-        </View>
         <Text style={styles.userName}>{user?.username}</Text>
         <Text style={styles.userRole}>Administrator</Text>
       </View>
