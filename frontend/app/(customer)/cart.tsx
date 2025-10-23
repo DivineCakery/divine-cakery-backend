@@ -163,9 +163,15 @@ export default function CartScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Shopping Cart</Text>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
+            <MaterialCommunityIcons name="whatsapp" size={20} color="#25D366" />
+            <Text style={styles.contactButtonText}>Contact Us</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Ionicons name="log-out-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
       {items.length > 0 && (
         <View style={styles.clearCartContainer}>
