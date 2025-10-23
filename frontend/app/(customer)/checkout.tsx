@@ -341,7 +341,7 @@ export default function CheckoutScreen() {
           >
             <Ionicons 
               name="bicycle" 
-              size={24} 
+              size={20} 
               color={orderType === 'delivery' ? '#fff' : '#8B4513'} 
             />
             <Text style={[styles.orderTypeText, orderType === 'delivery' && styles.orderTypeTextActive]}>
@@ -355,7 +355,7 @@ export default function CheckoutScreen() {
           >
             <Ionicons 
               name="basket" 
-              size={24} 
+              size={20} 
               color={orderType === 'pickup' ? '#fff' : '#8B4513'} 
             />
             <Text style={[styles.orderTypeText, orderType === 'pickup' && styles.orderTypeTextActive]}>
