@@ -245,14 +245,15 @@ export default function ProductFormScreen() {
                 <Text
                   style={[
                     styles.categoryText,
-                    formData.category === cat && styles.categoryTextActive,
+                    formData.category === cat.name && styles.categoryTextActive,
                   ]}
                 >
-                  {cat}
+                  {cat.name}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
 
           <Text style={styles.label}>MRP (₹) *</Text>
           <TextInput
