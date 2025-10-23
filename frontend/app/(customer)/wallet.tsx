@@ -165,7 +165,6 @@ export default function WalletScreen() {
       <View style={styles.addMoneySection}>
         {user?.can_topup_wallet !== false && (
           <>
-            <Text style={styles.sectionTitle}>Add Money to Wallet</Text>
             <View style={styles.addMoneyCard}>
               <View style={styles.inputContainer}>
                 <Text style={styles.currencySymbol}>₹</Text>
