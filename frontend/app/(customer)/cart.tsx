@@ -449,13 +449,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 8,
   },
   checkoutButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginRight: 8,
+    marginRight: 6,
   },
 });
