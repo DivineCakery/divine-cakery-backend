@@ -126,6 +126,9 @@ export default function WalletScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Wallet</Text>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.balanceCard}>
