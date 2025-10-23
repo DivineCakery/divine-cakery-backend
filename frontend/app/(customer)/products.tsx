@@ -398,7 +398,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   contactButton: {
-    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  contactButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   logoutButton: {
     padding: 8,
