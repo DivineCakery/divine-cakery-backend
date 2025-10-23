@@ -376,7 +376,6 @@ export default function CheckoutScreen() {
 
       {orderType === 'delivery' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Delivery Address</Text>
           <View style={styles.card}>
             <TextInput
               style={styles.addressInput}
