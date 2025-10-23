@@ -18,12 +18,27 @@ import { useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_NUMBER } from '../../constants/whatsapp';
 
 export default function WalletScreen() {
+  const router = useRouter();
   const [wallet, setWallet] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [amount, setAmount] = useState('');
   const [addingMoney, setAddingMoney] = useState(false);
-  const { user, refreshUser } = useAuthStore();
+  const { user, refreshUser, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+          router.replace('/');
+        },
+      },
+    ]);
+  };
 
   useEffect(() => {
     fetchWallet();
