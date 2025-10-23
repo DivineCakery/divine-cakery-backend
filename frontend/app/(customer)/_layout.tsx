@@ -35,13 +35,9 @@ export default function CustomerLayout() {
           backgroundColor: '#fff',
           borderTopWidth: 1,
           borderTopColor: '#eee',
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
           paddingTop: 8,
-          height: insets.bottom > 0 ? 65 + insets.bottom : 70,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          height: insets.bottom > 0 ? 60 + insets.bottom : 65,
         },
       }}
     >
