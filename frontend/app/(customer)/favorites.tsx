@@ -23,7 +23,21 @@ export default function FavoritesScreen() {
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   
   const addToCart = useCartStore((state) => state.addToCart);
-  const cartItems = useCartStore((state) => state.items);
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+          router.replace('/');
+        },
+      },
+    ]);
+  };
 
   // Refresh favorites when screen comes into focus
   useFocusEffect(
