@@ -44,6 +44,13 @@ export default function ProductFormScreen() {
     }
   }, [productId]);
 
+  // Refresh categories when screen gains focus (real-time update)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchCategories();
+    }, [])
+  );
+
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
