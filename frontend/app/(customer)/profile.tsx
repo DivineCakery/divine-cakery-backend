@@ -61,8 +61,6 @@ export default function ProfileScreen() {
 
       <View style={styles.content}>
         <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Account Information</Text>
-
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <MaterialCommunityIcons name="account" size={24} color="#8B4513" />
