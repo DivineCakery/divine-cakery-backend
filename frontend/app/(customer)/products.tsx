@@ -85,9 +85,20 @@ export default function ProductsScreen() {
   };
 
   useEffect(() => {
+    fetchCategories();
     fetchProducts();
     fetchFavorites();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      const categoryNames = data.map((cat: any) => cat.name);
+      setCategories(['All', ...categoryNames]);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   // Refresh favorites when screen comes into focus (for two-way sync with Favorites page)
   useFocusEffect(
