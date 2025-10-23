@@ -17,8 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import apiService from '../../services/api';
 
-const CATEGORIES = ['Bread', 'Cakes', 'Muffins', 'Brownies', 'Cookies', 'Donuts'];
-
 export default function ProductFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -26,9 +24,10 @@ export default function ProductFormScreen() {
   const isEdit = !!productId;
 
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
-    category: 'Bread',
+    category: '',
     mrp: '',
     price: '',
     packet_size: '',
