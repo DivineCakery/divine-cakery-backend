@@ -120,6 +120,21 @@ backend:
           agent: "testing"
           comment: "✅ TESTED: Daily revenue API endpoint working correctly. Returns proper 7-day breakdown with date, day_name, revenue, and order_count fields. Requires admin authentication. API structure and data types are correct."
 
+  - task: "Dynamic category management - Backend API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented CRUD endpoints for categories: GET /api/categories (public), POST /api/admin/categories, PUT /api/admin/categories/{id}, DELETE /api/admin/categories/{id}. Added Category model with name, display_order, and created_at fields. Categories are sorted by display_order."
+        - working: true
+          agent: "main"
+          comment: "✅ VERIFIED: Categories exist in database (Catering, Loaves, Rolls). Backend endpoints are functional."
+
   - task: "Admin delivery date override - backend support"
     implemented: true
     working: true
