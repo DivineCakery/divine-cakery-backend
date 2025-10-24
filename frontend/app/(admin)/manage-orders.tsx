@@ -61,7 +61,7 @@ export default function ManageOrdersScreen() {
 
   const sendWhatsAppMessage = async (order: any) => {
     try {
-      const message = getAdminOrderNotification(order.id.slice(0, 8));
+      const message = getAdminOrderNotification(order.id);
       
       // Use business WhatsApp number instead of customer's
       const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
