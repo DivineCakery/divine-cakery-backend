@@ -274,29 +274,29 @@ export default function CustomerFormScreen() {
                     color={formData.admin_access_level === 'limited' ? '#fff' : '#8B4513'} 
                   />
                   <Text style={[styles.accessText, formData.admin_access_level === 'limited' && styles.accessTextActive]}>
-                    Limited Access
+                    Kitchen
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.accessOption, formData.admin_access_level === 'reports_only' && styles.accessOptionActive]}
-                  onPress={() => setFormData({ ...formData, admin_access_level: 'reports_only' })}
+                  style={[styles.accessOption, formData.admin_access_level === 'reports' && styles.accessOptionActive]}
+                  onPress={() => setFormData({ ...formData, admin_access_level: 'reports' })}
                   disabled={loading}
                 >
                   <Ionicons 
                     name="stats-chart" 
                     size={18} 
-                    color={formData.admin_access_level === 'reports_only' ? '#fff' : '#8B4513'} 
+                    color={formData.admin_access_level === 'reports' ? '#fff' : '#8B4513'} 
                   />
-                  <Text style={[styles.accessText, formData.admin_access_level === 'reports_only' && styles.accessTextActive]}>
-                    Reports Only
+                  <Text style={[styles.accessText, formData.admin_access_level === 'reports' && styles.accessTextActive]}>
+                    Office
                   </Text>
                 </TouchableOpacity>
               </View>
               <Text style={styles.hint}>
                 {formData.admin_access_level === 'full' && 'Full access to all admin features'}
-                {formData.admin_access_level === 'limited' && 'Can manage orders but not users or products'}
-                {formData.admin_access_level === 'reports_only' && 'Can only view reports and revenue data'}
+                {formData.admin_access_level === 'limited' && 'Can manage orders and view dashboard'}
+                {formData.admin_access_level === 'reports' && 'Can view dashboard and reports only'}
               </Text>
             </>
           )}
