@@ -557,6 +557,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#8B4513',
+    flex: 1,
+  },
+  refreshButton: {
+    padding: 8,
+    backgroundColor: '#FFF8DC',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#8B4513',
   },
   preparationSubtitle: {
     fontSize: 14,
