@@ -75,28 +75,12 @@ export default function RegisterScreen() {
         address: formData.address || undefined,
       });
 
-      // Send WhatsApp notification to admin
-      const message = getNewUserRegistrationAlert(
-        formData.username,
-        formData.business_name || 'N/A',
-        formData.phone || 'N/A',
-        formData.email || 'N/A',
-        formData.address || 'N/A'
-      );
-      const whatsappUrl = `https://wa.me/${DIVINE_WHATSAPP_ADMIN_ALERT}?text=${encodeURIComponent(message)}`;
-      
-      // Open WhatsApp to send admin notification
-      try {
-        await Linking.openURL(whatsappUrl);
-      } catch (whatsappError) {
-        console.log('Could not open WhatsApp:', whatsappError);
-        // Continue even if WhatsApp fails to open
-      }
+      // Admin email notification is now sent automatically by the backend
 
       // Show success popup
       Alert.alert(
         'Registration Pending Approval',
-        `✅ Thank you for registering with Divine Cakery!\n\n📋 Registration Details:\n• Username: ${formData.username}\n• Business: ${formData.business_name || 'N/A'}\n\n⏳ Your account is pending admin approval. You will be notified via WhatsApp within 1 day once approved.\n\nThank you for your patience!`,
+        `✅ Thank you for registering with Divine Cakery!\n\n📋 Registration Details:\n• Username: ${formData.username}\n• Business: ${formData.business_name || 'N/A'}\n\n⏳ Your account is pending admin approval. You will be notified via WhatsApp within 1 day once approved.\n\n📧 An email notification has been sent to the admin.\n\nThank you for your patience!`,
         [
           {
             text: 'OK',
