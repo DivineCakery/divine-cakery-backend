@@ -317,6 +317,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#2e7d32',
   },
+  saveButton: {
+    marginLeft: 8,
+  },
+  cancelButton: {
+    marginLeft: 4,
+  },
   productActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   editButton: { flexDirection: 'row', backgroundColor: '#2196F3', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
   editButtonText: { color: '#fff', fontWeight: 'bold', marginLeft: 5 },
