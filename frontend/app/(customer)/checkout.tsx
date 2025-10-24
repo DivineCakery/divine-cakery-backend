@@ -336,19 +336,21 @@ export default function CheckoutScreen() {
 
       <View style={styles.section}>
         <View style={styles.orderTypeContainer}>
-          <TouchableOpacity
-            style={[styles.orderTypeButton, orderType === 'delivery' && styles.orderTypeButtonActive]}
-            onPress={() => setOrderType('delivery')}
-          >
-            <Ionicons 
-              name="bicycle" 
-              size={20} 
-              color={orderType === 'delivery' ? '#fff' : '#8B4513'} 
-            />
-            <Text style={[styles.orderTypeText, orderType === 'delivery' && styles.orderTypeTextActive]}>
-              Delivery
-            </Text>
-          </TouchableOpacity>
+          {!user?.onsite_pickup_only && (
+            <TouchableOpacity
+              style={[styles.orderTypeButton, orderType === 'delivery' && styles.orderTypeButtonActive]}
+              onPress={() => setOrderType('delivery')}
+            >
+              <Ionicons 
+                name="bicycle" 
+                size={20} 
+                color={orderType === 'delivery' ? '#fff' : '#8B4513'} 
+              />
+              <Text style={[styles.orderTypeText, orderType === 'delivery' && styles.orderTypeTextActive]}>
+                Delivery
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.orderTypeButton, orderType === 'pickup' && styles.orderTypeButtonActive]}
