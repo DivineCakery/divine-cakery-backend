@@ -276,7 +276,7 @@ export default function ManageOrdersScreen() {
   const renderOrder = ({ item }: any) => (
     <View style={styles.orderCard}>
       <View style={styles.orderHeader}>
-        <Text style={styles.orderNumber}>Order #{item.id.slice(0, 8)}</Text>
+        <Text style={styles.orderNumber}>Order #{item.id}</Text>
         <Text style={styles.orderAmount}>₹{item.total_amount.toFixed(2)}</Text>
       </View>
 
