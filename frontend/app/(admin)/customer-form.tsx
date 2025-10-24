@@ -95,9 +95,10 @@ export default function CustomerFormScreen() {
         admin_access_level: formData.admin_access_level,
       };
 
-      // Only include can_topup_wallet for customers
+      // Only include can_topup_wallet and onsite_pickup_only for customers
       if (formData.role === 'customer') {
         customerData.can_topup_wallet = formData.can_topup_wallet;
+        customerData.onsite_pickup_only = formData.onsite_pickup_only;
       }
 
       if (isEdit) {
