@@ -216,6 +216,8 @@ const styles = StyleSheet.create({
   listContainer: { padding: 15, paddingBottom: 100 },
   productCard: { backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 2 },
   productHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  productImage: { width: 60, height: 60, borderRadius: 8 },
+  noImage: { backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center' },
   productInfo: { marginLeft: 15, flex: 1 },
   productName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   productCategory: { fontSize: 12, color: '#8B4513', marginTop: 2 },
