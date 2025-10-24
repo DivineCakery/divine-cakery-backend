@@ -135,7 +135,42 @@ export default function ManageProductsScreen() {
           >
             <Ionicons name="remove" size={20} color="#8B4513" />
           </TouchableOpacity>
-          <Text style={styles.stockValue}>{item.closing_stock || 0} {item.unit || 'units'}</Text>
+          
+          {editingStockId === item.id ? (
+            <TextInput
+              style={styles.stockInput}
+              value={tempStockValue}
+              onChangeText={setTempStockValue}
+              keyboardType="numeric"
+              autoFocus
+              onBlur={() => {
+                const newStock = parseInt(tempStockValue) || 0;
+                if (newStock >= 0) {
+                  updateClosingStock(item.id, newStock);
+                }
+                setEditingStockId(null);
+                setTempStockValue('');
+              }}
+              onSubmitEditing={() => {
+                const newStock = parseInt(tempStockValue) || 0;
+                if (newStock >= 0) {
+                  updateClosingStock(item.id, newStock);
+                }
+                setEditingStockId(null);
+                setTempStockValue('');
+              }}
+            />
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setEditingStockId(item.id);
+                setTempStockValue(String(item.closing_stock || 0));
+              }}
+            >
+              <Text style={styles.stockValue}>{item.closing_stock || 0} {item.unit || 'units'}</Text>
+            </TouchableOpacity>
+          )}
+          
           <TouchableOpacity
             style={styles.stockButton}
             onPress={() => {
