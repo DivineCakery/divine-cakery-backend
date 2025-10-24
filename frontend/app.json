@@ -47,11 +47,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "divine-cakery-app"
-      }
     }
   }
 }
