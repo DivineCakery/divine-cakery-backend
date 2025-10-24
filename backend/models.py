@@ -107,6 +107,7 @@ class ProductBase(BaseModel):
     remarks: Optional[str] = None
     image_base64: Optional[str] = None
     is_available: bool = True
+    closing_stock: int = 0  # Inventory count
 
 
 class ProductCreate(ProductBase):
