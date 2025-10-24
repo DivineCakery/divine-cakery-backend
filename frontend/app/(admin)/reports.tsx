@@ -31,9 +31,18 @@ export default function ReportsScreen() {
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
+      console.log('Reports screen focused, refreshing data...');
+      setLoading(true);
       fetchReports();
     }, [activeTab, selectedDate])
   );
+
+  // Also refresh when switching tabs
+  useEffect(() => {
+    console.log('Active tab changed to:', activeTab);
+    setLoading(true);
+    fetchReports();
+  }, [activeTab]);
 
   const fetchReports = async () => {
     try {
@@ -42,6 +51,9 @@ export default function ReportsScreen() {
         const data = await apiService.getDailyItemsReport(dateStr);
         setReport(data);
       } else {
+        // Add timestamp to force fresh data
+        const timestamp = new Date().getTime();
+        console.log(`Fetching preparation list at ${timestamp}`);
         const data = await apiService.getPreparationListReport();
         console.log('Preparation List Data:', JSON.stringify(data, null, 2));
         setPreparationList(data);
