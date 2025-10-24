@@ -61,7 +61,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Image source={{ uri: DIVINE_LOGO }} style={styles.logo} resizeMode="contain" />
+          <Image source={require('../../assets/images/icon.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.subtitle}>Wholesale Bakery App</Text>
         </View>
 
