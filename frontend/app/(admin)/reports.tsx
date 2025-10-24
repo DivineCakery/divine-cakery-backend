@@ -255,6 +255,15 @@ export default function ReportsScreen() {
             <View style={styles.preparationHeader}>
               <Ionicons name="restaurant" size={28} color="#8B4513" />
               <Text style={styles.preparationTitle}>Items to Prepare</Text>
+              <TouchableOpacity 
+                style={styles.refreshButton}
+                onPress={() => {
+                  setLoading(true);
+                  fetchReports();
+                }}
+              >
+                <Ionicons name="refresh" size={24} color="#8B4513" />
+              </TouchableOpacity>
             </View>
             <Text style={styles.preparationSubtitle}>
               Based on closing stock and pending orders
