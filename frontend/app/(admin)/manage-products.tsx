@@ -121,6 +121,31 @@ export default function ManageProductsScreen() {
         </View>
       )}
 
+      <View style={styles.stockContainer}>
+        <Text style={styles.stockLabel}>Closing Stock:</Text>
+        <View style={styles.stockInputContainer}>
+          <TouchableOpacity
+            style={styles.stockButton}
+            onPress={() => {
+              const newStock = Math.max(0, (item.closing_stock || 0) - 1);
+              updateClosingStock(item.id, newStock);
+            }}
+          >
+            <Ionicons name="remove" size={20} color="#8B4513" />
+          </TouchableOpacity>
+          <Text style={styles.stockValue}>{item.closing_stock || 0} {item.unit || 'units'}</Text>
+          <TouchableOpacity
+            style={styles.stockButton}
+            onPress={() => {
+              const newStock = (item.closing_stock || 0) + 1;
+              updateClosingStock(item.id, newStock);
+            }}
+          >
+            <Ionicons name="add" size={20} color="#8B4513" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <View style={styles.productActions}>
         <TouchableOpacity
           style={styles.editButton}
