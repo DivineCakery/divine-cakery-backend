@@ -637,43 +637,32 @@ async def verify_payment(
 # Helper function to generate order number in format YYMMDDXXXX
 async def generate_order_number() -> str:
     """
-    Generates order number in format: YYMMDDXXXX
+    Generates order number in format: YYMMDDXXXX using atomic counter
     YY = Current year (2 digits)
     MM = Current month (2 digits)
     DD = Current date (2 digits)
-    XXXX = Sequential counter (4 digits)
+    XXXX = Sequential counter (4 digits) - atomic increment
     """
     now = datetime.utcnow()
     year = now.strftime("%y")  # 2-digit year
     month = now.strftime("%m")  # 2-digit month
     day = now.strftime("%d")  # 2-digit day
     
-    # Get or create counter for today
     date_prefix = f"{year}{month}{day}"
     
-    # Find the highest order number for today
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    # Use MongoDB's findOneAndUpdate with atomic increment for thread-safe counter
+    counter_doc = await db.counters.find_one_and_update(
+        {"_id": f"order_{date_prefix}"},
+        {"$inc": {"sequence": 1}},
+        upsert=True,
+        return_document=True  # Return the updated document
+    )
     
-    # Get orders created today with new format
-    today_orders = await db.orders.find({
-        "created_at": {"$gte": today_start, "$lte": today_end},
-        "id": {"$regex": f"^{date_prefix}"}
-    }).sort("id", -1).limit(1).to_list(1)
-    
-    if today_orders:
-        # Extract the last 4 digits and increment
-        last_order_id = today_orders[0]["id"]
-        try:
-            last_counter = int(last_order_id[-4:])
-            new_counter = last_counter + 1
-        except:
-            new_counter = 1
-    else:
-        new_counter = 1
+    # Get the sequence number
+    sequence = counter_doc.get("sequence", 1)
     
     # Format: YYMMDDXXXX
-    order_number = f"{date_prefix}{new_counter:04d}"
+    order_number = f"{date_prefix}{sequence:04d}"
     return order_number
 
 
