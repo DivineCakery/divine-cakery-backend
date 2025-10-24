@@ -643,6 +643,28 @@ const styles = StyleSheet.create({
   orderHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   orderNumber: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   orderAmount: { fontSize: 20, fontWeight: 'bold', color: '#8B4513' },
+  orderTypeDisplayContainer: { marginBottom: 12, alignItems: 'flex-start' },
+  orderTypeDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 8,
+    elevation: 1,
+  },
+  orderTypeDelivery: {
+    backgroundColor: '#2196F3',
+  },
+  orderTypePickup: {
+    backgroundColor: '#4CAF50',
+  },
+  orderTypeDisplayText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
   orderDetails: { marginBottom: 10 },
   detailText: { fontSize: 14, color: '#666', marginBottom: 3 },
   customerSection: {
