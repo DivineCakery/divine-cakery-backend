@@ -125,6 +125,7 @@ class ProductUpdate(BaseModel):
     remarks: Optional[str] = None
     image_base64: Optional[str] = None
     is_available: Optional[bool] = None
+    closing_stock: Optional[int] = None
 
 
 class Product(ProductBase):
