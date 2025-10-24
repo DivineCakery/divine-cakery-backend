@@ -266,7 +266,7 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             </View>
             <Text style={styles.preparationSubtitle}>
-              Based on closing stock and pending orders
+              Based on closing stock and confirmed orders
             </Text>
 
             {preparationList?.items && preparationList.items.length > 0 ? (
