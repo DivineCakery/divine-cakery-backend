@@ -116,32 +116,42 @@ export default function ManageProductsScreen() {
       )}
 
       <View style={styles.productActions}>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => router.push(`/(admin)/product-form?id=${item.id}`)}
-        >
-          <Ionicons name="create" size={20} color="#fff" />
-          <Text style={styles.editButtonText}>Edit</Text>
-        </TouchableOpacity>
+        {accessLevel !== 'limited' && (
+          <>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => router.push(`/(admin)/product-form?id=${item.id}`)}
+            >
+              <Ionicons name="create" size={20} color="#fff" />
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.availabilityButton,
-            item.is_available ? styles.availableButton : styles.unavailableButton,
-          ]}
-          onPress={() => toggleAvailability(item.id, item.is_available)}
-        >
-          <Text style={styles.availabilityText}>
-            {item.is_available ? 'Available' : 'Unavailable'}
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.availabilityButton,
+                item.is_available ? styles.availableButton : styles.unavailableButton,
+              ]}
+              onPress={() => toggleAvailability(item.id, item.is_available)}
+            >
+              <Text style={styles.availabilityText}>
+                {item.is_available ? 'Available' : 'Unavailable'}
+              </Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Ionicons name="trash" size={20} color="#fff" />
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item.id)}
+            >
+              <Ionicons name="trash" size={20} color="#fff" />
+            </TouchableOpacity>
+          </>
+        )}
+        {accessLevel === 'limited' && (
+          <View style={styles.viewOnlyBadge}>
+            <Ionicons name="eye" size={16} color="#666" />
+            <Text style={styles.viewOnlyText}>View Only</Text>
+          </View>
+        )}
       </View>
     </View>
   );
