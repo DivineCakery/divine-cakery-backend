@@ -656,7 +656,7 @@ async def generate_order_number() -> str:
         {"_id": f"order_{date_prefix}"},
         {"$inc": {"sequence": 1}},
         upsert=True,
-        return_document=True  # Return the updated document
+        return_document=ReturnDocument.AFTER  # Return the updated document
     )
     
     # Get the sequence number
