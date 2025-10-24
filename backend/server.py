@@ -14,6 +14,9 @@ import uuid
 import razorpay
 import hmac
 import hashlib
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from models import (
     UserCreate, UserLogin, User, UserInDB, UserRole, Token, TokenData,
