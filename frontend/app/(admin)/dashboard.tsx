@@ -141,23 +141,26 @@ export default function DashboardScreen() {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: '#2196F3' }]}
-                onPress={() => router.push('/(admin)/manage-products')}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons name="bread-slice" size={40} color="#fff" />
-                <Text style={styles.statNumber}>{stats?.total_products || 0}</Text>
-                <Text style={styles.statLabel}>Products</Text>
-                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-              </TouchableOpacity>
+              {accessLevel !== 'reports' && (
+                <TouchableOpacity 
+                  style={[styles.statCard, { backgroundColor: '#2196F3' }]}
+                  onPress={() => router.push('/(admin)/manage-products')}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="bread-slice" size={40} color="#fff" />
+                  <Text style={styles.statNumber}>{stats?.total_products || 0}</Text>
+                  <Text style={styles.statLabel}>Products</Text>
+                  <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+                </TouchableOpacity>
+              )}
 
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: '#f44336' }]}
-                onPress={() => router.push('/(admin)/manage-orders')}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="time" size={40} color="#fff" />
+              {accessLevel !== 'reports' && (
+                <TouchableOpacity 
+                  style={[styles.statCard, { backgroundColor: '#f44336' }]}
+                  onPress={() => router.push('/(admin)/manage-orders')}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="time" size={40} color="#fff" />
                 <Text style={styles.statNumber}>{stats?.pending_orders || 0}</Text>
                 <Text style={styles.statLabel}>Pending Orders</Text>
                 <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
