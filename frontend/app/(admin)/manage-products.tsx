@@ -201,9 +201,38 @@ export default function ManageProductsScreen() {
             style={styles.addButton}
             onPress={() => router.push('/(admin)/product-form')}
           >
-            <Ionicons name="add-circle" size={28} color="#fff" />
+            <Ionicons name="add-circle" size={32} color="#fff" />
           </TouchableOpacity>
         )}
+      </View>
+
+      {/* Category Filter */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterLabel}>Filter by Category:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+          <TouchableOpacity
+            style={[styles.categoryChip, selectedCategory === 'All' && styles.categoryChipActive]}
+            onPress={() => setSelectedCategory('All')}
+          >
+            <Text style={[styles.categoryChipText, selectedCategory === 'All' && styles.categoryChipTextActive]}>
+              All ({products.length})
+            </Text>
+          </TouchableOpacity>
+          {categories.map((category: any) => {
+            const count = products.filter((p: any) => p.category === category.name).length;
+            return (
+              <TouchableOpacity
+                key={category.id}
+                style={[styles.categoryChip, selectedCategory === category.name && styles.categoryChipActive]}
+                onPress={() => setSelectedCategory(category.name)}
+              >
+                <Text style={[styles.categoryChipText, selectedCategory === category.name && styles.categoryChipTextActive]}>
+                  {category.name} ({count})
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <FlatList
