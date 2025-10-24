@@ -17,20 +17,27 @@ import { useAuthStore } from '../../store';
 export default function ReportsScreen() {
   const router = useRouter();
   const [report, setReport] = useState<any>(null);
+  const [preparationList, setPreparationList] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>('daily');
   const { logout } = useAuthStore();
 
   useEffect(() => {
-    fetchReport();
-  }, [selectedDate]);
+    fetchReports();
+  }, [selectedDate, activeTab]);
 
-  const fetchReport = async () => {
+  const fetchReports = async () => {
     try {
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      const data = await apiService.getDailyItemsReport(dateStr);
-      setReport(data);
+      if (activeTab === 'daily') {
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        const data = await apiService.getDailyItemsReport(dateStr);
+        setReport(data);
+      } else {
+        const data = await apiService.getPreparationListReport();
+        setPreparationList(data);
+      }
     } catch (error) {
       console.error('Error fetching report:', error);
       Alert.alert('Error', 'Failed to load report');
@@ -42,7 +49,7 @@ export default function ReportsScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchReport();
+    fetchReports();
   };
 
   const handleLogout = () => {
