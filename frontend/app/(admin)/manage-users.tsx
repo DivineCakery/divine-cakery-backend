@@ -166,8 +166,8 @@ export default function ManageUsersScreen() {
   const renderUser = ({ item }: any) => {
     const isAdmin = item.role === 'admin';
     const accessLevelLabel = item.admin_access_level === 'full' ? 'Full Access' 
-      : item.admin_access_level === 'limited' ? 'Limited Access' 
-      : item.admin_access_level === 'reports_only' ? 'Reports Only' 
+      : item.admin_access_level === 'limited' ? 'Kitchen' 
+      : item.admin_access_level === 'reports' ? 'Office' 
       : '';
     const isSelected = selectedUsers.includes(item.id);
     const canSelect = !isAdmin && selectionMode;
