@@ -44,6 +44,20 @@ export default function ManageProductsScreen() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  // Filter products based on selected category
+  const filteredProducts = selectedCategory === 'All' 
+    ? products 
+    : products.filter((product: any) => product.category === selectedCategory);
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchProducts();
