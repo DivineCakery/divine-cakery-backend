@@ -65,6 +65,16 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="manage-stock"
+        options={{
+          title: 'Stock',
+          href: canShowTab('manage-stock') ? undefined : null,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cube" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="manage-orders"
         options={{
           title: 'Orders',
