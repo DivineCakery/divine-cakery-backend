@@ -19,6 +19,8 @@ export default function ManageProductsScreen() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [editingStockId, setEditingStockId] = useState<string | null>(null);
+  const [tempStockValue, setTempStockValue] = useState<string>('');
 
   useEffect(() => {
     fetchProducts();
