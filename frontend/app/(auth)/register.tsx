@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DIVINE_LOGO } from '../../constants/logo';
-import { DIVINE_WHATSAPP_NUMBER } from '../../constants/whatsapp';
+import { DIVINE_WHATSAPP_ADMIN_ALERT, getNewUserRegistrationAlert } from '../../constants/whatsapp';
 
 export default function RegisterScreen() {
   const router = useRouter();
