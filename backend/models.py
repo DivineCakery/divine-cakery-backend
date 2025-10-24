@@ -39,6 +39,7 @@ class TransactionStatus(str, Enum):
 class CategoryBase(BaseModel):
     name: str
     display_order: int = 0
+    is_admin_only: bool = False  # True for categories only visible to admins
 
 class CategoryCreate(CategoryBase):
     pass
@@ -46,6 +47,7 @@ class CategoryCreate(CategoryBase):
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     display_order: Optional[int] = None
+    is_admin_only: Optional[bool] = None
 
 class Category(CategoryBase):
     id: str
