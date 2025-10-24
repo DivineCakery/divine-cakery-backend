@@ -126,16 +126,18 @@ export default function DashboardScreen() {
         {(accessLevel === 'full' || accessLevel === 'limited') && (
           <>
             <View style={styles.statsRow}>
-              <TouchableOpacity 
-                style={[styles.statCard, { backgroundColor: '#4CAF50' }]}
-                onPress={() => router.push('/(admin)/manage-users')}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons name="account-group" size={40} color="#fff" />
-                <Text style={styles.statNumber}>{stats?.total_users || 0}</Text>
-                <Text style={styles.statLabel}>Total Customers</Text>
-                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-              </TouchableOpacity>
+              {accessLevel !== 'reports' && (
+                <TouchableOpacity 
+                  style={[styles.statCard, { backgroundColor: '#4CAF50' }]}
+                  onPress={() => router.push('/(admin)/manage-users')}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons name="account-group" size={40} color="#fff" />
+                  <Text style={styles.statNumber}>{stats?.total_users || 0}</Text>
+                  <Text style={styles.statLabel}>Total Customers</Text>
+                  <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity 
                 style={[styles.statCard, { backgroundColor: '#2196F3' }]}
