@@ -280,6 +280,23 @@ export default function ManageOrdersScreen() {
         <Text style={styles.orderAmount}>₹{item.total_amount.toFixed(2)}</Text>
       </View>
 
+      {/* Order Type Display */}
+      <View style={styles.orderTypeDisplayContainer}>
+        <View style={[
+          styles.orderTypeDisplay, 
+          item.order_type === 'delivery' ? styles.orderTypeDelivery : styles.orderTypePickup
+        ]}>
+          <Ionicons 
+            name={item.order_type === 'delivery' ? 'bicycle' : 'basket'} 
+            size={18} 
+            color="#fff" 
+          />
+          <Text style={styles.orderTypeDisplayText}>
+            {item.order_type === 'delivery' ? 'DELIVERY' : 'PICKUP'}
+          </Text>
+        </View>
+      </View>
+
       {/* Customer Information */}
       <View style={styles.customerSection}>
         <View style={styles.customerHeader}>
