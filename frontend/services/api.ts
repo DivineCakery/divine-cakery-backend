@@ -267,6 +267,11 @@ class ApiService {
     return response.data;
   }
 
+  async getPreparationListReport() {
+    const response = await this.api.get('/admin/reports/preparation-list');
+    return response.data;
+  }
+
   // Delivery Charge Settings
   async getDeliveryCharge() {
     const response = await this.api.get('/settings/delivery-charge');
