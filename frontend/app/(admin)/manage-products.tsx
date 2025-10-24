@@ -206,7 +206,7 @@ export default function ManageProductsScreen() {
       </View>
 
       <FlatList
-        data={products}
+        data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
