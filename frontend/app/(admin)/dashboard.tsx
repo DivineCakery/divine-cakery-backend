@@ -26,6 +26,8 @@ export default function DashboardScreen() {
 
   const accessLevel = user?.admin_access_level || 'full';
 
+  console.log('Dashboard - User:', user?.username, 'Access Level:', accessLevel);
+
   const handleLogout = () => {
     Alert.alert(
       'Logout Confirmation',
