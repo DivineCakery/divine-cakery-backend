@@ -33,7 +33,7 @@ export default function ManageStockScreen() {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiService.getAllProducts();
+      const data = await apiService.getProducts();
       setProducts(data);
     } catch (error) {
       Alert.alert('Error', 'Failed to load products');
