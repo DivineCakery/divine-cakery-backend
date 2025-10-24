@@ -191,17 +191,72 @@ async def register(user_data: UserCreate):
     }
     await db.wallets.insert_one(wallet_dict)
     
-    # Store registration notification data for frontend to send WhatsApp alert
-    notification_data = {
-        "username": user_data.username,
-        "business_name": user_data.business_name or "N/A",
-        "phone": user_data.phone or "N/A",
-        "email": user_data.email or "N/A",
-        "address": user_data.address or "N/A"
-    }
+    # Send email notification to admin automatically
+    admin_email = os.environ.get("ADMIN_EMAIL", "contact@divinecakery.in")
+    subject = "🔔 New User Registration - Divine Cakery"
     
-    # Add notification to user response for frontend to handle
-    user_dict["registration_notification"] = notification_data
+    # Create HTML email body
+    email_body = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background-color: #8B4513; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }}
+            .content {{ background-color: #FFF8DC; padding: 20px; border-radius: 0 0 5px 5px; }}
+            .info-row {{ margin: 10px 0; padding: 10px; background-color: white; border-radius: 5px; }}
+            .label {{ font-weight: bold; color: #8B4513; }}
+            .footer {{ margin-top: 20px; text-align: center; color: #666; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>🔔 New User Registration Alert</h2>
+            </div>
+            <div class="content">
+                <p>A new user has registered and is waiting for approval:</p>
+                
+                <div class="info-row">
+                    <span class="label">Username:</span> {user_data.username}
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">Business Name:</span> {user_data.business_name or 'N/A'}
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">Phone:</span> {user_data.phone or 'N/A'}
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">Email:</span> {user_data.email or 'N/A'}
+                </div>
+                
+                <div class="info-row">
+                    <span class="label">Address:</span> {user_data.address or 'N/A'}
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background-color: #FFE4B5; border-left: 4px solid #8B4513; border-radius: 5px;">
+                    <p style="margin: 0;"><strong>Action Required:</strong> Please login to the admin panel to approve this registration request.</p>
+                </div>
+            </div>
+            <div class="footer">
+                <p>Divine Cakery - Wholesale Bakery Management System</p>
+                <p>Registration Date: {datetime.utcnow().strftime('%B %d, %Y at %I:%M %p UTC')}</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Send email notification (non-blocking)
+    try:
+        send_email_notification(subject, email_body, admin_email)
+        logger.info(f"Registration email sent for user: {user_data.username}")
+    except Exception as e:
+        logger.error(f"Failed to send registration email: {str(e)}")
+        # Continue even if email fails - don't block registration
     
     return User(**user_dict)
 
