@@ -81,7 +81,16 @@ export default function ManageProductsScreen() {
   const renderProduct = ({ item }: any) => (
     <View style={styles.productCard}>
       <View style={styles.productHeader}>
-        <MaterialCommunityIcons name="bread-slice" size={40} color="#8B4513" />
+        {item.image_base64 ? (
+          <Image 
+            source={{ uri: item.image_base64 }} 
+            style={styles.productImage}
+          />
+        ) : (
+          <View style={[styles.productImage, styles.noImage]}>
+            <MaterialCommunityIcons name="bread-slice" size={32} color="#ccc" />
+          </View>
+        )}
         <View style={styles.productInfo}>
           <Text style={styles.productName}>{item.name}</Text>
           <Text style={styles.productCategory}>{item.category}</Text>
