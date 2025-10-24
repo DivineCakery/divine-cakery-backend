@@ -226,6 +226,8 @@ const styles = StyleSheet.create({
   unavailableButton: { backgroundColor: '#f44336' },
   availabilityText: { color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 12 },
   deleteButton: { backgroundColor: '#ff3b30', padding: 10, borderRadius: 8, width: 45, alignItems: 'center' },
+  viewOnlyBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f0f0f0', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 },
+  viewOnlyText: { fontSize: 14, color: '#666', marginLeft: 6, fontStyle: 'italic' },
   emptyContainer: { alignItems: 'center', paddingVertical: 60 },
   emptyText: { fontSize: 18, color: '#999', marginTop: 10 },
 });
