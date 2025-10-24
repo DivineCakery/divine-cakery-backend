@@ -179,7 +179,7 @@ export default function ManageOrdersScreen() {
           month: 'long',
           day: 'numeric',
         });
-        const message = `Hello! Your order #${order.id.slice(0, 8)} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
+        const message = `Hello! Your order #${order.id} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
         
         // Remove any non-digit characters and ensure phone number format
         const phoneNumber = order.user_phone.replace(/\D/g, '');
@@ -514,7 +514,7 @@ export default function ManageOrdersScreen() {
                       month: 'long',
                       day: 'numeric',
                     });
-                    const message = `Hello! Your order #${order.id.slice(0, 8)} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
+                    const message = `Hello! Your order #${order.id} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
                     
                     // Remove any non-digit characters and ensure phone number format
                     const phoneNumber = order.user_phone.replace(/\D/g, '');
