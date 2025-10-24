@@ -1321,6 +1321,64 @@ async def get_daily_items_report(
     }
 
 
+@api_router.get("/admin/reports/preparation-list")
+async def get_preparation_list_report(current_user: User = Depends(get_current_admin)):
+    """Get preparation list report: Closing Stock - New Orders (excluding delivered and cancelled)"""
+    
+    # Get all products
+    products_cursor = db.products.find({})
+    products = await products_cursor.to_list(10000)
+    
+    # Get all orders except delivered and cancelled
+    orders_cursor = db.orders.find({
+        "order_status": {"$nin": [OrderStatus.DELIVERED, OrderStatus.CANCELLED]}
+    })
+    orders = await orders_cursor.to_list(10000)
+    
+    # Calculate total ordered quantity for each product
+    ordered_quantities = {}
+    for order in orders:
+        for item in order.get("items", []):
+            product_id = item.get("product_id")
+            quantity = item.get("quantity", 0)
+            
+            if product_id in ordered_quantities:
+                ordered_quantities[product_id] += quantity
+            else:
+                ordered_quantities[product_id] = quantity
+    
+    # Calculate preparation list (only negative/deficit items)
+    preparation_list = []
+    for product in products:
+        product_id = product.get("id")
+        product_name = product.get("name")
+        closing_stock = product.get("closing_stock", 0)
+        ordered_qty = ordered_quantities.get(product_id, 0)
+        
+        # Calculate: Closing Stock - New Orders
+        balance = closing_stock - ordered_qty
+        
+        # Only show items with negative balance (need to prepare more)
+        if balance < 0:
+            units_to_prepare = abs(balance)  # Show as positive number
+            preparation_list.append({
+                "product_id": product_id,
+                "product_name": product_name,
+                "closing_stock": closing_stock,
+                "ordered_quantity": ordered_qty,
+                "units_to_prepare": units_to_prepare,
+                "unit": product.get("unit", "piece")
+            })
+    
+    # Sort by units_to_prepare (descending)
+    preparation_list.sort(key=lambda x: x["units_to_prepare"], reverse=True)
+    
+    return {
+        "total_items": len(preparation_list),
+        "items": preparation_list
+    }
+
+
 # Delivery Charge Settings Endpoints
 @api_router.get("/settings/delivery-charge")
 async def get_delivery_charge_public():
