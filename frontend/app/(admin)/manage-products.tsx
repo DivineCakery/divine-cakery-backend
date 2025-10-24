@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Alert,
   TextInput,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
