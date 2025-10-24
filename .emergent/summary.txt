@@ -1,29 +1,32 @@
 <analysis>
-The AI engineer systematically enhanced the Divine Cakery application, addressing numerous feature requests and critical bugs. Key efforts focused on refining user authentication flows, particularly the customer approval process and associated WhatsApp notifications, and implementing a robust customer Favorites feature. Payments via Razorpay were thoroughly integrated and debugged, adapting to Expo Go limitations with . Admin functionalities were expanded to include granular user management, such as wallet top-up, bulk deletion, and a dynamic category system for products. Significant UI/UX improvements were made across customer and admin panels, ensuring real-time data updates using  and improving navigation elements. Multiple issues were identified and resolved, ranging from backend data conflicts and API signature mismatches to frontend display logic and component interaction issues, demonstrating an iterative, problem-solving approach. The work culminated in a frontend loading error after the dynamic category integration for the customer product page.
+The AI engineer systematically tackled a wide array of features, bug fixes, and UI/UX improvements for the Divine Cakery app. Initial efforts resolved a login logo change, moving from a persistent login button activation issue (reported as fixed) to a specific logo update using  in .
+
+A significant portion involved implementing automated notifications. After an initial failed attempt with client-side WhatsApp, the AI pivoted to server-side email notifications for new user registrations. This encountered multiple SMTP configuration challenges (Gmail App Password, Google Workspace, Hotmail basic authentication) and was eventually deferred.
+
+Core feature development included administrative closing stock management with direct entry and a Preparation List report based on . This required backend model updates (, ,  models), new API endpoints, and extensive frontend UI changes. Persistent two children with same key React errors and non-sequential order numbers were meticulously debugged and resolved through fixing frontend  operations, implementing atomic MongoDB counters, and comprehensive database cleanup for duplicate order IDs.
+
+Access control was a major focus, involving admin user sorting, correct renaming of accountant to Office and ordermanager to Kitchen user accounts, and precise access level adjustments. The Stock management was migrated to a dedicated page, and dashboard shortcuts, revenue data, and product editing actions were conditionally hidden based on user access levels. New admin-only categories and an Onsite Pick-up Only user flag were introduced, affecting checkout. The latest work focused on prominently displaying order types (Pickup/Delivery) on the admin orders page with consistent visual badges.
 </analysis>
 
 <product_requirements>
-The Divine Cakery app is a native mobile platform for wholesale bakery customers, featuring user auth, product browsing, ordering, and wallet management. Its admin panel offers comprehensive controls over products, orders, and users, with role-based UI.
+The Divine Cakery app is a mobile platform for wholesale bakery customers and administrators, designed to streamline bakery operations from order placement to fulfillment.
 
-**Pre-existing features:** Date-wise revenue reports, WhatsApp notifications, product CRUD with images, dynamic quantity, cart enhancements, dynamic delivery date calculation, 3-level role-based admin access, streamlined order status, pickup/delivery options, admin delivery charge settings, admin discounts, registration pop-ups, Razorpay integration, and initial admin delivery date override.
+**Key Features Implemented:**
+*   **User Management:** Registration with admin approval, 3-level role-based access (Full, Limited, Reports), admin wallet top-up, user sorting (admins at top, newest customers first), and Onsite Pick-up Only toggle impacting customer checkout. Admin users accountant renamed to Office and ordermanager to Kitchen.
+*   **Product Management:** CRUD with images, dynamic quantity, cart functionality, dynamic category management (CRUD), category filtering, Closing Stock field with direct entry, and admin-only categories (Packing, Slicing, Prep).
+*   **Order Management:** Unique sequential order numbers (YYMMDDXXXX), dynamic delivery dates, order status, pickup/delivery options, admin delivery charge/discount settings, Preparation List report (), and prominent display of order type (Pickup/Delivery) on admin orders page.
+*   **Payments:** Razorpay integration for wallet top-up/checkout via  in test mode, pending live key setup.
+*   **Communication:** WhatsApp notifications for delivery date changes/registration approval, Contact Us buttons. Automatic email notification for new user registration (SMTP setup pending).
+*   **UI/UX:** Custom app icon, customer Favorites list, optimized UI elements, login logo updated, admin page headers removed, dashboard shortcuts/revenue data hidden, product editing restricted based on admin access levels.
 
-**New Features Implemented:**
-*   **Admin Delivery Date Override:** Admins can change delivery dates, triggering customer WhatsApp notifications.
-*   **Admin Customer Details Edit:** Admins can modify customer names and addresses from order sheets.
-*   **Customer Contact Us Button:** A WhatsApp-styled button added to customer dashboard, orders, checkout, favorites, wallet, and profile.
-*   **Customer Favorites List:** Customers can favorite products, view them on a dedicated tab with a dynamic heart icon, and synchronized updates.
-*   **Structured Order Numbers:** Orders use  format.
-*   **Customer Approval Workflow:** New registrations need admin approval. Admins manage approvals, and automated WhatsApp messages are sent to customers. Admin dashboard displays a pending approvals badge.
-*   **Admin Bulk User Deletion:** Admins can select and delete multiple users.
-*   **App Branding:** Custom app icon integrated.
-*   **Admin Wallet Management:** Admins can add balance to customer wallets.
-*   **Dynamic Categories:** Admins can create/manage product categories, which are then selectable in product forms and used for filtering on the customer product page.
+**Current State & Last Request:**
+The application now visually distinguishes order types (Pickup/Delivery) on the admin orders page using styled badges, mimicking the customer checkout experience.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend**: Expo, React Native, Expo Router (), Zustand, Axios, , , , ,  (deprecated due to Expo Go).
-- **Backend**: FastAPI, MongoDB (with counters), Pydantic, , JWT Authentication.
-- **Core Features**: Role-based Access Control, CRUD, Wallet system, WhatsApp integration, Environment variables, UI/UX, Real-time updates.
+-   **Frontend**: Expo, React Native, Expo Router (), Zustand, Axios, , , , .
+-   **Backend**: FastAPI, MongoDB (atomic counters, Pydantic),  (Payment Links), JWT Authentication, , .
+-   **Core Features**: Role-based Access Control (FULL, LIMITED, REPORTS), CRUD, Wallet System, WhatsApp/Email Integration, Environment Variables, UI/UX Principles, Real-time Updates, Atomic Database Operations.
 </key_technical_concepts>
 
 <code_architecture>
@@ -33,101 +36,145 @@ The Divine Cakery is a full-stack application with an Expo/React Native frontend
 
 
 **Key Files and Changes:**
-*   : Added  model.  model updated with .
-*   :
-    *   **Importance:** Main API logic.
-    *   **Changes:**
-        *   Added CRUD endpoints for  and .
-        *   Added  endpoint for admin wallet top-up.
-        *    now updates  and /.
-        *    now enriches user data with wallet balance.
-        *   Payment order creation receipt ID shortened (Razorpay 40-char limit fix).
-        *   Corrected  to .
-        *   Ensured  model is imported.
-*   : Updated with Razorpay API Key ID and Secret.
-*   :
-    *   **Importance:** Defines customer-facing bottom tabs and overall layout.
-    *   **Changes:** Removed  and adjusted  for the tab bar to prevent overlap.
-*   :
-    *   **Importance:** User registration screen.
-    *   **Changes:**
-        *   Changed success alert title from ✅ Registration Successful! to Registration pending approval.
-        *   Removed immediate  attempt after registration.
-        *   Removed automatic WhatsApp opening for users after registration.
-        *   Made all registration fields mandatory with client-side validation and updated placeholders.
-*   :
-    *   **Importance:** Displays products for customers.
-    *   **Changes:**
-        *   Added a floating Proceed to Buy button that navigates to cart. Position adjusted multiple times to avoid tab bar overlap.
-        *    button changed to include WhatsApp logo and text.
-        *   Removed hardcoded categories and implemented dynamic fetching of categories from backend, using  for real-time updates.
-*   :
-    *   **Importance:** Customer wallet management.
-    *   **Changes:**
-        *    added to refresh user/wallet data in real-time.
-        *   Replaced  integration with  for cross-platform compatibility.
-        *   Added  button to the header.
-*   :
-    *   **Importance:** Customer checkout and payment.
-    *   **Changes:**
-        *    added to refresh wallet and user data in real-time.
-        *   Corrected  call parameters.
-        *   Replaced  with  for payments.
-        *   Removed automatic WhatsApp opening after order placement.
-*   :
-    *   **Importance:** Displays customer's favorited products.
-    *   **Changes:**  button added.  button added to header.
-*   :
-    *   **Importance:** Customer profile.
-    *   **Changes:** Removed Divine logo and user icon, streamlined header.  button added.  button added to the header.
-*   :
-    *   **Importance:** Admin panel layout and navigation.
-    *   **Changes:** Added  to navigation.
-*   :
-    *   **Importance:** Admin main dashboard.
-    *   **Changes:**
-        *    added to refresh total customer count in real-time.
-        *   Removed Total Orders statistic and reorganized remaining stats into a 3-card layout.
-        *   Removed logo from the header.
-        *   Added Manage Categories shortcut button.
-*   :
-    *   **Importance:** Admin user management.
-    *   **Changes:**
-        *   Added Add Balance button for each user.
-        *   Replaced  with a custom  for balance input (to fix Android issues).
-        *   Adjusted  wrapping to ensure buttons are clickable.
-*   :
-    *   **Importance:** Admin form for editing customer details.
-    *   **Changes:** Now sends , , and  fields during user update.
-*   :
-    *   **Importance:** Admin profile.
-    *   **Changes:** Removed Divine logo and user icon, streamlined header.  button added to the header.
-*   : **NEW FILE**
-    *   **Importance:** Admin interface for managing product categories.
-    *   **Changes:** Created as a new screen for CRUD operations on categories.
-*   :
-    *   **Importance:** Admin form for creating/editing products.
-    *   **Changes:**
-        *   Integrated dynamic category fetching from the API.
-        *   Updated category selection UI to use fetched categories with  for real-time updates.
-*   :
-    *   **Importance:** Centralized frontend API service.
-    *   **Changes:** Added new methods for , , , , . Corrected  and  parameter handling.
-*   : Added . Removed .
-*   **Database:** Admin username  changed to .
+-   :
+    -   **Importance:** Defines database schemas.
+    -   **Changes:** Added  to ,  to , and  to .
+-   :
+    -   **Importance:** Contains main API logic and endpoints.
+    -   **Changes:** Implemented email sending for registrations, added  endpoint, refined  with atomic MongoDB counters, and modified  endpoint for admin-only categories.
+-   :
+    -   **Importance:** Environment variables for backend.
+    -   **Changes:** Added , , ,  variables.
+-   :
+    -   **Importance:** User login screen.
+    -   **Changes:** Updated the login page logo to use .
+-   :
+    -   **Importance:** User registration screen.
+    -   **Changes:** Removed client-side WhatsApp notification logic.
+-   :
+    -   **Importance:** Customer's order history display.
+    -   **Changes:** Fixed order ID truncation () and addressed two children with same key error by using unique keys for mapped items.
+-   :
+    -   **Importance:** Customer checkout and payment.
+    -   **Changes:** Conditionally hides the Delivery option and defaults to Pickup if  is true for the user.
+-   :
+    -   **Importance:** Admin panel's tab navigation and layout.
+    -   **Changes:** Hid headers for all admin screens, added the new Stock tab, and implemented access control for tab visibility based on .
+-   :
+    -   **Importance:** Admin dashboard.
+    -   **Changes:** Hid Total Customers, Products, and Orders shortcut buttons, and Revenue Breakdown and Last 7 Days Revenue sections for specific admin roles. Fixed  for daily sales data.
+-   :
+    -   **Importance:** Admin product management.
+    -   **Changes:** Stock management UI moved to ; added product thumbnail images; implemented category filtering; restricted Add Product, Edit, Available, and Delete actions for  access users, showing a View Only badge.
+-   :
+    -   **Importance:** **NEW FILE.** Dedicated page for product closing stock management.
+    -   **Changes:** Created to house stock +/- buttons, direct entry, and save/cancel. Corrected API call to .
+-   :
+    -   **Importance:** Admin order management.
+    -   **Changes:** Fixed order ID truncation and unique keys for items. Added prominent display of order type (DELIVERY/PICKUP) with styled badges.
+-   :
+    -   **Importance:** Admin user management.
+    -   **Changes:** Implemented sorting for admin users (locked at top, then newest customers).
+-   :
+    -   **Importance:** Admin form for user creation/editing.
+    -   **Changes:** Added Onsite Pick-up Only toggle.
+-   :
+    -   **Importance:** Admin reporting.
+    -   **Changes:** Redesigned with tabs for Daily Items Report and Preparation List, including  and manual refresh for real-time updates. Preparation list now counts only confirmed orders.
+-   :
+    -   **Importance:** Centralized API service.
+    -   **Changes:** Added  and updated category fetching for admin-only categories.
 </code_architecture>
 
 <pending_tasks>
-- Resolve the current frontend loading error in Expo Go, potentially by reverting to a stable state as requested by the user (fresh from saved work in github please).
-- Complete the full integration and testing of the dynamic category management system, ensuring frontend stability.
+-   **Razorpay Live Mode Setup:** The user needs to provide live API keys once their deployed URL is approved by Razorpay.
+-   **Automatic Email Notification:** The SMTP configuration for automatic email alerts on new user registration is currently unresolved due to credential/authentication issues with Gmail/Hotmail, and is awaiting a viable setup.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was working on integrating dynamic categories into the customer's product listing page. This involved removing hardcoded categories from , adding state management for categories and selected categories, implementing a  function to retrieve categories dynamically from the backend API, and updating the product filtering logic to use these dynamic categories. Furthermore,  was integrated to ensure real-time updates of categories and products when the screen gained focus.
+Immediately before this summary request, the AI engineer was implementing a visual enhancement for the Admin Manage Orders page. The explicit request was to display the order type (Pickup or Delivery) prominently in bold text for each order, using the same button-like styling as seen by customers during checkout.
 
-After these changes were applied and the frontend was restarted, the user reported a critical issue: the expo go work is not loading. error message and subsequently requested to fresh from saved work in github please. The observed error in the logs was related to  and , indicating a frontend build or dependency issue that rendered the application in Expo Go non-functional.
+The AI engineer's actions involved:
+1.  **Modifying **: The  function was updated.
+2.  **Adding a dedicated UI block**: A new  element was inserted into each order card to house the order type badge.
+3.  **Conditional Styling**: Logic was added to display either a blue DELIVERY badge with a bicycle icon or a green PICKUP badge with a basket icon, ensuring visual consistency with the customer checkout experience.
+4.  **Implementing new styles**: Corresponding  entries were added for , , , , and  to define the appearance of these badges.
+5.  **Restarting the frontend service (
+  Usage: expo [command] [options]
+
+  Options:
+  
+    -V, --version                     output the version number
+    --non-interactive                 Fail, if an interactive prompt would be required to continue.
+    -h, --help                        output usage information
+  
+  Commands:
+
+    init [name]                       Create a new Expo project
+    start [path]                      Start a local dev server for the app
+    start:web [path]                  Start a Webpack dev server for the web app
+    export [path]                     Export the static files of the app for hosting it on a web server
+    install [packages...]             Install a module or other package to a project
+    run:android [path]                Run the Android app binary locally
+    run:ios [path]                    Run the iOS app binary locally
+    send [path]                       Share the project's URL to an email address
+
+    login                             Login to an Expo account
+    logout                            Logout of an Expo account
+    register                          Sign up for a new Expo account
+    whoami                            Return the currently authenticated account
+
+    client:install:ios                Install Expo Go for iOS on the simulator
+    client:install:android            Install Expo Go for Android on a connected device or emulator
+
+    config [path]                     Show the project config
+    doctor [path]                     Diagnose issues with the project
+    upgrade [sdk-version]             Upgrade the project packages and config for the given SDK version
+
+    customize:web [path]              Eject the default web files for customization
+    prebuild [path]                   Create native iOS and Android project files before building natively.
+                                      Learn more: https://docs.expo.dev/workflow/customizing/
+
+    build:web [path]                  Build the web app for production
+
+    credentials:manager [path]        Superseded by eas credentials in eas-cli
+
+    url [path]                        Log a URL for opening the project in Expo Go
+    url:ipa [path]                    Log the download URL for the standalone iOS binary
+    url:apk [path]                    Log the download URL for the standalone Android binary
+
+    webhooks [path]                   List all webhooks for a project
+    webhooks:add [path]               Add a webhook to a project
+    webhooks:remove [path]            Delete a webhook
+    webhooks:update [path]            Update an existing webhook
+
+    build:ios [path]                  Superseded by eas build in eas-cli
+    build:android [path]              Superseded by eas build in eas-cli
+    build:status [path]               Superseded by eas build:list in eas-cli
+    eject [path]                      Superseded by expo prebuild
+    fetch:ios:certs [path]            Superseded by eas credentials in eas-cli
+    fetch:android:keystore [path]     Superseded by eas credentials in eas-cli
+    fetch:android:hashes [path]       Superseded by eas credentials in eas-cli
+    fetch:android:upload-cert [path]  Superseded by eas credentials in eas-cli
+    publish [path]                    Superseded by eas update in eas-cli
+    publish:set [path]                Superseded by eas update:republish in eas-cli
+    publish:rollback [path]           Superseded by eas update:republish in eas-cli
+    publish:history [path]            Superseded by eas update:list in eas-cli
+    publish:details [path]            Superseded by eas update:view in eas-cli
+    push:android:upload [path]        Superseded by eas credentials in eas-cli
+    push:android:show [path]          Superseded by eas credentials in eas-cli
+    push:android:clear [path]         Superseded by eas credentials in eas-cli
+    upload:android [path]             Superseded by eas submit in eas-cli
+    upload:ios [path]                 Superseded by eas submit in eas-cli
+    client:ios [path]                 Superseded by Expo Dev Clients
+
+[09:16:01]   Run a command with --help for more info 💡
+[09:16:01]     $ expo start --help
+[09:16:01])**: This was done to apply the new UI changes and make them visible in the application.
+
+The latest action was restarting the frontend, and the AI engineer provided a summary detailing the implemented visual design, placement, and benefits of the order type display. The current state is that these visual changes should be visible on the admin orders page, and the AI is awaiting user confirmation.
 </current_work>
 
 <optional_next_step>
-Address the user's explicit request to fresh from saved work in github please to restore the application to a stable state.
+Test the newly implemented order type display on the Admin Orders page to confirm the visual badges for DELIVERY and PICKUP are shown correctly and match the checkout page's style.
 </optional_next_step>
