@@ -13,9 +13,12 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
+import { useAuthStore } from '../../store';
 
 export default function ManageProductsScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
+  const accessLevel = user?.admin_access_level || 'full';
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
