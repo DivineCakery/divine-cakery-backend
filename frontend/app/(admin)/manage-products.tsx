@@ -162,12 +162,15 @@ export default function ManageProductsScreen() {
             />
           ) : (
             <TouchableOpacity
+              style={styles.stockValueButton}
               onPress={() => {
                 setEditingStockId(item.id);
                 setTempStockValue(String(item.closing_stock || 0));
               }}
+              activeOpacity={0.7}
             >
               <Text style={styles.stockValue}>{item.closing_stock || 0} {item.unit || 'units'}</Text>
+              <Ionicons name="pencil" size={12} color="#2e7d32" style={{marginLeft: 4}} />
             </TouchableOpacity>
           )}
           
