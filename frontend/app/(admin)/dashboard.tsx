@@ -161,10 +161,11 @@ export default function DashboardScreen() {
                   activeOpacity={0.7}
                 >
                   <Ionicons name="time" size={40} color="#fff" />
-                <Text style={styles.statNumber}>{stats?.pending_orders || 0}</Text>
-                <Text style={styles.statLabel}>Pending Orders</Text>
-                <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
-              </TouchableOpacity>
+                  <Text style={styles.statNumber}>{stats?.pending_orders || 0}</Text>
+                  <Text style={styles.statLabel}>Pending Orders</Text>
+                  <Ionicons name="arrow-forward-circle" size={20} color="#fff" style={styles.arrowIcon} />
+                </TouchableOpacity>
+              )}
             </View>
 
             <View style={styles.revenueBreakdown}>
