@@ -190,7 +190,7 @@ export default function DashboardScreen() {
             <View style={styles.dailyRevenueSection}>
               <Text style={styles.dailyRevenueTitle}>Last 7 Days Revenue</Text>
               {dailyRevenue.map((day, index) => (
-                <View key={index} style={styles.dailyRevenueCard}>
+                <View key={day.date} style={styles.dailyRevenueCard}>
                   <View style={styles.dailyRevenueLeft}>
                     <Text style={styles.dailyRevenueDay}>{day.day_name}</Text>
                     <Text style={styles.dailyRevenueDate}>
