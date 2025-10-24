@@ -306,7 +306,7 @@ export default function ManageOrdersScreen() {
           <Text style={styles.itemsTitle}>Items Ordered</Text>
         </View>
         {item.items && item.items.map((orderItem: any, index: number) => (
-          <View key={index} style={styles.itemRow}>
+          <View key={`${item.id}-item-${index}`} style={styles.itemRow}>
             <View style={styles.itemInfo}>
               <Text style={styles.itemName}>{orderItem.product_name}</Text>
               <Text style={styles.itemQuantity}>Qty: {orderItem.quantity} × ₹{orderItem.price.toFixed(2)}</Text>
