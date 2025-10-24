@@ -21,11 +21,14 @@ export default function ManageProductsScreen() {
   const { user } = useAuthStore();
   const accessLevel = user?.admin_access_level || 'full';
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
