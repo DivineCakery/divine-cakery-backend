@@ -125,7 +125,7 @@ export default function OrdersScreen() {
             
             <Text style={styles.detailsTitle}>Items:</Text>
             {item.items.map((orderItem: any, index: number) => (
-              <View key={index} style={styles.orderItem}>
+              <View key={`${item.id}-item-${index}`} style={styles.orderItem}>
                 <Text style={styles.itemName}>• {orderItem.product_name}</Text>
                 <Text style={styles.itemDetails}>
                   {orderItem.quantity} x ₹{orderItem.price.toFixed(2)} = ₹{orderItem.subtotal.toFixed(2)}
