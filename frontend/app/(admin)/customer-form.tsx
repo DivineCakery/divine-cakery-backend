@@ -320,6 +320,23 @@ export default function CustomerFormScreen() {
               <Text style={styles.hint}>
                 {formData.can_topup_wallet ? 'Customer can add money to wallet' : 'Customer cannot add money to wallet'}
               </Text>
+
+              <View style={styles.toggleContainer}>
+                <View style={styles.toggleLabel}>
+                  <Ionicons name="location" size={20} color="#8B4513" />
+                  <Text style={styles.label}>Onsite Pick-up Only</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.toggleButton, formData.onsite_pickup_only && styles.toggleButtonActive]}
+                  onPress={() => setFormData({ ...formData, onsite_pickup_only: !formData.onsite_pickup_only })}
+                  disabled={loading}
+                >
+                  <View style={[styles.toggleCircle, formData.onsite_pickup_only && styles.toggleCircleActive]} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.hint}>
+                {formData.onsite_pickup_only ? 'Customer can only pick up orders onsite (no delivery option)' : 'Customer can choose pickup or delivery'}
+              </Text>
             </>
           )}
 
