@@ -289,4 +289,11 @@ const styles = StyleSheet.create({
   viewOnlyText: { fontSize: 14, color: '#666', marginLeft: 6, fontStyle: 'italic' },
   emptyContainer: { alignItems: 'center', paddingVertical: 60 },
   emptyText: { fontSize: 18, color: '#999', marginTop: 10 },
+  filterContainer: { backgroundColor: '#fff', padding: 15, marginHorizontal: 15, marginTop: 10, borderRadius: 10, elevation: 1 },
+  filterLabel: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10 },
+  categoryScroll: { flexDirection: 'row' },
+  categoryChip: { backgroundColor: '#f0f0f0', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, marginRight: 10, borderWidth: 1, borderColor: '#ddd' },
+  categoryChipActive: { backgroundColor: '#8B4513', borderColor: '#8B4513' },
+  categoryChipText: { fontSize: 14, color: '#666', fontWeight: '500' },
+  categoryChipTextActive: { color: '#fff', fontWeight: 'bold' },
 });
