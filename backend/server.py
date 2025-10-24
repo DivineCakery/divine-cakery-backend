@@ -1548,6 +1548,86 @@ app.add_middleware(
 )
 
 
+# Privacy Policy Endpoint (for Play Store requirement)
+@app.get("/privacy-policy")
+async def get_privacy_policy():
+    """Serve privacy policy for Play Store compliance"""
+    from fastapi.responses import HTMLResponse
+    
+    privacy_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Divine Cakery - Privacy Policy</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #8B4513; }
+            h2 { color: #A0522D; margin-top: 30px; }
+            .last-updated { color: #666; font-style: italic; }
+        </style>
+    </head>
+    <body>
+        <h1>Privacy Policy for Divine Cakery</h1>
+        <p class="last-updated"><strong>Last Updated:</strong> October 24, 2025</p>
+        
+        <p>Divine Cakery ("we," "our," or "us") operates the Divine Cakery mobile application. This Privacy Policy explains how we collect, use, and protect your information.</p>
+        
+        <h2>1. Information We Collect</h2>
+        <p><strong>Personal Information:</strong> Name, email, phone number, delivery address, payment information (processed via Razorpay)</p>
+        <p><strong>Order Information:</strong> Products ordered, order history, delivery preferences</p>
+        <p><strong>Usage Information:</strong> Device type, app usage data</p>
+        
+        <h2>2. How We Use Your Information</h2>
+        <ul>
+            <li>Process and fulfill orders</li>
+            <li>Send order updates via WhatsApp and email</li>
+            <li>Process payments securely through Razorpay</li>
+            <li>Provide customer support</li>
+            <li>Improve our services</li>
+        </ul>
+        
+        <h2>3. Information Sharing</h2>
+        <p>We do NOT sell your personal information. We may share information with:</p>
+        <ul>
+            <li><strong>Razorpay:</strong> For secure payment processing</li>
+            <li><strong>WhatsApp:</strong> For order notifications (with consent)</li>
+            <li><strong>Delivery Services:</strong> To fulfill orders</li>
+        </ul>
+        
+        <h2>4. Data Security</h2>
+        <p>We implement security measures including HTTPS/SSL encryption, secure database storage, and encrypted payment processing.</p>
+        
+        <h2>5. Your Rights</h2>
+        <p>You have the right to access, correct, or delete your personal information. Contact us at: contact@divinecakery.in</p>
+        
+        <h2>6. Children's Privacy</h2>
+        <p>Our app is not intended for children under 13. We do not knowingly collect information from children under 13.</p>
+        
+        <h2>7. Third-Party Services</h2>
+        <p><strong>Razorpay:</strong> <a href="https://razorpay.com/privacy/">Privacy Policy</a></p>
+        <p><strong>WhatsApp:</strong> <a href="https://www.whatsapp.com/legal/privacy-policy">Privacy Policy</a></p>
+        
+        <h2>8. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy. Continued use of the app after changes constitutes acceptance.</p>
+        
+        <h2>9. Contact Us</h2>
+        <p><strong>Divine Cakery</strong><br>
+        Email: contact@divinecakery.in<br>
+        Phone: +91 8075946225</p>
+        
+        <h2>10. Consent</h2>
+        <p>By using our app, you consent to this Privacy Policy.</p>
+        
+        <hr>
+        <p style="text-align: center; color: #666; margin-top: 40px;">© 2025 Divine Cakery. All rights reserved.</p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=privacy_html)
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
