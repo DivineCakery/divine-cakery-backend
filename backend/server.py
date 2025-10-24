@@ -153,8 +153,17 @@ async def register(user_data: UserCreate):
     }
     await db.wallets.insert_one(wallet_dict)
     
-    # Note: Admin WhatsApp notification will be handled by frontend
-    # to open WhatsApp app directly after registration
+    # Store registration notification data for frontend to send WhatsApp alert
+    notification_data = {
+        "username": user_data.username,
+        "business_name": user_data.business_name or "N/A",
+        "phone": user_data.phone or "N/A",
+        "email": user_data.email or "N/A",
+        "address": user_data.address or "N/A"
+    }
+    
+    # Add notification to user response for frontend to handle
+    user_dict["registration_notification"] = notification_data
     
     return User(**user_dict)
 
