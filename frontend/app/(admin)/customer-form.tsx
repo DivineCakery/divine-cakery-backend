@@ -30,6 +30,7 @@ export default function CustomerFormScreen() {
     business_name: '',
     address: '',
     can_topup_wallet: true,
+    onsite_pickup_only: false,
     role: 'customer',
     admin_access_level: 'full',
   });
