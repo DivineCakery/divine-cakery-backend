@@ -137,29 +137,38 @@ export default function ManageProductsScreen() {
           </TouchableOpacity>
           
           {editingStockId === item.id ? (
-            <TextInput
-              style={styles.stockInput}
-              value={tempStockValue}
-              onChangeText={setTempStockValue}
-              keyboardType="numeric"
-              autoFocus
-              onBlur={() => {
-                const newStock = parseInt(tempStockValue) || 0;
-                if (newStock >= 0) {
-                  updateClosingStock(item.id, newStock);
-                }
-                setEditingStockId(null);
-                setTempStockValue('');
-              }}
-              onSubmitEditing={() => {
-                const newStock = parseInt(tempStockValue) || 0;
-                if (newStock >= 0) {
-                  updateClosingStock(item.id, newStock);
-                }
-                setEditingStockId(null);
-                setTempStockValue('');
-              }}
-            />
+            <>
+              <TextInput
+                style={styles.stockInput}
+                value={tempStockValue}
+                onChangeText={setTempStockValue}
+                keyboardType="numeric"
+                autoFocus
+                selectTextOnFocus
+              />
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={() => {
+                  const newStock = parseInt(tempStockValue) || 0;
+                  if (newStock >= 0) {
+                    updateClosingStock(item.id, newStock);
+                  }
+                  setEditingStockId(null);
+                  setTempStockValue('');
+                }}
+              >
+                <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setEditingStockId(null);
+                  setTempStockValue('');
+                }}
+              >
+                <Ionicons name="close-circle" size={28} color="#f44336" />
+              </TouchableOpacity>
+            </>
           ) : (
             <TouchableOpacity
               style={styles.stockValueButton}
