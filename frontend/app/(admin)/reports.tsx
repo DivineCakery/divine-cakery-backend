@@ -101,103 +101,187 @@ export default function ReportsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Daily Items Report</Text>
+        <Text style={styles.headerTitle}>Reports</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Ionicons name="log-out-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
+      {/* Tab Selector */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('daily');
+            setLoading(true);
+          }}
+        >
+          <Ionicons name="calendar" size={20} color={activeTab === 'daily' ? '#fff' : '#8B4513'} />
+          <Text style={[styles.tabText, activeTab === 'daily' && styles.activeTabText]}>
+            Daily Items
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'preparation' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('preparation');
+            setLoading(true);
+          }}
+        >
+          <Ionicons name="list" size={20} color={activeTab === 'preparation' ? '#fff' : '#8B4513'} />
+          <Text style={[styles.tabText, activeTab === 'preparation' && styles.activeTabText]}>
+            Preparation List
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.content}>
-        {/* Date Selector */}
-        <View style={styles.dateSelector}>
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => changeDate(-1)}
-          >
-            <Ionicons name="chevron-back" size={24} color="#8B4513" />
-          </TouchableOpacity>
-          
-          <View style={styles.dateDisplay}>
-            <Text style={styles.dateText}>{report?.day_name}</Text>
-            <Text style={styles.dateSubtext}>
-              {new Date(selectedDate).toLocaleDateString('en-IN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Text>
-          </View>
+        {activeTab === 'daily' ? (
+          <>
+            {/* Date Selector */}
+            <View style={styles.dateSelector}>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => changeDate(-1)}
+              >
+                <Ionicons name="chevron-back" size={24} color="#8B4513" />
+              </TouchableOpacity>
+              
+              <View style={styles.dateDisplay}>
+                <Text style={styles.dateText}>{report?.day_name}</Text>
+                <Text style={styles.dateSubtext}>
+                  {new Date(selectedDate).toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Text>
+              </View>
 
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => changeDate(1)}
-            disabled={selectedDate >= new Date()}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={24}
-              color={selectedDate >= new Date() ? '#ccc' : '#8B4513'}
-            />
-          </TouchableOpacity>
-        </View>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => changeDate(1)}
+                disabled={selectedDate >= new Date()}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={selectedDate >= new Date() ? '#ccc' : '#8B4513'}
+                />
+              </TouchableOpacity>
+            </View>
 
-        {selectedDate.toDateString() !== new Date().toDateString() && (
-          <TouchableOpacity style={styles.todayButton} onPress={goToToday}>
-            <Ionicons name="today" size={16} color="#8B4513" />
-            <Text style={styles.todayButtonText}>Go to Today</Text>
-          </TouchableOpacity>
-        )}
+            {selectedDate.toDateString() !== new Date().toDateString() && (
+              <TouchableOpacity style={styles.todayButton} onPress={goToToday}>
+                <Ionicons name="today" size={16} color="#8B4513" />
+                <Text style={styles.todayButtonText}>Go to Today</Text>
+              </TouchableOpacity>
+            )}
 
-        {/* Summary Cards */}
-        <View style={styles.summaryContainer}>
-          <View style={styles.summaryCard}>
-            <Ionicons name="receipt" size={32} color="#4CAF50" />
-            <Text style={styles.summaryValue}>{report?.total_orders || 0}</Text>
-            <Text style={styles.summaryLabel}>Total Orders</Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Ionicons name="cash" size={32} color="#2196F3" />
-            <Text style={styles.summaryValue}>₹{report?.total_revenue?.toFixed(2) || '0.00'}</Text>
-            <Text style={styles.summaryLabel}>Total Revenue</Text>
-          </View>
-        </View>
+            {/* Summary Cards */}
+            <View style={styles.summaryContainer}>
+              <View style={styles.summaryCard}>
+                <Ionicons name="receipt" size={32} color="#4CAF50" />
+                <Text style={styles.summaryValue}>{report?.total_orders || 0}</Text>
+                <Text style={styles.summaryLabel}>Total Orders</Text>
+              </View>
+              <View style={styles.summaryCard}>
+                <Ionicons name="cash" size={32} color="#2196F3" />
+                <Text style={styles.summaryValue}>₹{report?.total_revenue?.toFixed(2) || '0.00'}</Text>
+                <Text style={styles.summaryLabel}>Total Revenue</Text>
+              </View>
+            </View>
 
-        {/* Items List */}
-        <View style={styles.itemsSection}>
-          <Text style={styles.sectionTitle}>Items Ordered</Text>
-          
-          {report?.items && report.items.length > 0 ? (
-            report.items.map((item: any, index: number) => (
-              <View key={item.product_id} style={styles.itemCard}>
-                <View style={styles.itemRank}>
-                  <Text style={styles.rankText}>#{index + 1}</Text>
-                </View>
-                <View style={styles.itemDetails}>
-                  <Text style={styles.itemName}>{item.product_name}</Text>
-                  <View style={styles.itemStats}>
-                    <View style={styles.statItem}>
-                      <Ionicons name="cube" size={16} color="#666" />
-                      <Text style={styles.statText}>{item.quantity} units</Text>
+            {/* Items List */}
+            <View style={styles.itemsSection}>
+              <Text style={styles.sectionTitle}>Items Ordered</Text>
+              
+              {report?.items && report.items.length > 0 ? (
+                report.items.map((item: any, index: number) => (
+                  <View key={item.product_id} style={styles.itemCard}>
+                    <View style={styles.itemRank}>
+                      <Text style={styles.rankText}>#{index + 1}</Text>
                     </View>
-                    <View style={styles.statItem}>
-                      <Ionicons name="cart" size={16} color="#666" />
-                      <Text style={styles.statText}>{item.order_count} orders</Text>
+                    <View style={styles.itemDetails}>
+                      <Text style={styles.itemName}>{item.product_name}</Text>
+                      <View style={styles.itemStats}>
+                        <View style={styles.statItem}>
+                          <Ionicons name="cube" size={16} color="#666" />
+                          <Text style={styles.statText}>{item.quantity} units</Text>
+                        </View>
+                        <View style={styles.statItem}>
+                          <Ionicons name="cart" size={16} color="#666" />
+                          <Text style={styles.statText}>{item.order_count} orders</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={styles.itemRevenue}>
+                      <Text style={styles.revenueAmount}>₹{item.revenue.toFixed(2)}</Text>
+                      <Text style={styles.revenueLabel}>Revenue</Text>
                     </View>
                   </View>
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <Ionicons name="document-text-outline" size={64} color="#ccc" />
+                  <Text style={styles.emptyText}>No items ordered on this date</Text>
                 </View>
-                <View style={styles.itemRevenue}>
-                  <Text style={styles.revenueAmount}>₹{item.revenue.toFixed(2)}</Text>
-                  <Text style={styles.revenueLabel}>Revenue</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Ionicons name="document-text-outline" size={64} color="#ccc" />
-              <Text style={styles.emptyText}>No items ordered on this date</Text>
+              )}
             </View>
-          )}
-        </View>
+          </>
+        ) : (
+          /* Preparation List View */
+          <View style={styles.preparationSection}>
+            <View style={styles.preparationHeader}>
+              <Ionicons name="restaurant" size={28} color="#8B4513" />
+              <Text style={styles.preparationTitle}>Items to Prepare</Text>
+            </View>
+            <Text style={styles.preparationSubtitle}>
+              Based on closing stock and pending orders
+            </Text>
+
+            {preparationList?.items && preparationList.items.length > 0 ? (
+              <>
+                <View style={styles.preparationSummary}>
+                  <Text style={styles.preparationSummaryText}>
+                    Total Items: {preparationList.total_items}
+                  </Text>
+                </View>
+                {preparationList.items.map((item: any, index: number) => (
+                  <View key={item.product_id} style={styles.preparationCard}>
+                    <View style={styles.preparationRank}>
+                      <Text style={styles.preparationRankText}>#{index + 1}</Text>
+                    </View>
+                    <View style={styles.preparationDetails}>
+                      <Text style={styles.preparationProductName}>{item.product_name}</Text>
+                      <View style={styles.preparationStats}>
+                        <View style={styles.preparationStat}>
+                          <Text style={styles.preparationStatLabel}>Closing Stock:</Text>
+                          <Text style={styles.preparationStatValue}>{item.closing_stock} {item.unit}</Text>
+                        </View>
+                        <View style={styles.preparationStat}>
+                          <Text style={styles.preparationStatLabel}>Orders:</Text>
+                          <Text style={styles.preparationStatValue}>{item.ordered_quantity} {item.unit}</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View style={styles.preparationNeed}>
+                      <Text style={styles.preparationNeedValue}>{item.units_to_prepare}</Text>
+                      <Text style={styles.preparationNeedLabel}>{item.unit}</Text>
+                      <Text style={styles.preparationNeedLabel}>to prepare</Text>
+                    </View>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="checkmark-circle-outline" size={64} color="#4CAF50" />
+                <Text style={styles.emptyText}>All stock is sufficient!</Text>
+                <Text style={styles.emptySubtext}>No items need preparation</Text>
+              </View>
+            )}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
