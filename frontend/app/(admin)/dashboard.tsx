@@ -126,7 +126,7 @@ export default function DashboardScreen() {
         {(accessLevel === 'full' || accessLevel === 'limited') && (
           <>
             <View style={styles.statsRow}>
-              {accessLevel !== 'reports' && (
+              {accessLevel === 'full' && (
                 <TouchableOpacity 
                   style={[styles.statCard, { backgroundColor: '#4CAF50' }]}
                   onPress={() => router.push('/(admin)/manage-users')}
