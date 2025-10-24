@@ -36,6 +36,7 @@ export default function ReportsScreen() {
         setReport(data);
       } else {
         const data = await apiService.getPreparationListReport();
+        console.log('Preparation List Data:', JSON.stringify(data, null, 2));
         setPreparationList(data);
       }
     } catch (error) {
