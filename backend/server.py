@@ -294,8 +294,19 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 # Category Routes
 @api_router.get("/categories", response_model=List[Category])
-async def get_all_categories():
-    categories = await db.categories.find().sort("display_order", 1).to_list(1000)
+async def get_all_categories(current_user: User = Depends(get_current_user_optional)):
+    """
+    Get all categories. 
+    - For customers: Returns only non-admin categories
+    - For admins: Returns all categories including admin-only ones
+    """
+    if current_user and current_user.role == UserRole.ADMIN:
+        # Admin users see all categories
+        categories = await db.categories.find().sort("display_order", 1).to_list(1000)
+    else:
+        # Customer users only see non-admin categories
+        categories = await db.categories.find({"is_admin_only": {"$ne": True}}).sort("display_order", 1).to_list(1000)
+    
     return [Category(**cat) for cat in categories]
 
 @api_router.post("/admin/categories", response_model=Category)
