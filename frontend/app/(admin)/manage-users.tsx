@@ -34,7 +34,20 @@ export default function ManageUsersScreen() {
   const fetchUsers = async () => {
     try {
       const data = await apiService.getAllUsers();
-      setUsers(data);
+      
+      // Sort users: Admin users first (locked at top), then newest customers first
+      const sortedUsers = data.sort((a: any, b: any) => {
+        // If one is admin and other is not, admin comes first
+        if (a.role === 'admin' && b.role !== 'admin') return -1;
+        if (a.role !== 'admin' && b.role === 'admin') return 1;
+        
+        // If both are admins or both are customers, sort by created_at (newest first)
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+      
+      setUsers(sortedUsers);
     } catch (error) {
       Alert.alert('Error', 'Failed to load users');
     } finally {
