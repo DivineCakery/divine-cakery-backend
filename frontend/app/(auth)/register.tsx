@@ -76,6 +76,24 @@ export default function RegisterScreen() {
         address: formData.address || undefined,
       });
 
+      // Send WhatsApp notification to admin
+      const message = getNewUserRegistrationAlert(
+        formData.username,
+        formData.business_name || 'N/A',
+        formData.phone || 'N/A',
+        formData.email || 'N/A',
+        formData.address || 'N/A'
+      );
+      const whatsappUrl = `https://wa.me/${DIVINE_WHATSAPP_ADMIN_ALERT}?text=${encodeURIComponent(message)}`;
+      
+      // Open WhatsApp to send admin notification
+      try {
+        await Linking.openURL(whatsappUrl);
+      } catch (whatsappError) {
+        console.log('Could not open WhatsApp:', whatsappError);
+        // Continue even if WhatsApp fails to open
+      }
+
       // Show success popup
       Alert.alert(
         'Registration Pending Approval',
