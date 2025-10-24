@@ -274,7 +274,7 @@ export default function CustomerFormScreen() {
                     color={formData.admin_access_level === 'limited' ? '#fff' : '#8B4513'} 
                   />
                   <Text style={[styles.accessText, formData.admin_access_level === 'limited' && styles.accessTextActive]}>
-                    Kitchen
+                    Limited Access
                   </Text>
                 </TouchableOpacity>
 
@@ -289,14 +289,14 @@ export default function CustomerFormScreen() {
                     color={formData.admin_access_level === 'reports' ? '#fff' : '#8B4513'} 
                   />
                   <Text style={[styles.accessText, formData.admin_access_level === 'reports' && styles.accessTextActive]}>
-                    Office
+                    Reports Only
                   </Text>
                 </TouchableOpacity>
               </View>
               <Text style={styles.hint}>
                 {formData.admin_access_level === 'full' && 'Full access to all admin features'}
-                {formData.admin_access_level === 'limited' && 'Can manage orders and view dashboard'}
-                {formData.admin_access_level === 'reports' && 'Can view dashboard and reports only'}
+                {formData.admin_access_level === 'limited' && 'Can manage orders but not users or products'}
+                {formData.admin_access_level === 'reports' && 'Can only view reports and revenue data'}
               </Text>
             </>
           )}
