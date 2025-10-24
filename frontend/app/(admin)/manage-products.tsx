@@ -51,15 +51,6 @@ export default function ManageProductsScreen() {
     }
   };
 
-  const updateClosingStock = async (productId: string, newStock: number) => {
-    try {
-      await apiService.updateProduct(productId, { closing_stock: newStock });
-      await fetchProducts();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update closing stock');
-    }
-  };
-
   const handleDelete = async (productId: string) => {
     Alert.alert(
       'Delete Product',
