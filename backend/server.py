@@ -1323,19 +1323,19 @@ async def get_daily_items_report(
 
 @api_router.get("/admin/reports/preparation-list")
 async def get_preparation_list_report(current_user: User = Depends(get_current_admin)):
-    """Get preparation list report: Closing Stock - New Orders (excluding delivered and cancelled)"""
+    """Get preparation list report: Closing Stock - Confirmed Orders only"""
     
     # Get all products
     products_cursor = db.products.find({})
     products = await products_cursor.to_list(10000)
     
-    # Get all orders except delivered and cancelled
+    # Get only CONFIRMED orders
     orders_cursor = db.orders.find({
-        "order_status": {"$nin": [OrderStatus.DELIVERED, OrderStatus.CANCELLED]}
+        "order_status": OrderStatus.CONFIRMED
     })
     orders = await orders_cursor.to_list(10000)
     
-    # Calculate total ordered quantity for each product
+    # Calculate total ordered quantity for each product from confirmed orders
     ordered_quantities = {}
     for order in orders:
         for item in order.get("items", []):
@@ -1355,7 +1355,7 @@ async def get_preparation_list_report(current_user: User = Depends(get_current_a
         closing_stock = product.get("closing_stock", 0)
         ordered_qty = ordered_quantities.get(product_id, 0)
         
-        # Calculate: Closing Stock - New Orders
+        # Calculate: Closing Stock - Confirmed Orders
         balance = closing_stock - ordered_qty
         
         # Only show items with negative balance (need to prepare more)
