@@ -143,6 +143,24 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     user = User(**user_dict)
     return user
 
+async def get_current_user_optional(token: str = Depends(oauth2_scheme)) -> User | None:
+    """
+    Optional authentication - returns User if authenticated, None if not
+    Used for endpoints that should behave differently for authenticated vs unauthenticated users
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            return None
+        
+        user_dict = await db.users.find_one({"username": username})
+        if user_dict is None:
+            return None
+        return User(**user_dict)
+    except:
+        return None
+
 
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.ADMIN:
