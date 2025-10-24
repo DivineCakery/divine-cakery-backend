@@ -94,7 +94,7 @@ export default function OrdersScreen() {
           <View style={styles.orderHeaderLeft}>
             <MaterialCommunityIcons name="clipboard-text" size={24} color="#8B4513" />
             <View style={styles.orderHeaderText}>
-              <Text style={styles.orderNumber}>Order #{item.id.slice(0, 8)}</Text>
+              <Text style={styles.orderNumber}>Order #{item.id}</Text>
               <Text style={styles.orderDate}>
                 {new Date(item.created_at).toLocaleDateString()}
               </Text>
