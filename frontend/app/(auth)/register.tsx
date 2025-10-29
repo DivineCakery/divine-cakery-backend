@@ -97,7 +97,7 @@ export default function RegisterScreen() {
         }
       );
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.response?.data?.detail || 'Please try again');
+      showAlert('Registration Failed', error.response?.data?.detail || 'Please try again');
     } finally {
       setLoading(false);
     }
