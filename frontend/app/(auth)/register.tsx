@@ -70,7 +70,7 @@ export default function RegisterScreen() {
     // Validate phone format (basic validation for 10 digits)
     const phoneRegex = /^\d{10}$/;
     if (!phoneRegex.test(formData.phone)) {
-      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+      showAlert('Error', 'Please enter a valid 10-digit phone number');
       return;
     }
 
