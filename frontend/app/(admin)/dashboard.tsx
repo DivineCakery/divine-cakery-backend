@@ -30,20 +30,13 @@ export default function DashboardScreen() {
   console.log('Dashboard - User:', user?.username, 'Access Level:', accessLevel);
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       'Logout Confirmation',
       'Are you sure you want to logout from admin panel?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/');
-          },
-        },
-      ]
+      async () => {
+        await logout();
+        router.replace('/');
+      }
     );
   };
 
