@@ -46,7 +46,7 @@ export default function RegisterScreen() {
     // Check all fields are filled
     if (!formData.username || !formData.password || !formData.confirmPassword || 
         !formData.email || !formData.phone || !formData.business_name || !formData.address) {
-      Alert.alert('Error', 'All fields are mandatory. Please fill in all fields.');
+      showAlert('Error', 'All fields are mandatory. Please fill in all fields.');
       return;
     }
 
