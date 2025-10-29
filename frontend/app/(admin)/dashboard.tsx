@@ -7,13 +7,14 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Alert,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
+import { showAlert } from '../../utils/alerts';
 
 export default function DashboardScreen() {
   const router = useRouter();
