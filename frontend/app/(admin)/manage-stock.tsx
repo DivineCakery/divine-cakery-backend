@@ -61,20 +61,13 @@ export default function ManageStockScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       'Logout',
       'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          onPress: () => {
-            logout();
-            router.replace('/login' as any);
-          },
-          style: 'destructive'
-        }
-      ]
+      async () => {
+        await logout();
+        router.replace('/');
+      }
     );
   };
 
