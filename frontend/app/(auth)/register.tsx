@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,17 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store';
+
+// Web-compatible alert function
+const showAlert = (title: string, message: string, onOk?: () => void) => {
+  if (Platform.OS === 'web') {
+    const result = window.confirm(`${title}\n\n${message}`);
+    if (result && onOk) onOk();
+  } else {
+    alert(`${title}\n\n${message}`);
+    if (onOk) onOk();
+  }
+};
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DIVINE_LOGO } from '../../constants/logo';
 
