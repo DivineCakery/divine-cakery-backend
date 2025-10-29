@@ -14,6 +14,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
+import { showAlert } from '../../utils/alerts';
 
 export default function ReportsScreen() {
   const router = useRouter();
