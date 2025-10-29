@@ -51,7 +51,7 @@ export default function RegisterScreen() {
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      showAlert('Error', 'Passwords do not match');
       return;
     }
 
