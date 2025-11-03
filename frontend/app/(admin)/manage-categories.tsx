@@ -203,6 +203,16 @@ export default function ManageCategoriesScreen() {
               autoFocus={true}
             />
 
+            <Text style={styles.label}>Description (shown to customers)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={formData.description}
+              onChangeText={(text) => setFormData({ ...formData, description: text })}
+              placeholder="Describe this category for customers..."
+              multiline
+              numberOfLines={3}
+            />
+
             <Text style={styles.label}>Display Order</Text>
             <TextInput
               style={styles.input}
