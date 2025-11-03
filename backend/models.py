@@ -103,7 +103,8 @@ class UserInDB(User):
 class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
-    category: str
+    category: str  # Keep for backward compatibility
+    categories: List[str] = []  # New field for multiple categories
     mrp: float
     price: float
     packet_size: Optional[str] = None
