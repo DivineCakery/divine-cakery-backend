@@ -120,6 +120,8 @@ class ProductBase(BaseModel):
     shelf_life: Optional[str] = None  # e.g., "3-5 days", "1 week"
     storage_instructions: Optional[str] = None  # e.g., "Store in cool, dry place"
     food_type: Optional[str] = "veg"  # "veg" or "non-veg" (FSSAI compliance)
+    ingredients: Optional[str] = None  # List of ingredients
+    allergen_info: Optional[str] = None  # Allergen information
 
 
 class ProductCreate(ProductBase):
