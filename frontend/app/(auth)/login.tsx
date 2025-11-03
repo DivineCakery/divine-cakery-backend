@@ -129,16 +129,16 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 15,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   logo: {
-    width: 250,
-    height: 125,
-    marginBottom: 10,
+    width: 180,
+    height: 90,
+    marginBottom: 5,
   },
   title: {
     fontSize: 32,
@@ -147,22 +147,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#666',
-    marginTop: 5,
+    marginTop: 3,
     fontWeight: '600',
   },
   description: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#555',
-    marginTop: 15,
-    lineHeight: 20,
+    marginTop: 10,
+    lineHeight: 16,
     textAlign: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
   },
   form: {
     width: '100%',
-    marginTop: 20,
+    marginTop: 15,
   },
   inputContainer: {
     flexDirection: 'row',
