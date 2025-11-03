@@ -168,14 +168,6 @@ export default function ProductDetailScreen() {
                 <Text style={styles.detailValue}>{product.storage_instructions}</Text>
               </View>
             )}
-
-            {product.closing_stock !== undefined && (
-              <View style={styles.detailRow}>
-                <Ionicons name="cube-outline" size={20} color="#666" />
-                <Text style={styles.detailLabel}>Available Stock:</Text>
-                <Text style={styles.detailValue}>{product.closing_stock} {product.unit}(s)</Text>
-              </View>
-            )}
           </View>
 
           {/* Remarks */}
