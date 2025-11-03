@@ -169,6 +169,9 @@ export default function ProductFormScreen() {
         remarks: formData.remarks || undefined,
         image_base64: formData.image_base64 || undefined,
         is_available: true,
+        shelf_life: formData.shelf_life || undefined,
+        storage_instructions: formData.storage_instructions || undefined,
+        food_type: formData.food_type,
       };
 
       if (isEdit) {
