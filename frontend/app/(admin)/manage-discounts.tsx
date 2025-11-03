@@ -31,8 +31,10 @@ export default function ManageDiscountsScreen() {
   const { user } = useAuthStore();
 
   useEffect(() => {
-    fetchDiscounts();
-    fetchUsers();
+    const loadData = async () => {
+      await Promise.all([fetchUsers(), fetchDiscounts()]);
+    };
+    loadData();
   }, []);
 
   const fetchDiscounts = async () => {
@@ -42,8 +44,6 @@ export default function ManageDiscountsScreen() {
     } catch (error) {
       console.error('Error fetching discounts:', error);
       showAlert('Error', 'Failed to load discounts');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -55,6 +55,8 @@ export default function ManageDiscountsScreen() {
       setUsers(customers);
     } catch (error) {
       console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
