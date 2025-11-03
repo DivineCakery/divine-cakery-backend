@@ -250,7 +250,7 @@ Already configured and ready:
 App Name: Divine Cakery
 Package: com.divinecakery.app
 Version: 1.0.0
-Backend: https://divinecrm.preview.emergentagent.com
+Backend: https://sweet-orders-8.preview.emergentagent.com
 Icons: ✅ Ready
 Splash Screen: ✅ Ready
 EAS Config: ✅ Ready
