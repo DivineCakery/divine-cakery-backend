@@ -599,4 +599,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
+  foodTypeContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 20,
+  },
+  foodTypeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  foodTypeButtonActive: {
+    borderColor: '#8B4513',
+    backgroundColor: '#FFF8DC',
+  },
+  foodTypeText: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 8,
+    fontWeight: '600',
+  },
+  fssaiDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    borderWidth: 2,
+  },
+  vegDot: {
+    backgroundColor: '#00A651',
+    borderColor: '#00A651',
+  },
+  nonVegDot: {
+    backgroundColor: '#8B4513',
+    borderColor: '#8B4513',
+  },
 });
