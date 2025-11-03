@@ -31,6 +31,7 @@ export default function CustomerFormScreen() {
     address: '',
     can_topup_wallet: true,
     onsite_pickup_only: false,
+    delivery_charge_waived: false,
     role: 'customer',
     admin_access_level: 'full',
   });
