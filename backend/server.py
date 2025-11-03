@@ -398,6 +398,10 @@ async def create_product(
         "updated_at": datetime.utcnow()
     }
     
+    # Ensure categories is populated - if empty, use category field
+    if not product_dict.get("categories"):
+        product_dict["categories"] = [product_dict["category"]] if product_dict.get("category") else []
+    
     await db.products.insert_one(product_dict)
     return Product(**product_dict)
 
@@ -409,7 +413,11 @@ async def get_products(
 ):
     query = {}
     if category:
-        query["category"] = category
+        # Check both old 'category' field and new 'categories' array
+        query["$or"] = [
+            {"category": category},
+            {"categories": category}
+        ]
     if is_available is not None:
         query["is_available"] = is_available
     
