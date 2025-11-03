@@ -176,6 +176,8 @@ export default function ProductFormScreen() {
         shelf_life: formData.shelf_life || undefined,
         storage_instructions: formData.storage_instructions || undefined,
         food_type: formData.food_type,
+        ingredients: formData.ingredients || undefined,
+        allergen_info: formData.allergen_info || undefined,
       };
 
       if (isEdit) {
