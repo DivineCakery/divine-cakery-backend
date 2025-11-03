@@ -367,6 +367,53 @@ export default function ProductFormScreen() {
             editable={!loading}
           />
 
+          <Text style={styles.label}>Shelf Life</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g., 3-5 days, 1 week at room temperature"
+            value={formData.shelf_life}
+            onChangeText={(text) => setFormData({ ...formData, shelf_life: text })}
+            editable={!loading}
+          />
+
+          <Text style={styles.label}>Storage Instructions</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="e.g., Store in a cool, dry place away from direct sunlight"
+            value={formData.storage_instructions}
+            onChangeText={(text) => setFormData({ ...formData, storage_instructions: text })}
+            multiline
+            numberOfLines={2}
+            editable={!loading}
+          />
+
+          <Text style={styles.label}>Food Type (FSSAI)</Text>
+          <View style={styles.foodTypeContainer}>
+            <TouchableOpacity
+              style={[
+                styles.foodTypeButton,
+                formData.food_type === 'veg' && styles.foodTypeButtonActive,
+              ]}
+              onPress={() => setFormData({ ...formData, food_type: 'veg' })}
+              disabled={loading}
+            >
+              <View style={[styles.fssaiDot, styles.vegDot]} />
+              <Text style={styles.foodTypeText}>Vegetarian</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.foodTypeButton,
+                formData.food_type === 'non-veg' && styles.foodTypeButtonActive,
+              ]}
+              onPress={() => setFormData({ ...formData, food_type: 'non-veg' })}
+              disabled={loading}
+            >
+              <View style={[styles.fssaiDot, styles.nonVegDot]} />
+              <Text style={styles.foodTypeText}>Non-Vegetarian</Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
