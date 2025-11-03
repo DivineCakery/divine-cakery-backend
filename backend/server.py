@@ -1238,11 +1238,13 @@ async def get_delivery_notes(current_user: User = Depends(get_current_admin)):
 
 @api_router.post("/admin/delivery-notes")
 async def update_delivery_notes(
-    enabled: bool,
-    message: str,
+    request: dict,
     current_user: User = Depends(get_current_admin)
 ):
     """Update delivery notes settings"""
+    enabled = request.get("enabled", False)
+    message = request.get("message", "")
+    
     settings = await db.settings.find_one({"type": "delivery_notes"})
     
     settings_data = {
