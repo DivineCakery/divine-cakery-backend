@@ -35,7 +35,7 @@ export default function CheckoutScreen() {
   const [discount, setDiscount] = useState<any>(null);
 
   const subtotal = getTotalAmount();
-  const appliedDeliveryCharge = orderType === 'delivery' ? deliveryCharge : 0;
+  const appliedDeliveryCharge = orderType === 'delivery' && !user?.delivery_charge_waived ? deliveryCharge : 0;
   const discountAmount = discount?.has_discount 
     ? (discount.discount.discount_type === 'percentage' 
         ? (subtotal * discount.discount.discount_value) / 100 
