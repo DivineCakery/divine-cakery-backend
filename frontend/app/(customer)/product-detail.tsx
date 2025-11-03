@@ -315,7 +315,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#00A651',
   },
   nonVegDot: {
-    backgroundColor: '#8B4513',
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderBottomWidth: 9,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#8B4513',
+    transform: [{ rotate: '180deg' }],
   },
   category: {
     fontSize: 14,
