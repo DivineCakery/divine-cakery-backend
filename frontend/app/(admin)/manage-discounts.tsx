@@ -158,7 +158,7 @@ export default function ManageDiscountsScreen() {
 
   const getUserName = (customerId: string) => {
     const user = users.find(u => u.id === customerId);
-    return user ? user.username : 'Unknown';
+    return user ? user.username : 'Loading...';
   };
 
   if (loading) {
