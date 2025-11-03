@@ -56,6 +56,8 @@ export default function CustomerFormScreen() {
           business_name: user.business_name || '',
           address: user.address || '',
           can_topup_wallet: user.can_topup_wallet !== false,
+          onsite_pickup_only: user.onsite_pickup_only || false,
+          delivery_charge_waived: user.delivery_charge_waived || false,
           role: user.role || 'customer',
           admin_access_level: user.admin_access_level || 'full',
         });
