@@ -143,6 +143,8 @@ class ProductUpdate(BaseModel):
     shelf_life: Optional[str] = None
     storage_instructions: Optional[str] = None
     food_type: Optional[str] = None
+    ingredients: Optional[str] = None
+    allergen_info: Optional[str] = None
 
 
 class Product(ProductBase):
