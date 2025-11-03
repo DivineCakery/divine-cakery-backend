@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   ScrollView,
   RefreshControl,
   Linking,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -28,7 +28,7 @@ export default function WalletScreen() {
   const { user, refreshUser, logout } = useAuthStore();
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    showAlert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
@@ -58,7 +58,7 @@ export default function WalletScreen() {
       setWallet(data);
     } catch (error) {
       console.error('Error fetching wallet:', error);
-      Alert.alert('Error', 'Failed to load wallet');
+      showAlert('Error', 'Failed to load wallet');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -74,7 +74,7 @@ export default function WalletScreen() {
   const handleAddMoney = async () => {
     const amountNum = parseFloat(amount);
     if (!amount || amountNum <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid amount');
+      showAlert('Invalid Amount', 'Please enter a valid amount');
       return;
     }
 
@@ -92,13 +92,13 @@ export default function WalletScreen() {
       const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
       
       if (result.type === 'cancel' || result.type === 'dismiss') {
-        Alert.alert('Payment Cancelled', 'Payment was cancelled. Please try again.');
+        showAlert('Payment Cancelled', 'Payment was cancelled. Please try again.');
         setAddingMoney(false);
         return;
       }
 
       // Show manual verification option
-      Alert.alert(
+      showAlert(
         'Payment Verification',
         'If you completed the payment, please wait a moment and refresh your wallet balance. If payment was successful, your balance will be updated automatically.\n\nDid you complete the payment?',
         [
@@ -108,7 +108,7 @@ export default function WalletScreen() {
               await fetchWallet();
               await refreshUser();
               setAmount('');
-              Alert.alert('Success', 'Wallet balance refreshed. If payment is completed, balance will be updated.');
+              showAlert('Success', 'Wallet balance refreshed. If payment is completed, balance will be updated.');
             }
           },
           {
@@ -122,7 +122,7 @@ export default function WalletScreen() {
       );
     } catch (error: any) {
       console.error('Payment error:', error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to initiate payment');
+      showAlert('Error', error.response?.data?.detail || 'Failed to initiate payment');
     } finally {
       setAddingMoney(false);
     }

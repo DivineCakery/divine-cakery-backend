@@ -6,11 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   TouchableOpacity,
   Modal,
   TextInput,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
@@ -49,7 +49,7 @@ export default function ManageUsersScreen() {
       
       setUsers(sortedUsers);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load users');
+      showAlert('Error', 'Failed to load users');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -71,7 +71,7 @@ export default function ManageUsersScreen() {
   const confirmAddBalance = async () => {
     const amountNum = parseFloat(balanceAmount || '0');
     if (amountNum <= 0) {
-      Alert.alert('Invalid Amount', 'Please enter a valid amount greater than 0');
+      showAlert('Invalid Amount', 'Please enter a valid amount greater than 0');
       return;
     }
 
@@ -79,17 +79,17 @@ export default function ManageUsersScreen() {
       const result = await apiService.addWalletBalanceByAdmin(selectedUserId, amountNum);
       setShowAddBalanceModal(false);
       await fetchUsers();
-      Alert.alert(
+      showAlert(
         'Success',
         `₹${amountNum.toFixed(2)} added to ${selectedUsername}'s wallet.\n\nNew Balance: ₹${result.new_balance.toFixed(2)}`
       );
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to add wallet balance');
+      showAlert('Error', error.response?.data?.detail || 'Failed to add wallet balance');
     }
   };
 
   const handleDelete = async (userId: string, username: string) => {
-    Alert.alert(
+    showAlert(
       'Delete Customer',
       `Are you sure you want to delete "${username}"? This action cannot be undone.`,
       [
@@ -101,9 +101,9 @@ export default function ManageUsersScreen() {
             try {
               await apiService.deleteUserByAdmin(userId);
               await fetchUsers();
-              Alert.alert('Success', 'Customer deleted successfully');
+              showAlert('Success', 'Customer deleted successfully');
             } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Failed to delete customer');
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete customer');
             }
           },
         },
@@ -136,7 +136,7 @@ export default function ManageUsersScreen() {
   const handleBulkDelete = async () => {
     if (selectedUsers.length === 0) return;
 
-    Alert.alert(
+    showAlert(
       'Confirm Bulk Delete',
       `Are you sure you want to delete ${selectedUsers.length} user(s)? This action cannot be undone.`,
       [
@@ -147,7 +147,7 @@ export default function ManageUsersScreen() {
           onPress: async () => {
             try {
               const result = await apiService.bulkDeleteUsers(selectedUsers);
-              Alert.alert(
+              showAlert(
                 'Bulk Delete Complete',
                 `${result.deleted_count} user(s) deleted${result.skipped_count > 0 ? `, ${result.skipped_count} skipped` : ''}${result.errors.length > 0 ? `\n\n${result.errors.join('\n')}` : ''}`
               );
@@ -155,7 +155,7 @@ export default function ManageUsersScreen() {
               setSelectionMode(false);
               fetchUsers();
             } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Failed to delete users');
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete users');
             }
           },
         },

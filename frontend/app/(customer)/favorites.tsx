@@ -8,8 +8,8 @@ import {
   Image,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import apiService from '../../services/api';
@@ -26,7 +26,7 @@ export default function FavoritesScreen() {
   const { logout } = useAuthStore();
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
+    showAlert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
@@ -52,7 +52,7 @@ export default function FavoritesScreen() {
       setFavorites(data);
     } catch (error) {
       console.error('Error fetching favorites:', error);
-      Alert.alert('Error', 'Failed to load favorites');
+      showAlert('Error', 'Failed to load favorites');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -86,17 +86,17 @@ export default function FavoritesScreen() {
     try {
       await apiService.removeFromFavorites(productId);
       setFavorites(favorites.filter((item: any) => item.id !== productId));
-      Alert.alert('Success', 'Removed from favorites');
+      showAlert('Success', 'Removed from favorites');
     } catch (error) {
       console.error('Error removing favorite:', error);
-      Alert.alert('Error', 'Failed to remove from favorites');
+      showAlert('Error', 'Failed to remove from favorites');
     }
   };
 
   const handleAddToCart = (product: any) => {
     const quantity = getQuantity(product.id);
     addToCart(product, quantity);
-    Alert.alert('Success', `${quantity} x ${product.name} added to cart`);
+    showAlert('Success', `${quantity} x ${product.name} added to cart`);
     setQuantities(prev => {
       const newQuantities = { ...prev };
       delete newQuantities[product.id];

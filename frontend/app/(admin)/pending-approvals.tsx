@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Linking,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import apiService from '../../services/api';
@@ -32,7 +32,7 @@ export default function PendingApprovalsScreen() {
       setPendingUsers(data);
     } catch (error) {
       console.error('Error fetching pending users:', error);
-      Alert.alert('Error', 'Failed to load pending users');
+      showAlert('Error', 'Failed to load pending users');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -45,7 +45,7 @@ export default function PendingApprovalsScreen() {
   };
 
   const handleApprove = async (user: any) => {
-    Alert.alert(
+    showAlert(
       'Approve Customer',
       `Approve ${user.username}? They will receive a WhatsApp confirmation.`,
       [
@@ -77,10 +77,10 @@ export default function PendingApprovalsScreen() {
               }
               
               await fetchPendingUsers();
-              Alert.alert('Success', 'Customer approved successfully');
+              showAlert('Success', 'Customer approved successfully');
             } catch (error) {
               console.error('Error approving user:', error);
-              Alert.alert('Error', 'Failed to approve customer');
+              showAlert('Error', 'Failed to approve customer');
             }
           },
         },
@@ -89,7 +89,7 @@ export default function PendingApprovalsScreen() {
   };
 
   const handleReject = async (user: any) => {
-    Alert.alert(
+    showAlert(
       'Reject Customer',
       `Reject ${user.username}? Their account will be deleted and they will receive a WhatsApp message to contact us.`,
       [
@@ -121,10 +121,10 @@ export default function PendingApprovalsScreen() {
               }
               
               await fetchPendingUsers();
-              Alert.alert('Success', 'Customer rejected successfully');
+              showAlert('Success', 'Customer rejected successfully');
             } catch (error) {
               console.error('Error rejecting user:', error);
-              Alert.alert('Error', 'Failed to reject customer');
+              showAlert('Error', 'Failed to reject customer');
             }
           },
         },

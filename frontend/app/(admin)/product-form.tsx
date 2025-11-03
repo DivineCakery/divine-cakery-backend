@@ -6,12 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Image,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -61,7 +61,7 @@ export default function ProductFormScreen() {
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
-      Alert.alert('Error', 'Failed to load categories');
+      showAlert('Error', 'Failed to load categories');
     }
   };
 
@@ -81,7 +81,7 @@ export default function ProductFormScreen() {
         image_base64: product.image_base64 || '',
       });
     } catch (error) {
-      Alert.alert('Error', 'Failed to load product');
+      showAlert('Error', 'Failed to load product');
       router.back();
     } finally {
       setLoading(false);
@@ -93,7 +93,7 @@ export default function ProductFormScreen() {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (!permissionResult.granted) {
-        Alert.alert('Permission Required', 'Please allow access to your photo library');
+        showAlert('Permission Required', 'Please allow access to your photo library');
         return;
       }
 
@@ -109,7 +109,7 @@ export default function ProductFormScreen() {
         setFormData({ ...formData, image_base64: `data:image/jpeg;base64,${result.assets[0].base64}` });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick image');
+      showAlert('Error', 'Failed to pick image');
     }
   };
 
@@ -119,7 +119,7 @@ export default function ProductFormScreen() {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.price || !formData.mrp) {
-      Alert.alert('Validation Error', 'Please fill in Product Name, MRP, and Price');
+      showAlert('Validation Error', 'Please fill in Product Name, MRP, and Price');
       return;
     }
 
@@ -127,12 +127,12 @@ export default function ProductFormScreen() {
     const price = parseFloat(formData.price);
 
     if (isNaN(mrp) || isNaN(price)) {
-      Alert.alert('Validation Error', 'MRP and Price must be valid numbers');
+      showAlert('Validation Error', 'MRP and Price must be valid numbers');
       return;
     }
 
     if (price > mrp) {
-      Alert.alert('Validation Error', 'Price cannot be greater than MRP');
+      showAlert('Validation Error', 'Price cannot be greater than MRP');
       return;
     }
 
@@ -153,17 +153,17 @@ export default function ProductFormScreen() {
 
       if (isEdit) {
         await apiService.updateProduct(productId, productData);
-        Alert.alert('Success', 'Product updated successfully', [
+        showAlert('Success', 'Product updated successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } else {
         await apiService.createProduct(productData);
-        Alert.alert('Success', 'Product created successfully', [
+        showAlert('Success', 'Product created successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save product');
+      showAlert('Error', error.response?.data?.detail || 'Failed to save product');
     } finally {
       setLoading(false);
     }

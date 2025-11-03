@@ -6,10 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
   TextInput,
   Linking,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
@@ -122,7 +122,7 @@ export default function CheckoutScreen() {
       if (canOpen) {
         await Linking.openURL(whatsappUrl);
       } else {
-        Alert.alert('WhatsApp not installed', 'Please install WhatsApp to receive order confirmation');
+        showAlert('WhatsApp not installed', 'Please install WhatsApp to receive order confirmation');
       }
     } catch (error) {
       console.error('Error opening WhatsApp:', error);
@@ -130,7 +130,7 @@ export default function CheckoutScreen() {
   };
 
   const handleContactUs = () => {
-    Alert.alert(
+    showAlert(
       'Contact Divine Cakery',
       'Please leave us a message if phone is unanswered. We will respond as soon as possible.',
       [
@@ -148,7 +148,7 @@ export default function CheckoutScreen() {
                 await Linking.openURL(webUrl);
               }
             } catch (error) {
-              Alert.alert('Error', 'Could not open WhatsApp');
+              showAlert('Error', 'Could not open WhatsApp');
             }
           },
         },
@@ -158,12 +158,12 @@ export default function CheckoutScreen() {
 
   const handlePlaceOrder = async () => {
     if (orderType === 'delivery' && !deliveryAddress.trim()) {
-      Alert.alert('Error', 'Please enter delivery address');
+      showAlert('Error', 'Please enter delivery address');
       return;
     }
 
     if (paymentMethod === 'wallet' && wallet.balance < totalAmount) {
-      Alert.alert('Insufficient Balance', 'Please add money to wallet or choose UPI payment');
+      showAlert('Insufficient Balance', 'Please add money to wallet or choose UPI payment');
       return;
     }
 
@@ -173,7 +173,7 @@ export default function CheckoutScreen() {
       
       if (deliveryNotesData.enabled && deliveryNotesData.message) {
         // Show delivery notes popup
-        Alert.alert(
+        showAlert(
           'Special Delivery Note',
           deliveryNotesData.message,
           [
@@ -225,13 +225,13 @@ export default function CheckoutScreen() {
         const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
         
         if (result.type === 'cancel' || result.type === 'dismiss') {
-          Alert.alert('Payment Cancelled', 'Payment was cancelled. Order not placed.');
+          showAlert('Payment Cancelled', 'Payment was cancelled. Order not placed.');
           setPlacing(false);
           return;
         }
 
         // After payment completion, create the order
-        Alert.alert(
+        showAlert(
           'Payment Verification',
           'Did you complete the payment successfully?',
           [
@@ -242,11 +242,11 @@ export default function CheckoutScreen() {
                   const response = await apiService.createOrder(orderData);
                   clearCart();
                   await refreshUser();
-                  Alert.alert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
+                  showAlert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
                     { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
                   ]);
                 } catch (error: any) {
-                  Alert.alert('Error', error.response?.data?.detail || 'Failed to place order');
+                  showAlert('Error', error.response?.data?.detail || 'Failed to place order');
                 }
                 setPlacing(false);
               }
@@ -265,13 +265,13 @@ export default function CheckoutScreen() {
         clearCart();
         await refreshUser();
         
-        Alert.alert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
+        showAlert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
           { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
         ]);
         setPlacing(false);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to place order');
+      showAlert('Error', error.response?.data?.detail || 'Failed to place order');
       setPlacing(false);
     }
   };

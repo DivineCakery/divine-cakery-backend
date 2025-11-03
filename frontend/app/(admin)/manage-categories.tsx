@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Modal,
   TextInput,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 
@@ -32,7 +32,7 @@ export default function ManageCategoriesScreen() {
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      Alert.alert('Error', 'Failed to fetch categories');
+      showAlert('Error', 'Failed to fetch categories');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -58,27 +58,27 @@ export default function ManageCategoriesScreen() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      Alert.alert('Error', 'Category name is required');
+      showAlert('Error', 'Category name is required');
       return;
     }
 
     try {
       if (editingCategory) {
         await apiService.updateCategory(editingCategory.id, formData);
-        Alert.alert('Success', 'Category updated successfully');
+        showAlert('Success', 'Category updated successfully');
       } else {
         await apiService.createCategory(formData);
-        Alert.alert('Success', 'Category created successfully');
+        showAlert('Success', 'Category created successfully');
       }
       setShowModal(false);
       fetchCategories();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save category');
+      showAlert('Error', error.response?.data?.detail || 'Failed to save category');
     }
   };
 
   const handleDelete = (category: any) => {
-    Alert.alert(
+    showAlert(
       'Delete Category',
       `Are you sure you want to delete "${category.name}"?`,
       [
@@ -89,10 +89,10 @@ export default function ManageCategoriesScreen() {
           onPress: async () => {
             try {
               await apiService.deleteCategory(category.id);
-              Alert.alert('Success', 'Category deleted successfully');
+              showAlert('Success', 'Category deleted successfully');
               fetchCategories();
             } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.detail || 'Failed to delete category');
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete category');
             }
           },
         },

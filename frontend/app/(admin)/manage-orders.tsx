@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Linking,
   Modal,
   Platform,
@@ -15,6 +14,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -52,7 +52,7 @@ export default function ManageOrdersScreen() {
       const data = await apiService.getOrders(dateStr);
       setOrders(data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load orders');
+      showAlert('Error', 'Failed to load orders');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -75,7 +75,7 @@ export default function ManageOrdersScreen() {
         await Linking.openURL(webUrl);
       }
     } catch (error) {
-      Alert.alert('Error', 'Could not open WhatsApp');
+      showAlert('Error', 'Could not open WhatsApp');
     }
   };
 
@@ -94,16 +94,16 @@ export default function ManageOrdersScreen() {
       await sendWhatsAppMessage(order);
       
       await fetchOrders();
-      Alert.alert('Success', 'Order confirmed and marked as sale');
+      showAlert('Success', 'Order confirmed and marked as sale');
     } catch (error) {
       console.error('Error confirming order:', error);
-      Alert.alert('Error', 'Failed to confirm order');
+      showAlert('Error', 'Failed to confirm order');
     }
   };
 
   const cancelOrder = async (orderId: string) => {
     console.log('Cancel Order clicked for:', orderId);
-    Alert.alert(
+    showAlert(
       'Cancel Order',
       'Are you sure you want to cancel this order? This action cannot be undone.',
       [
@@ -120,10 +120,10 @@ export default function ManageOrdersScreen() {
               });
               console.log('Order cancelled successfully');
               await fetchOrders();
-              Alert.alert('Success', 'Order has been cancelled');
+              showAlert('Success', 'Order has been cancelled');
             } catch (error) {
               console.error('Error cancelling order:', error);
-              Alert.alert('Error', 'Failed to cancel order');
+              showAlert('Error', 'Failed to cancel order');
             }
           },
         },
@@ -135,9 +135,9 @@ export default function ManageOrdersScreen() {
     try {
       await apiService.updateOrder(orderId, { order_status: newStatus });
       await fetchOrders();
-      Alert.alert('Success', `Order status updated to ${newStatus}`);
+      showAlert('Success', `Order status updated to ${newStatus}`);
     } catch (error) {
-      Alert.alert('Error', 'Failed to update order');
+      showAlert('Error', 'Failed to update order');
     }
   };
 
@@ -203,11 +203,11 @@ export default function ManageOrdersScreen() {
       }
       
       await fetchOrders();
-      Alert.alert('Success', 'Delivery date updated successfully');
+      showAlert('Success', 'Delivery date updated successfully');
       setEditingOrderId(null);
     } catch (error) {
       console.error('Error updating delivery date:', error);
-      Alert.alert('Error', 'Failed to update delivery date');
+      showAlert('Error', 'Failed to update delivery date');
     }
   };
 
@@ -239,11 +239,11 @@ export default function ManageOrdersScreen() {
       
       setShowCustomerEditModal(false);
       await fetchOrders();
-      Alert.alert('Success', 'Customer details updated successfully. These changes will reflect in the customer\'s profile.');
+      showAlert('Success', 'Customer details updated successfully. These changes will reflect in the customer\'s profile.');
       setEditingCustomer(null);
     } catch (error) {
       console.error('Error updating customer details:', error);
-      Alert.alert('Error', 'Failed to update customer details');
+      showAlert('Error', 'Failed to update customer details');
     }
   };
 
@@ -555,11 +555,11 @@ export default function ManageOrdersScreen() {
                   }
                   
                   await fetchOrders();
-                  Alert.alert('Success', 'Delivery date updated successfully');
+                  showAlert('Success', 'Delivery date updated successfully');
                   setEditingOrderId(null);
                 } catch (error) {
                   console.error('Error updating delivery date:', error);
-                  Alert.alert('Error', 'Failed to update delivery date');
+                  showAlert('Error', 'Failed to update delivery date');
                 }
               } else {
                 cancelDateChange();

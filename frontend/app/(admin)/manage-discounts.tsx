@@ -5,11 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   TextInput,
   Modal,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
@@ -41,7 +41,7 @@ export default function ManageDiscountsScreen() {
       setDiscounts(data);
     } catch (error) {
       console.error('Error fetching discounts:', error);
-      Alert.alert('Error', 'Failed to load discounts');
+      showAlert('Error', 'Failed to load discounts');
     } finally {
       setLoading(false);
     }
@@ -87,18 +87,18 @@ export default function ManageDiscountsScreen() {
     console.log('Form data:', formData);
     
     if (!formData.customer_id || !formData.discount_value || !formData.start_date || !formData.end_date) {
-      Alert.alert('Error', 'Please fill all fields');
+      showAlert('Error', 'Please fill all fields');
       return;
     }
 
     const value = parseFloat(formData.discount_value);
     if (isNaN(value) || value <= 0) {
-      Alert.alert('Error', 'Please enter valid discount value');
+      showAlert('Error', 'Please enter valid discount value');
       return;
     }
 
     if (formData.discount_type === 'percentage' && value > 100) {
-      Alert.alert('Error', 'Percentage cannot exceed 100%');
+      showAlert('Error', 'Percentage cannot exceed 100%');
       return;
     }
 
@@ -116,10 +116,10 @@ export default function ManageDiscountsScreen() {
 
       if (editingDiscount) {
         await apiService.updateDiscount(editingDiscount.id, discountData);
-        Alert.alert('Success', 'Discount updated successfully');
+        showAlert('Success', 'Discount updated successfully');
       } else {
         await apiService.createDiscount(discountData);
-        Alert.alert('Success', 'Discount created successfully');
+        showAlert('Success', 'Discount created successfully');
       }
 
       setModalVisible(false);
@@ -127,14 +127,14 @@ export default function ManageDiscountsScreen() {
     } catch (error: any) {
       console.error('Error saving discount:', error);
       console.error('Error response:', error.response?.data);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save discount');
+      showAlert('Error', error.response?.data?.detail || 'Failed to save discount');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (discountId: string) => {
-    Alert.alert(
+    showAlert(
       'Delete Discount',
       'Are you sure you want to delete this discount?',
       [
@@ -145,10 +145,10 @@ export default function ManageDiscountsScreen() {
           onPress: async () => {
             try {
               await apiService.deleteDiscount(discountId);
-              Alert.alert('Success', 'Discount deleted');
+              showAlert('Success', 'Discount deleted');
               fetchDiscounts();
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete discount');
+              showAlert('Error', 'Failed to delete discount');
             }
           },
         },

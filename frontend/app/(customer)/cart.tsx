@@ -6,9 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   Linking,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useCartStore, useAuthStore } from '../../store';
@@ -21,7 +21,7 @@ export default function CartScreen() {
   const totalAmount = getTotalAmount();
 
   const handleLogout = () => {
-    Alert.alert(
+    showAlert(
       'Logout Confirmation',
       items.length > 0 
         ? 'You have items in your cart. Are you sure you want to logout? Your cart will be saved.'
@@ -41,7 +41,7 @@ export default function CartScreen() {
   };
 
   const handleContactUs = () => {
-    Alert.alert(
+    showAlert(
       'Contact Divine Cakery',
       'Please leave us a message if phone is unanswered. We will respond as soon as possible.',
       [
@@ -60,7 +60,7 @@ export default function CartScreen() {
                 await Linking.openURL(webUrl);
               }
             } catch (error) {
-              Alert.alert('Error', 'Could not open WhatsApp');
+              showAlert('Error', 'Could not open WhatsApp');
             }
           },
         },
@@ -93,14 +93,14 @@ export default function CartScreen() {
 
   const handleCheckout = () => {
     if (items.length === 0) {
-      Alert.alert('Empty Cart', 'Please add items to cart before checkout');
+      showAlert('Empty Cart', 'Please add items to cart before checkout');
       return;
     }
     router.push('/(customer)/checkout' as any);
   };
 
   const handleCancelOrder = () => {
-    Alert.alert(
+    showAlert(
       'Cancel Order',
       'Are you sure you want to cancel this order and clear the cart?',
       [
@@ -109,7 +109,7 @@ export default function CartScreen() {
           text: 'Yes, Cancel', 
           onPress: () => {
             clearCart();
-            Alert.alert('Order Cancelled', 'Your cart has been cleared');
+            showAlert('Order Cancelled', 'Your cart has been cleared');
           }, 
           style: 'destructive' 
         },
@@ -143,7 +143,7 @@ export default function CartScreen() {
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => {
-            Alert.alert(
+            showAlert(
               'Remove Item',
               `Remove ${item.product_name} from cart?`,
               [
@@ -176,7 +176,7 @@ export default function CartScreen() {
       {items.length > 0 && (
         <View style={styles.clearCartContainer}>
           <TouchableOpacity onPress={() => {
-            Alert.alert(
+            showAlert(
               'Clear Cart',
               'Remove all items from cart?',
               [

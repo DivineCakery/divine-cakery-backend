@@ -6,11 +6,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
@@ -60,7 +60,7 @@ export default function CustomerFormScreen() {
         });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load user');
+      showAlert('Error', 'Failed to load user');
       router.back();
     } finally {
       setLoading(false);
@@ -69,17 +69,17 @@ export default function CustomerFormScreen() {
 
   const handleSubmit = async () => {
     if (!formData.username) {
-      Alert.alert('Validation Error', 'Username is required');
+      showAlert('Validation Error', 'Username is required');
       return;
     }
 
     if (!isEdit && !formData.password) {
-      Alert.alert('Validation Error', 'Password is required for new customers');
+      showAlert('Validation Error', 'Password is required for new customers');
       return;
     }
 
     if (!isEdit && formData.password.length < 4) {
-      Alert.alert('Validation Error', 'Password must be at least 4 characters');
+      showAlert('Validation Error', 'Password must be at least 4 characters');
       return;
     }
 
@@ -107,18 +107,18 @@ export default function CustomerFormScreen() {
           customerData.password = formData.password;
         }
         await apiService.updateUserByAdmin(userId, customerData);
-        Alert.alert('Success', 'User updated successfully', [
+        showAlert('Success', 'User updated successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       } else {
         customerData.password = formData.password;
         await apiService.createUserByAdmin(customerData);
-        Alert.alert('Success', 'User created successfully', [
+        showAlert('Success', 'User created successfully', [
           { text: 'OK', onPress: () => router.back() },
         ]);
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save customer');
+      showAlert('Error', error.response?.data?.detail || 'Failed to save customer');
     } finally {
       setLoading(false);
     }

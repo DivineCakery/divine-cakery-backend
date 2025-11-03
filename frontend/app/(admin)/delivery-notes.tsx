@@ -7,8 +7,8 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
@@ -31,7 +31,7 @@ export default function DeliveryNotesScreen() {
       setMessage(data.message);
     } catch (error) {
       console.error('Error fetching delivery notes:', error);
-      Alert.alert('Error', 'Failed to load delivery notes settings');
+      showAlert('Error', 'Failed to load delivery notes settings');
     } finally {
       setLoading(false);
     }
@@ -39,17 +39,17 @@ export default function DeliveryNotesScreen() {
 
   const handleSave = async () => {
     if (enabled && !message.trim()) {
-      Alert.alert('Error', 'Please enter a delivery note message');
+      showAlert('Error', 'Please enter a delivery note message');
       return;
     }
 
     setSaving(true);
     try {
       await apiService.updateDeliveryNotes(enabled, message);
-      Alert.alert('Success', 'Delivery notes settings updated successfully');
+      showAlert('Success', 'Delivery notes settings updated successfully');
     } catch (error) {
       console.error('Error saving delivery notes:', error);
-      Alert.alert('Error', 'Failed to save settings');
+      showAlert('Error', 'Failed to save settings');
     } finally {
       setSaving(false);
     }

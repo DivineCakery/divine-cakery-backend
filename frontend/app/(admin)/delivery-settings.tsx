@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 
@@ -27,7 +27,7 @@ export default function DeliverySettingsScreen() {
       setDeliveryCharge(data.delivery_charge.toString());
     } catch (error) {
       console.error('Error fetching delivery charge:', error);
-      Alert.alert('Error', 'Failed to load delivery charge');
+      showAlert('Error', 'Failed to load delivery charge');
     } finally {
       setLoading(false);
     }
@@ -37,17 +37,17 @@ export default function DeliverySettingsScreen() {
     const charge = parseFloat(deliveryCharge);
     
     if (isNaN(charge) || charge < 0) {
-      Alert.alert('Error', 'Please enter a valid delivery charge (0 or more)');
+      showAlert('Error', 'Please enter a valid delivery charge (0 or more)');
       return;
     }
 
     setSaving(true);
     try {
       await apiService.updateDeliveryCharge(charge);
-      Alert.alert('Success', 'Delivery charge updated successfully');
+      showAlert('Success', 'Delivery charge updated successfully');
     } catch (error: any) {
       console.error('Error updating delivery charge:', error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to update delivery charge');
+      showAlert('Error', error.response?.data?.detail || 'Failed to update delivery charge');
     } finally {
       setSaving(false);
     }

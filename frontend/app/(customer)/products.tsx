@@ -9,9 +9,9 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Linking,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
@@ -37,7 +37,7 @@ export default function ProductsScreen() {
   const handleLogout = () => {
     const hasItemsInCart = cartItems.length > 0;
     
-    Alert.alert(
+    showAlert(
       'Logout Confirmation',
       hasItemsInCart 
         ? 'You have items in your cart. Are you sure you want to logout? Your cart will be saved.'
@@ -57,7 +57,7 @@ export default function ProductsScreen() {
   };
 
   const handleContactUs = () => {
-    Alert.alert(
+    showAlert(
       'Contact Divine Cakery',
       'Please leave us a message if phone is unanswered. We will respond as soon as possible.',
       [
@@ -76,7 +76,7 @@ export default function ProductsScreen() {
                 await Linking.openURL(webUrl);
               }
             } catch (error) {
-              Alert.alert('Error', 'Could not open WhatsApp');
+              showAlert('Error', 'Could not open WhatsApp');
             }
           },
         },
@@ -118,7 +118,7 @@ export default function ProductsScreen() {
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
-      Alert.alert('Error', 'Failed to load products');
+      showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -147,7 +147,7 @@ export default function ProductsScreen() {
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      Alert.alert('Error', 'Failed to update favorites');
+      showAlert('Error', 'Failed to update favorites');
     }
   };
 
@@ -190,7 +190,7 @@ export default function ProductsScreen() {
   const handleAddToCart = (product: any) => {
     const quantity = getQuantity(product.id);
     addItem(product, quantity);
-    Alert.alert('Success', `${quantity} x ${product.name} added to cart`);
+    showAlert('Success', `${quantity} x ${product.name} added to cart`);
     // Reset quantity after adding
     setQuantities(prev => {
       const newQuantities = { ...prev };

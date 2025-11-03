@@ -5,13 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -25,7 +25,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showAlert('Error', 'Please fill in all fields');
       return;
     }
 
@@ -46,7 +46,7 @@ export default function LoginScreen() {
       const errorMessage = error.response?.data?.detail || 'Invalid credentials';
       const isApprovalPending = errorMessage.includes('pending approval');
       
-      Alert.alert(
+      showAlert(
         isApprovalPending ? 'Registration Pending Approval' : 'Login Failed',
         errorMessage
       );

@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   TextInput,
   Image,
   ScrollView,
 } from 'react-native';
+import { showAlert } from \'../../utils/alerts\';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
@@ -38,7 +38,7 @@ export default function ManageProductsScreen() {
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
-      Alert.alert('Error', 'Failed to load products');
+      showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -69,12 +69,12 @@ export default function ManageProductsScreen() {
       await apiService.updateProduct(productId, { is_available: !currentStatus });
       await fetchProducts();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update product');
+      showAlert('Error', 'Failed to update product');
     }
   };
 
   const handleDelete = async (productId: string) => {
-    Alert.alert(
+    showAlert(
       'Delete Product',
       'Are you sure you want to delete this product?',
       [
@@ -86,9 +86,9 @@ export default function ManageProductsScreen() {
             try {
               await apiService.deleteProduct(productId);
               await fetchProducts();
-              Alert.alert('Success', 'Product deleted');
+              showAlert('Success', 'Product deleted');
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete product');
+              showAlert('Error', 'Failed to delete product');
             }
           },
         },
