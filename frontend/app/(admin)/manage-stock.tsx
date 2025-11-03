@@ -38,7 +38,7 @@ export default function ManageStockScreen() {
       const data = await apiService.getProducts();
       setProducts(data);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load products');
+      showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -54,9 +54,9 @@ export default function ManageStockScreen() {
     try {
       await apiService.updateProduct(productId, { closing_stock: newStock });
       await fetchProducts();
-      Alert.alert('Success', 'Stock updated successfully');
+      showAlert('Success', 'Stock updated successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update closing stock');
+      showAlert('Error', 'Failed to update closing stock');
     }
   };
 
