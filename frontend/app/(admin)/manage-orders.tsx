@@ -239,7 +239,7 @@ export default function ManageOrdersScreen() {
       
       setShowCustomerEditModal(false);
       await fetchOrders();
-      showAlert('Success', 'Customer details updated successfully. These changes will reflect in the customer's profile.');
+      showAlert('Success', 'Customer details updated successfully. These changes will reflect in the customer profile.');
       setEditingCustomer(null);
     } catch (error) {
       console.error('Error updating customer details:', error);
