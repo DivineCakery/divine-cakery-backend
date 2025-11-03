@@ -46,13 +46,13 @@ export default function ManageCategoriesScreen() {
 
   const handleAddNew = () => {
     setEditingCategory(null);
-    setFormData({ name: '', display_order: categories.length });
+    setFormData({ name: '', description: '', display_order: categories.length });
     setShowModal(true);
   };
 
   const handleEdit = (category: any) => {
     setEditingCategory(category);
-    setFormData({ name: category.name, display_order: category.display_order });
+    setFormData({ name: category.name, description: category.description || '', display_order: category.display_order });
     setShowModal(true);
   };
 
