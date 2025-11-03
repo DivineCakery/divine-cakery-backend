@@ -97,11 +97,37 @@ export default function ProductsScreen() {
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
+      setCategoriesData(data);
       const categoryNames = data.map((cat: any) => cat.name);
       setCategories(['All', ...categoryNames]);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
+  };
+
+  const handleCategoryPress = (categoryName: string) => {
+    if (categoryName === 'All') {
+      setSelectedCategory('All');
+      return;
+    }
+
+    const categoryData = categoriesData.find(cat => cat.name === categoryName);
+    
+    if (categoryData && categoryData.description) {
+      // Show modal with description
+      setSelectedCategoryData(categoryData);
+      setShowDescriptionModal(true);
+    } else {
+      // No description, directly select category
+      setSelectedCategory(categoryName);
+    }
+  };
+
+  const handleConfirmCategory = () => {
+    if (selectedCategoryData) {
+      setSelectedCategory(selectedCategoryData.name);
+    }
+    setShowDescriptionModal(false);
   };
 
   // Refresh favorites and categories when screen comes into focus
