@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Linking,
+  Modal,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
@@ -23,12 +24,15 @@ export default function ProductsScreen() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState(['All']);
+  const [categoriesData, setCategoriesData] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [selectedCategoryData, setSelectedCategoryData] = useState<any>(null);
   const addItem = useCartStore((state) => state.addItem);
   const { items: cartItems } = useCartStore();
   const { logout } = useAuthStore();
