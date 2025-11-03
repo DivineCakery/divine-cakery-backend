@@ -117,6 +117,9 @@ class ProductBase(BaseModel):
     image_base64: Optional[str] = None
     is_available: bool = True
     closing_stock: int = 0  # Inventory count
+    shelf_life: Optional[str] = None  # e.g., "3-5 days", "1 week"
+    storage_instructions: Optional[str] = None  # e.g., "Store in cool, dry place"
+    food_type: Optional[str] = "veg"  # "veg" or "non-veg" (FSSAI compliance)
 
 
 class ProductCreate(ProductBase):
