@@ -490,8 +490,10 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     backgroundColor: '#fff',
     marginRight: 10,
@@ -509,6 +511,14 @@ const styles = StyleSheet.create({
   categoryTextActive: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  selectedCategoriesText: {
+    fontSize: 13,
+    color: '#4CAF50',
+    fontWeight: '600',
+    marginTop: -5,
+    marginBottom: 10,
+    fontStyle: 'italic',
   },
   submitButton: {
     backgroundColor: '#8B4513',
