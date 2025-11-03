@@ -22,6 +22,9 @@ export default function ManageStockScreen() {
   const router = useRouter();
   const { logout } = useAuthStore();
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [editingStockId, setEditingStockId] = useState<string | null>(null);
@@ -29,19 +32,60 @@ export default function ManageStockScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
+      fetchCategories();
       fetchProducts();
     }, [])
   );
+
+  const fetchCategories = async () => {
+    try {
+      const data = await apiService.getCategories();
+      // Filter only admin categories
+      const adminCategories = data.filter((cat: any) => 
+        ['Packing', 'Slicing', 'Prep'].includes(cat.name)
+      );
+      setCategories(adminCategories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
       const data = await apiService.getProducts();
       setProducts(data);
+      filterProducts(data, selectedCategory);
     } catch (error) {
       showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const filterProducts = (productList: any[], category: string | null) => {
+    if (!category) {
+      setFilteredProducts(productList);
+    } else {
+      const filtered = productList.filter((product: any) => {
+        // Check both old 'category' field and new 'categories' array
+        if (product.categories && Array.isArray(product.categories)) {
+          return product.categories.includes(category);
+        }
+        return product.category === category;
+      });
+      setFilteredProducts(filtered);
+    }
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    if (selectedCategory === category) {
+      // Deselect if already selected
+      setSelectedCategory(null);
+      filterProducts(products, null);
+    } else {
+      setSelectedCategory(category);
+      filterProducts(products, category);
     }
   };
 
