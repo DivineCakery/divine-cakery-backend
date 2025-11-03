@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Divine Cakery native mobile app for bakery wholesale customers. Requires: user authentication, product browsing, ordering, wallet system with credits/balance, order history, pending payments tracking, UPI-based payments (Google Pay preferred), admin panel for product/order/user management. Extended features: WhatsApp messages on order confirmation, date-wise revenue tracking (last 7 days), and complete CRUD for products and customers."
+user_problem_statement: "Divine Cakery native mobile app for bakery wholesale customers. Requires: user authentication, product browsing, ordering, wallet system with credits/balance, order history, pending payments tracking, UPI-based payments (Google Pay preferred), admin panel for product/order/user management. Extended features: WhatsApp messages on order confirmation, date-wise revenue tracking (last 7 days), and complete CRUD for products and customers. WEB COMPATIBILITY: All alert buttons must work in mobile web browsers."
 
 backend:
   - task: "Date-wise revenue API endpoint"
