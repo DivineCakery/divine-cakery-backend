@@ -233,8 +233,55 @@ export default function ManageStockScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Category Filter */}
+      {categories.length > 0 && (
+        <View style={styles.filterContainer}>
+          <Text style={styles.filterLabel}>Filter by Admin Category:</Text>
+          <View style={styles.categoryFilterContainer}>
+            {categories.map((cat: any) => (
+              <TouchableOpacity
+                key={cat.id}
+                style={[
+                  styles.filterChip,
+                  selectedCategory === cat.name && styles.filterChipActive,
+                ]}
+                onPress={() => handleCategoryFilter(cat.name)}
+              >
+                <Ionicons 
+                  name={selectedCategory === cat.name ? "checkmark-circle" : "ellipse-outline"} 
+                  size={16} 
+                  color={selectedCategory === cat.name ? "#fff" : "#FF6B00"} 
+                  style={{ marginRight: 4 }}
+                />
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    selectedCategory === cat.name && styles.filterChipTextActive,
+                  ]}
+                >
+                  {cat.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            {selectedCategory && (
+              <TouchableOpacity
+                style={styles.clearFilterButton}
+                onPress={() => handleCategoryFilter(selectedCategory)}
+              >
+                <Text style={styles.clearFilterText}>Clear Filter</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {selectedCategory && (
+            <Text style={styles.filterResultText}>
+              Showing {filteredProducts.length} product(s) in "{selectedCategory}"
+            </Text>
+          )}
+        </View>
+      )}
+
       <FlatList
-        data={products}
+        data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
@@ -244,7 +291,12 @@ export default function ManageStockScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="cube-outline" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No products available</Text>
+            <Text style={styles.emptyText}>
+              {selectedCategory 
+                ? `No products in "${selectedCategory}" category`
+                : 'No products available'
+              }
+            </Text>
           </View>
         }
       />
