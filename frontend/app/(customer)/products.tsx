@@ -263,12 +263,31 @@ export default function ProductsScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
+        <View style={styles.productHeader}>
+          <Text style={styles.productName}>{item.name}</Text>
+          {item.food_type && (
+            <View style={[styles.fssaiBadge, item.food_type === 'veg' ? styles.vegBadge : styles.nonVegBadge]}>
+              <View style={[styles.fssaiDotCustomer, item.food_type === 'veg' ? styles.vegDotCustomer : styles.nonVegDotCustomer]} />
+            </View>
+          )}
+        </View>
         <Text style={styles.productCategory}>{item.category}</Text>
         {item.description && (
           <Text style={styles.productDescription} numberOfLines={2}>
             {item.description}
           </Text>
+        )}
+        {item.shelf_life && (
+          <View style={styles.infoRow}>
+            <Ionicons name="time-outline" size={14} color="#666" />
+            <Text style={styles.infoText}>Shelf Life: {item.shelf_life}</Text>
+          </View>
+        )}
+        {item.storage_instructions && (
+          <View style={styles.infoRow}>
+            <Ionicons name="snow-outline" size={14} color="#666" />
+            <Text style={styles.infoText} numberOfLines={1}>{item.storage_instructions}</Text>
+          </View>
         )}
         <View style={styles.productFooter}>
           <View>
