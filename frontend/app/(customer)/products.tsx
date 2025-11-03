@@ -823,7 +823,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#00A651',
   },
   nonVegDotCustomer: {
-    backgroundColor: '#8B4513',
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderBottomWidth: 7,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#8B4513',
+    transform: [{ rotate: '180deg' }],
   },
   infoRow: {
     flexDirection: 'row',
