@@ -782,4 +782,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  productHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  fssaiBadge: {
+    width: 20,
+    height: 20,
+    borderRadius: 3,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vegBadge: {
+    borderColor: '#00A651',
+    backgroundColor: '#fff',
+  },
+  nonVegBadge: {
+    borderColor: '#8B4513',
+    backgroundColor: '#fff',
+  },
+  fssaiDotCustomer: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+  },
+  vegDotCustomer: {
+    backgroundColor: '#00A651',
+  },
+  nonVegDotCustomer: {
+    backgroundColor: '#8B4513',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#666',
+    flex: 1,
+  },
 });
