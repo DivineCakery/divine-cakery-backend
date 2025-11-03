@@ -88,6 +88,8 @@ export default function ProductFormScreen() {
         shelf_life: product.shelf_life || '',
         storage_instructions: product.storage_instructions || '',
         food_type: product.food_type || 'veg',
+        ingredients: product.ingredients || '',
+        allergen_info: product.allergen_info || '',
       });
       // Set selected categories from product data
       if (product.categories && product.categories.length > 0) {
