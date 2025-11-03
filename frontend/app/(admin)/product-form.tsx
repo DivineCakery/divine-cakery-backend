@@ -83,6 +83,9 @@ export default function ProductFormScreen() {
         description: product.description || '',
         remarks: product.remarks || '',
         image_base64: product.image_base64 || '',
+        shelf_life: product.shelf_life || '',
+        storage_instructions: product.storage_instructions || '',
+        food_type: product.food_type || 'veg',
       });
       // Set selected categories from product data
       if (product.categories && product.categories.length > 0) {
