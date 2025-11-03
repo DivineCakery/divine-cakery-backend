@@ -55,7 +55,7 @@ export default function OrdersScreen() {
   };
 
   const handleContactUs = () => {
-    Alert.alert(
+    showAlert(
       'Contact Divine Cakery',
       'Please leave us a message if phone is unanswered. We will respond as soon as possible.',
       [
@@ -73,7 +73,7 @@ export default function OrdersScreen() {
                 await Linking.openURL(webUrl);
               }
             } catch (error) {
-              Alert.alert('Error', 'Could not open WhatsApp');
+              showAlert('Error', 'Could not open WhatsApp');
             }
           },
         },
