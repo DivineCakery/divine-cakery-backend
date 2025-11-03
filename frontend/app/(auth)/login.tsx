@@ -150,9 +150,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 5,
+    fontWeight: '600',
+  },
+  description: {
+    fontSize: 13,
+    color: '#555',
+    marginTop: 15,
+    lineHeight: 20,
+    textAlign: 'center',
+    paddingHorizontal: 10,
   },
   form: {
     width: '100%',
+    marginTop: 20,
   },
   inputContainer: {
     flexDirection: 'row',
