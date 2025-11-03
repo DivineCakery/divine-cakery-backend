@@ -131,6 +131,11 @@ export default function ProductFormScreen() {
       return;
     }
 
+    if (selectedCategories.length === 0) {
+      showAlert('Validation Error', 'Please select at least one category');
+      return;
+    }
+
     const mrp = parseFloat(formData.mrp);
     const price = parseFloat(formData.price);
 
@@ -148,7 +153,8 @@ export default function ProductFormScreen() {
     try {
       const productData = {
         name: formData.name,
-        category: formData.category,
+        category: selectedCategories[0], // Primary category for backward compatibility
+        categories: selectedCategories, // New multi-category support
         mrp: mrp,
         price: price,
         packet_size: formData.packet_size || undefined,
