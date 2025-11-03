@@ -78,9 +78,18 @@ export default function ManageCategoriesScreen() {
   };
 
   const handleDelete = (category: any) => {
+    // Check if this is an admin-only category
+    const adminOnlyCategories = ['Packing', 'Slicing', 'Prep'];
+    const isAdminCategory = adminOnlyCategories.includes(category.name);
+    
+    const title = isAdminCategory ? '⚠️ Delete Admin Category' : 'Delete Category';
+    const message = isAdminCategory 
+      ? `WARNING: "${category.name}" is an ADMIN-ONLY category (not visible to customers).\n\nThis category is used for internal operations. Deleting it may affect admin functionality.\n\nAre you absolutely sure you want to delete it?`
+      : `Are you sure you want to delete "${category.name}"?`;
+    
     showAlert(
-      'Delete Category',
-      `Are you sure you want to delete "${category.name}"?`,
+      title,
+      message,
       [
         { text: 'Cancel', style: 'cancel' },
         {
