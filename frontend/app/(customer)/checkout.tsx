@@ -313,8 +313,13 @@ export default function CheckoutScreen() {
           </View>
           {orderType === 'delivery' && (
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Delivery Charge:</Text>
-              <Text style={styles.priceValue}>₹{appliedDeliveryCharge.toFixed(2)}</Text>
+              <Text style={styles.priceLabel}>
+                Delivery Charge:
+                {user?.delivery_charge_waived && <Text style={styles.waivedText}> (Waived)</Text>}
+              </Text>
+              <Text style={[styles.priceValue, user?.delivery_charge_waived && styles.waivedText]}>
+                {user?.delivery_charge_waived ? '₹0.00' : `₹${appliedDeliveryCharge.toFixed(2)}`}
+              </Text>
             </View>
           )}
           {discount?.has_discount && (
