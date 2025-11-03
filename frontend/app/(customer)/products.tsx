@@ -836,4 +836,20 @@ const styles = StyleSheet.create({
     color: '#666',
     flex: 1,
   },
+  moreDetailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    marginTop: 10,
+    marginBottom: 5,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  moreDetailsText: {
+    fontSize: 13,
+    color: '#8B4513',
+    fontWeight: '600',
+    marginRight: 4,
+  },
 });
