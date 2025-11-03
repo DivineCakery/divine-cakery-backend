@@ -248,32 +248,54 @@ export default function ProductFormScreen() {
             )}
           </View>
 
-          <Text style={styles.label}>Category *</Text>
+          <Text style={styles.label}>Categories * (Select one or more)</Text>
           {categories.length === 0 ? (
             <Text style={styles.noCategoriesText}>No categories available. Please create categories first.</Text>
           ) : (
             <View style={styles.categoryContainer}>
-              {categories.map((cat: any) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  style={[
-                    styles.categoryChip,
-                    formData.category === cat.name && styles.categoryChipActive,
-                  ]}
-                  onPress={() => setFormData({ ...formData, category: cat.name })}
-                  disabled={loading}
-              >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    formData.category === cat.name && styles.categoryTextActive,
-                  ]}
-                >
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
-              ))}
+              {categories.map((cat: any) => {
+                const isSelected = selectedCategories.includes(cat.name);
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[
+                      styles.categoryChip,
+                      isSelected && styles.categoryChipActive,
+                    ]}
+                    onPress={() => {
+                      if (isSelected) {
+                        // Remove category
+                        setSelectedCategories(selectedCategories.filter(c => c !== cat.name));
+                      } else {
+                        // Add category
+                        setSelectedCategories([...selectedCategories, cat.name]);
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    <Ionicons 
+                      name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                      size={20} 
+                      color={isSelected ? "#fff" : "#8B4513"} 
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        isSelected && styles.categoryTextActive,
+                      ]}
+                    >
+                      {cat.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
+          )}
+          {selectedCategories.length > 0 && (
+            <Text style={styles.selectedCategoriesText}>
+              Selected: {selectedCategories.join(', ')}
+            </Text>
           )}
 
           <Text style={styles.label}>MRP (₹) *</Text>
