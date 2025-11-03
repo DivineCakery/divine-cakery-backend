@@ -25,6 +25,7 @@ export default function ProductFormScreen() {
 
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
