@@ -36,6 +36,9 @@ export default function ProductFormScreen() {
     description: '',
     remarks: '',
     image_base64: '',
+    shelf_life: '',
+    storage_instructions: '',
+    food_type: 'veg',
   });
 
   useEffect(() => {
