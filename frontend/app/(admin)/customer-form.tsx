@@ -342,6 +342,23 @@ export default function CustomerFormScreen() {
               <Text style={styles.hint}>
                 {formData.onsite_pickup_only ? 'Customer can only pick up orders onsite (no delivery option)' : 'Customer can choose pickup or delivery'}
               </Text>
+
+              <View style={styles.toggleContainer}>
+                <View style={styles.toggleLabel}>
+                  <Ionicons name="cash-outline" size={20} color="#8B4513" />
+                  <Text style={styles.label}>Waive Delivery Charge</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.toggleButton, formData.delivery_charge_waived && styles.toggleButtonActive]}
+                  onPress={() => setFormData({ ...formData, delivery_charge_waived: !formData.delivery_charge_waived })}
+                  disabled={loading}
+                >
+                  <View style={[styles.toggleCircle, formData.delivery_charge_waived && styles.toggleCircleActive]} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.hint}>
+                {formData.delivery_charge_waived ? 'Delivery charges waived for this customer' : 'Customer will be charged for delivery'}
+              </Text>
             </>
           )}
 
