@@ -170,6 +170,25 @@ export default function ProductDetailScreen() {
             )}
           </View>
 
+          {/* Ingredients */}
+          {product.ingredients && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Ingredients</Text>
+              <Text style={styles.sectionText}>{product.ingredients}</Text>
+            </View>
+          )}
+
+          {/* Allergen Information */}
+          {product.allergen_info && (
+            <View style={styles.section}>
+              <View style={styles.allergenHeader}>
+                <Ionicons name="warning-outline" size={22} color="#FF6B6B" />
+                <Text style={styles.allergenTitle}>Allergen Information</Text>
+              </View>
+              <Text style={styles.allergenText}>{product.allergen_info}</Text>
+            </View>
+          )}
+
           {/* Remarks */}
           {product.remarks && (
             <View style={styles.section}>
