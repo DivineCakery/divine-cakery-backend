@@ -10,7 +10,7 @@ import {
   RefreshControl,
   Linking,
 } from 'react-native';
-import { showAlert } from \'../../utils/alerts\';
+import { showAlert } from '../../utils/alerts';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';

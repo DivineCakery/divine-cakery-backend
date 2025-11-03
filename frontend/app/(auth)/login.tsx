@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { showAlert } from \'../../utils/alerts\';
+import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

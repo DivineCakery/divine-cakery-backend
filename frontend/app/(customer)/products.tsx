@@ -11,7 +11,7 @@ import {
   RefreshControl,
   Linking,
 } from 'react-native';
-import { showAlert } from \'../../utils/alerts\';
+import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';

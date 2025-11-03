@@ -14,7 +14,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
 } from 'react-native';
-import { showAlert } from \'../../utils/alerts\';
+import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -239,7 +239,7 @@ export default function ManageOrdersScreen() {
       
       setShowCustomerEditModal(false);
       await fetchOrders();
-      showAlert('Success', 'Customer details updated successfully. These changes will reflect in the customer\'s profile.');
+      showAlert('Success', 'Customer details updated successfully. These changes will reflect in the customer's profile.');
       setEditingCustomer(null);
     } catch (error) {
       console.error('Error updating customer details:', error);

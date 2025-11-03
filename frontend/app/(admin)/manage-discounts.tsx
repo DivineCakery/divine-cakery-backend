@@ -9,7 +9,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { showAlert } from \'../../utils/alerts\';
+import { showAlert } from '../../utils/alerts';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
