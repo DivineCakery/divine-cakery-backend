@@ -592,6 +592,10 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: 'bold',
   },
+  waivedText: {
+    color: '#FF9800',
+    fontStyle: 'italic',
+  },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
