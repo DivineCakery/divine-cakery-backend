@@ -109,28 +109,44 @@ export default function ManageCategoriesScreen() {
     );
   };
 
-  const renderCategory = ({ item }: { item: any }) => (
-    <View style={styles.categoryCard}>
-      <View style={styles.categoryInfo}>
-        <Text style={styles.categoryName}>{item.name}</Text>
-        <Text style={styles.categoryOrder}>Display Order: {item.display_order}</Text>
+  const renderCategory = ({ item }: { item: any }) => {
+    const adminOnlyCategories = ['Packing', 'Slicing', 'Prep'];
+    const isAdminCategory = adminOnlyCategories.includes(item.name);
+    
+    return (
+      <View style={styles.categoryCard}>
+        <View style={styles.categoryInfo}>
+          <View style={styles.categoryNameRow}>
+            <Text style={styles.categoryName}>{item.name}</Text>
+            {isAdminCategory && (
+              <View style={styles.adminBadge}>
+                <Ionicons name="lock-closed" size={12} color="#fff" />
+                <Text style={styles.adminBadgeText}>ADMIN ONLY</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.categoryOrder}>Display Order: {item.display_order}</Text>
+          {isAdminCategory && (
+            <Text style={styles.adminNote}>Not visible to customers</Text>
+          )}
+        </View>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => handleEdit(item)}
+          >
+            <Ionicons name="create" size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.deleteButton, isAdminCategory && styles.dangerDeleteButton]}
+            onPress={() => handleDelete(item)}
+          >
+            <Ionicons name="trash" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => handleEdit(item)}
-        >
-          <Ionicons name="create" size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDelete(item)}
-        >
-          <Ionicons name="trash" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   if (loading) {
     return (
