@@ -81,6 +81,13 @@ export default function ProductFormScreen() {
         remarks: product.remarks || '',
         image_base64: product.image_base64 || '',
       });
+      // Set selected categories from product data
+      if (product.categories && product.categories.length > 0) {
+        setSelectedCategories(product.categories);
+      } else if (product.category) {
+        // Backward compatibility: if no categories array, use category field
+        setSelectedCategories([product.category]);
+      }
     } catch (error) {
       showAlert('Error', 'Failed to load product');
       router.back();
