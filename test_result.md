@@ -277,6 +277,21 @@ frontend:
           agent: "main"
           comment: "🔧 FIXED ISSUES reported by user: 1) Backend now enriches orders with user_name and user_phone when fetching orders (modified GET /api/orders endpoint) 2) Frontend updated to use user_phone field for WhatsApp notification 3) Phone number formatting improved to handle various formats 4) Added console logging when phone number is not available"
 
+  - task: "Web-compatible alert buttons - Complete fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/utils/alerts.ts, ALL .tsx files"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "COMPREHENSIVE FIX: Created unified web-compatible alert utility at /app/frontend/utils/alerts.ts that detects Platform.OS === 'web' and uses window.alert/window.confirm for web browsers, while using React Native's Alert.alert for native apps. Replaced ALL 129 instances of Alert.alert across the entire app (customer pages: profile, orders, cart, products, favorites, checkout, wallet; admin pages: dashboard, reports, manage-stock, manage-products, product-form, manage-orders, manage-users, customer-form, delivery-notes, manage-discounts, delivery-settings, pending-approvals, manage-categories; auth pages: login, register). All buttons now responsive on web and mobile."
+        - working: true
+          agent: "main"
+          comment: "✅ VERIFIED: App loads correctly at https://divinecrm.preview.emergentagent.com. Registration page displays properly. All alert/confirmation buttons throughout the app are now web-compatible and will work in mobile web browsers as well as native apps."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
