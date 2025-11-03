@@ -64,10 +64,17 @@ export default function ManageStockScreen() {
     showAlert(
       'Logout',
       'Are you sure you want to logout?',
-      async () => {
-        await logout();
-        router.replace('/');
-      }
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/');
+          }
+        }
+      ]
     );
   };
 
