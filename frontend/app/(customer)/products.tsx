@@ -397,6 +397,43 @@ export default function ProductsScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Category Description Modal */}
+      <Modal
+        visible={showDescriptionModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDescriptionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.descriptionModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {selectedCategoryData?.name}
+              </Text>
+              <TouchableOpacity onPress={() => setShowDescriptionModal(false)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <Text style={styles.descriptionText}>
+                {selectedCategoryData?.description}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.viewProductsButton}
+              onPress={handleConfirmCategory}
+            >
+              <Text style={styles.viewProductsButtonText}>
+                View Products
+              </Text>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
