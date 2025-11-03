@@ -38,7 +38,7 @@ export default function OrdersScreen() {
       setOrders(data);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      Alert.alert('Error', 'Failed to load orders');
+      showAlert('Error', 'Failed to load orders');
     } finally {
       setLoading(false);
       setRefreshing(false);
