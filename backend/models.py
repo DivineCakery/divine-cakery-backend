@@ -66,6 +66,7 @@ class UserBase(BaseModel):
     address: Optional[str] = None
     can_topup_wallet: bool = True
     onsite_pickup_only: bool = False
+    delivery_charge_waived: bool = False
     admin_access_level: Optional[AdminAccessLevel] = AdminAccessLevel.FULL
 
 
