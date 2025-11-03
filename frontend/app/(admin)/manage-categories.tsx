@@ -286,11 +286,37 @@ const styles = StyleSheet.create({
   categoryInfo: {
     flex: 1,
   },
+  categoryNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
   categoryName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 4,
+    marginRight: 8,
+  },
+  adminBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B00',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  adminBadgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  adminNote: {
+    fontSize: 12,
+    color: '#FF6B00',
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   categoryOrder: {
     fontSize: 14,
@@ -315,6 +341,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  dangerDeleteButton: {
+    backgroundColor: '#D32F2F',
+    borderWidth: 2,
+    borderColor: '#FF6B00',
   },
   emptyContainer: {
     alignItems: 'center',
