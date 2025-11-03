@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Linking,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
+import { showAlert } from '../../utils/alerts';
 
 const STATUS_COLORS: any = {
   pending: '#FFA500',
