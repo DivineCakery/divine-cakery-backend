@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Alert,
   Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
