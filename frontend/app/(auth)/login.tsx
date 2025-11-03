@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
-    marginBottom: 15,
+    marginBottom: 12,
     paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#ddd',
@@ -179,27 +179,27 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    height: 50,
+    height: 45,
     fontSize: 16,
   },
   button: {
     backgroundColor: '#8B4513',
     borderRadius: 10,
-    height: 50,
+    height: 45,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
   },
   buttonDisabled: {
     backgroundColor: '#999',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
   },
   registerButton: {
-    marginTop: 20,
+    marginTop: 15,
     alignItems: 'center',
   },
   registerText: {
