@@ -289,6 +289,16 @@ export default function ProductsScreen() {
             <Text style={styles.infoText} numberOfLines={1}>{item.storage_instructions}</Text>
           </View>
         )}
+        
+        {/* More Details Button */}
+        <TouchableOpacity
+          style={styles.moreDetailsButton}
+          onPress={() => router.push(`/(customer)/product-detail?id=${item.id}`)}
+        >
+          <Text style={styles.moreDetailsText}>More Details</Text>
+          <Ionicons name="chevron-forward" size={16} color="#8B4513" />
+        </TouchableOpacity>
+
         <View style={styles.productFooter}>
           <View>
             <Text style={styles.productPrice}>₹{item.price.toFixed(2)}</Text>
