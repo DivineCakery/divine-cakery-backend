@@ -33,10 +33,17 @@ export default function DashboardScreen() {
     showAlert(
       'Logout Confirmation',
       'Are you sure you want to logout from admin panel?',
-      async () => {
-        await logout();
-        router.replace('/');
-      }
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/');
+          }
+        }
+      ]
     );
   };
 
