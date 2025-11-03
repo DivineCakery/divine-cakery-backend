@@ -351,7 +351,7 @@ export default function ProductsScreen() {
                 styles.categoryChip,
                 selectedCategory === item && styles.categoryChipActive,
               ]}
-              onPress={() => setSelectedCategory(item)}
+              onPress={() => handleCategoryPress(item)}
             >
               <Text
                 style={[
