@@ -62,7 +62,7 @@ export default function ReportsScreen() {
       }
     } catch (error) {
       console.error('Error fetching report:', error);
-      Alert.alert('Error', 'Failed to load report');
+      showAlert('Error', 'Failed to load report');
     } finally {
       setLoading(false);
       setRefreshing(false);
