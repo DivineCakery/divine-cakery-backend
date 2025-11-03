@@ -420,6 +420,28 @@ export default function ProductFormScreen() {
             </TouchableOpacity>
           </View>
 
+          <Text style={styles.label}>Ingredients</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="e.g., Wheat flour, Sugar, Butter, Eggs, Vanilla extract..."
+            value={formData.ingredients}
+            onChangeText={(text) => setFormData({ ...formData, ingredients: text })}
+            multiline
+            numberOfLines={3}
+            editable={!loading}
+          />
+
+          <Text style={styles.label}>Allergen Information</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="e.g., Contains: Gluten, Eggs, Dairy. May contain traces of nuts"
+            value={formData.allergen_info}
+            onChangeText={(text) => setFormData({ ...formData, allergen_info: text })}
+            multiline
+            numberOfLines={2}
+            editable={!loading}
+          />
+
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
