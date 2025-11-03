@@ -138,6 +138,9 @@ class ProductUpdate(BaseModel):
     image_base64: Optional[str] = None
     is_available: Optional[bool] = None
     closing_stock: Optional[int] = None
+    shelf_life: Optional[str] = None
+    storage_instructions: Optional[str] = None
+    food_type: Optional[str] = None
 
 
 class Product(ProductBase):
