@@ -168,7 +168,6 @@ export default function ProductFormScreen() {
         packet_size: formData.packet_size || undefined,
         unit: formData.unit,
         description: formData.description || undefined,
-        remarks: formData.remarks || undefined,
         image_base64: formData.image_base64 || undefined,
         is_available: true,
         shelf_life: formData.shelf_life || undefined,
