@@ -34,7 +34,6 @@ export default function ProductFormScreen() {
     packet_size: '',
     unit: 'piece',
     description: '',
-    remarks: '',
     image_base64: '',
     shelf_life: '',
     storage_instructions: '',
