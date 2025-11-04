@@ -95,8 +95,14 @@ export default function FavoritesScreen() {
 
   const handleAddToCart = (product: any) => {
     const quantity = getQuantity(product.id);
-    addToCart(product, quantity);
-    showAlert('Success', `${quantity} x ${product.name} added to cart`);
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+      unit: product.unit,
+    });
+    showAlert('Success', `${quantity} ${product.unit}(s) of ${product.name} added to cart`);
     setQuantities(prev => {
       const newQuantities = { ...prev };
       delete newQuantities[product.id];
