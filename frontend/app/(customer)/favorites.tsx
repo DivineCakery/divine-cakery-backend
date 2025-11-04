@@ -106,69 +106,103 @@ export default function FavoritesScreen() {
 
   const renderFavoriteItem = ({ item }: any) => (
     <View style={styles.productCard}>
-      <View style={styles.imageContainer}>
-        {item.image_base64 ? (
-          <Image
-            source={{ uri: `data:image/jpeg;base64,${item.image_base64}` }}
-            style={styles.productImage}
-          />
-        ) : (
-          <View style={[styles.productImage, styles.placeholderImage]}>
-            <MaterialCommunityIcons name="food" size={40} color="#ccc" />
-          </View>
-        )}
-        <TouchableOpacity
-          style={styles.heartButton}
-          onPress={() => handleRemoveFromFavorites(item.id)}
-        >
-          <Ionicons name="heart" size={24} color="#FF0000" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
-        {item.description && (
-          <Text style={styles.productDescription} numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
-        {item.packet_size && (
-          <Text style={styles.packetSize}>{item.packet_size}</Text>
-        )}
-        <View style={styles.priceRow}>
-          {item.mrp > item.price && (
-            <Text style={styles.mrpText}>₹{item.mrp.toFixed(2)}</Text>
+      <TouchableOpacity
+        onPress={() => router.push(`/(customer)/product-detail?id=${item.id}`)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.imageContainer}>
+          {item.image_base64 ? (
+            <Image
+              source={{ uri: item.image_base64 }}
+              style={styles.productImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.productImage, styles.placeholderImage]}>
+              <Ionicons name="image-outline" size={40} color="#ccc" />
+            </View>
           )}
-          <Text style={styles.priceText}>₹{item.price.toFixed(2)}</Text>
-          <Text style={styles.unitText}>/{item.unit}</Text>
-        </View>
-      </View>
-
-      <View style={styles.actionRow}>
-        <View style={styles.quantityControls}>
           <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => decreaseQuantity(item.id)}
+            style={styles.heartButton}
+            onPress={() => handleRemoveFromFavorites(item.id)}
           >
-            <MaterialCommunityIcons name="minus" size={20} color="#8B4513" />
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{getQuantity(item.id)}</Text>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => increaseQuantity(item.id)}
-          >
-            <MaterialCommunityIcons name="plus" size={20} color="#8B4513" />
+            <Ionicons name="heart" size={24} color="#FF0000" />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => handleAddToCart(item)}
-        >
-          <MaterialCommunityIcons name="cart-plus" size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.productInfo}>
+          <View style={styles.productHeader}>
+            <Text style={styles.productName}>{item.name}</Text>
+            {item.food_type && (
+              <View style={[styles.fssaiBadge, item.food_type === 'veg' ? styles.vegBadge : styles.nonVegBadge]}>
+                <View style={[styles.fssaiDot, item.food_type === 'veg' ? styles.vegDot : styles.nonVegDot]} />
+              </View>
+            )}
+          </View>
+          <Text style={styles.productCategory}>{item.category}</Text>
+          {item.description && (
+            <Text style={styles.productDescription} numberOfLines={2}>
+              {item.description}
+            </Text>
+          )}
+          {item.shelf_life && (
+            <View style={styles.infoRow}>
+              <Ionicons name="time-outline" size={14} color="#666" />
+              <Text style={styles.infoText}>Shelf Life: {item.shelf_life}</Text>
+            </View>
+          )}
+          {item.storage_instructions && (
+            <View style={styles.infoRow}>
+              <Ionicons name="snow-outline" size={14} color="#666" />
+              <Text style={styles.infoText} numberOfLines={1}>{item.storage_instructions}</Text>
+            </View>
+          )}
+          
+          {/* More Details Button */}
+          <TouchableOpacity
+            style={styles.moreDetailsButton}
+            onPress={() => router.push(`/(customer)/product-detail?id=${item.id}`)}
+          >
+            <Text style={styles.moreDetailsText}>More Details</Text>
+            <Ionicons name="chevron-forward" size={16} color="#8B4513" />
+          </TouchableOpacity>
+
+          <View style={styles.productFooter}>
+            <View>
+              <View style={styles.priceRow}>
+                {item.mrp && item.mrp > item.price && (
+                  <Text style={styles.mrpText}>₹{item.mrp.toFixed(2)}</Text>
+                )}
+                <Text style={styles.priceText}>₹{item.price.toFixed(2)}</Text>
+              </View>
+              <Text style={styles.unitText}>per {item.unit}</Text>
+            </View>
+            <View style={styles.actionButtons}>
+              <View style={styles.quantityControls}>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => decreaseQuantity(item.id)}
+                >
+                  <Ionicons name="remove" size={16} color="#8B4513" />
+                </TouchableOpacity>
+                <Text style={styles.quantityText}>{getQuantity(item.id)}</Text>
+                <TouchableOpacity
+                  style={styles.quantityButton}
+                  onPress={() => increaseQuantity(item.id)}
+                >
+                  <Ionicons name="add" size={16} color="#8B4513" />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => handleAddToCart(item)}
+              >
+                <Ionicons name="cart" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 
