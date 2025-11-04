@@ -148,14 +148,18 @@ export const useCartStore = create<CartState>((set, get) => ({
     const items = get().items;
     const existingItem = items.find(item => item.product_id === product.id);
     
+    // Ensure price and quantity are valid numbers
+    const price = parseFloat(product.price) || 0;
+    const qty = parseInt(String(quantity)) || 1;
+    
     if (existingItem) {
       set({
         items: items.map(item =>
           item.product_id === product.id
             ? {
                 ...item,
-                quantity: item.quantity + quantity,
-                subtotal: (item.quantity + quantity) * item.price,
+                quantity: item.quantity + qty,
+                subtotal: (item.quantity + qty) * item.price,
               }
             : item
         ),
@@ -167,9 +171,9 @@ export const useCartStore = create<CartState>((set, get) => ({
           {
             product_id: product.id,
             product_name: product.name,
-            quantity,
-            price: product.price,
-            subtotal: quantity * product.price,
+            quantity: qty,
+            price: price,
+            subtotal: qty * price,
           },
         ],
       });
