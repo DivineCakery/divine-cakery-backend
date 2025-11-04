@@ -57,7 +57,13 @@ export default function ManageProductsScreen() {
   // Filter products based on selected category
   const filteredProducts = selectedCategory === 'All' 
     ? products 
-    : products.filter((product: any) => product.category === selectedCategory);
+    : products.filter((product: any) => {
+        // Check both the old category field and new categories array
+        if (product.categories && Array.isArray(product.categories)) {
+          return product.categories.includes(selectedCategory);
+        }
+        return product.category === selectedCategory;
+      });
 
   const onRefresh = () => {
     setRefreshing(true);
