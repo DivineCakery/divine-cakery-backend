@@ -187,7 +187,10 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   updateQuantity: (productId: string, quantity: number) => {
-    if (quantity <= 0) {
+    // Ensure quantity is a valid number and at least 1
+    const qty = Math.max(1, parseInt(String(quantity)) || 1);
+    
+    if (qty === 0) {
       get().removeItem(productId);
     } else {
       set({
@@ -195,8 +198,8 @@ export const useCartStore = create<CartState>((set, get) => ({
           item.product_id === productId
             ? {
                 ...item,
-                quantity,
-                subtotal: quantity * item.price,
+                quantity: qty,
+                subtotal: qty * item.price,
               }
             : item
         ),
