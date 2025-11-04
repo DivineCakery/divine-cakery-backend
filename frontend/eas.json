@@ -14,8 +14,12 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "cache": {
+        "disabled": true
       }
     }
   },
