@@ -37,7 +37,7 @@ Your app is fully configured and tested. All systems are go! 🚀
 ### **Current Environment:**
 ```
 Type: Preview/Development (Production-Ready)
-URL: https://sweet-orders-8.preview.emergentagent.com
+URL: https://divine-cakery-1.preview.emergentagent.com
 Status: ✅ Running
 Uptime: 24/7
 SSL: ✅ Active

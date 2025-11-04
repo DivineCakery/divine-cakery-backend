@@ -104,7 +104,7 @@ npx eas build --platform android --profile production
 
 Your app currently uses:
 ```
-EXPO_PUBLIC_BACKEND_URL=https://sweet-orders-8.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://divine-cakery-1.preview.emergentagent.com
 ```
 
 **For Production Build:**
