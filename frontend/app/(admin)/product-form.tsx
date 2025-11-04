@@ -82,7 +82,6 @@ export default function ProductFormScreen() {
         packet_size: product.packet_size || '',
         unit: product.unit,
         description: product.description || '',
-        remarks: product.remarks || '',
         image_base64: product.image_base64 || '',
         shelf_life: product.shelf_life || '',
         storage_instructions: product.storage_instructions || '',
