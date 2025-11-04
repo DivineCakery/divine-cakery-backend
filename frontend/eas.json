@@ -16,7 +16,12 @@
     "production": {
       "autoIncrement": true,
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "image": "latest"
+      },
+      "node": "20.19.5",
+      "env": {
+        "EXPO_USE_METRO_WORKSPACE_ROOT": "1"
       },
       "cache": {
         "disabled": true
