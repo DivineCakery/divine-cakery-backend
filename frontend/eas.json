@@ -17,14 +17,11 @@
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle",
-        "image": "latest"
+        "image": "latest",
+        "ndk": "26.1.10909125"
       },
-      "node": "20.19.5",
       "env": {
-        "EXPO_USE_METRO_WORKSPACE_ROOT": "1"
-      },
-      "cache": {
-        "disabled": true
+        "EXPO_NO_CAPABILITY_SYNC": "1"
       }
     }
   },
