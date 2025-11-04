@@ -362,17 +362,6 @@ export default function ProductFormScreen() {
             editable={!loading}
           />
 
-          <Text style={styles.label}>Remarks</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Any additional notes or remarks"
-            value={formData.remarks}
-            onChangeText={(text) => setFormData({ ...formData, remarks: text })}
-            multiline
-            numberOfLines={2}
-            editable={!loading}
-          />
-
           <Text style={styles.label}>Shelf Life</Text>
           <TextInput
             style={styles.input}
