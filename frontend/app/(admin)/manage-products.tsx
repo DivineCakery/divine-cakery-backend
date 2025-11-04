@@ -225,7 +225,13 @@ export default function ManageProductsScreen() {
             </Text>
           </TouchableOpacity>
           {categories.map((category: any) => {
-            const count = products.filter((p: any) => p.category === category.name).length;
+            // Count products that include this category in their categories array
+            const count = products.filter((p: any) => {
+              if (p.categories && Array.isArray(p.categories)) {
+                return p.categories.includes(category.name);
+              }
+              return p.category === category.name;
+            }).length;
             return (
               <TouchableOpacity
                 key={category.id}
