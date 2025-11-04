@@ -22,7 +22,7 @@ export default function FavoritesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   
-  const addToCart = useCartStore((state) => state.addToCart);
+  const addItem = useCartStore((state) => state.addItem);
   const { logout } = useAuthStore();
 
   const handleLogout = () => {
