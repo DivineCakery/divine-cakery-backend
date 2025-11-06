@@ -1586,6 +1586,33 @@ async def health():
 
 
 # TEMPORARY: Setup endpoint to create first admin (remove after setup)
+@api_router.post("/fix-user-ids")
+async def fix_user_ids():
+    """
+    Migration endpoint to add missing 'id' fields to users.
+    This fixes the Internal Server Error on /admin/users endpoint.
+    """
+    users_without_id = await db.users.find({"id": {"$exists": False}}).to_list(1000)
+    
+    if not users_without_id:
+        return {"message": "All users already have 'id' field", "fixed": 0}
+    
+    fixed_count = 0
+    for user in users_without_id:
+        new_id = str(uuid.uuid4())
+        result = await db.users.update_one(
+            {"_id": user["_id"]},
+            {"$set": {"id": new_id}}
+        )
+        if result.modified_count > 0:
+            fixed_count += 1
+    
+    return {
+        "message": f"Fixed {fixed_count} users by adding 'id' field",
+        "fixed": fixed_count
+    }
+
+
 @api_router.post("/setup-admin")
 async def setup_admin():
     """
