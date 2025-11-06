@@ -1622,30 +1622,51 @@ async def debug_users_raw():
         return {"error": str(e), "type": str(type(e))}
 
 
-@api_router.post("/fix-user-ids")
-async def fix_user_ids():
+@api_router.post("/fix-user-fields")
+async def fix_user_fields():
     """
-    Migration endpoint to add missing 'id' fields to users.
-    This fixes the Internal Server Error on /admin/users endpoint.
+    Comprehensive migration to fix all missing required fields in users.
+    Adds: id, is_approved, favorite_products, created_at, is_active
     """
-    users_without_id = await db.users.find({"id": {"$exists": False}}).to_list(1000)
-    
-    if not users_without_id:
-        return {"message": "All users already have 'id' field", "fixed": 0}
+    all_users = await db.users.find().to_list(1000)
     
     fixed_count = 0
-    for user in users_without_id:
-        new_id = str(uuid.uuid4())
-        result = await db.users.update_one(
-            {"_id": user["_id"]},
-            {"$set": {"id": new_id}}
-        )
-        if result.modified_count > 0:
-            fixed_count += 1
+    details = []
+    
+    for user in all_users:
+        updates = {}
+        username = user.get("username", "unknown")
+        
+        # Check and add missing fields
+        if "id" not in user:
+            updates["id"] = str(uuid.uuid4())
+        
+        if "is_approved" not in user:
+            updates["is_approved"] = True
+        
+        if "favorite_products" not in user:
+            updates["favorite_products"] = []
+        
+        if "created_at" not in user:
+            updates["created_at"] = datetime.utcnow()
+        
+        if "is_active" not in user:
+            updates["is_active"] = True
+        
+        # Apply updates if any
+        if updates:
+            result = await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": updates}
+            )
+            if result.modified_count > 0:
+                fixed_count += 1
+                details.append(f"{username}: added {list(updates.keys())}")
     
     return {
-        "message": f"Fixed {fixed_count} users by adding 'id' field",
-        "fixed": fixed_count
+        "message": f"Fixed {fixed_count} users with missing fields",
+        "fixed": fixed_count,
+        "details": details[:10]  # Show first 10 for brevity
     }
 
 
