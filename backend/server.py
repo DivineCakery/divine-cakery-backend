@@ -1568,6 +1568,50 @@ async def health():
     return {"status": "healthy"}
 
 
+# TEMPORARY: Setup endpoint to create first admin (remove after setup)
+@api_router.post("/setup-admin")
+async def setup_admin():
+    """
+    Temporary endpoint to create first admin user.
+    Should be removed after initial setup.
+    """
+    users_collection = db.users
+    
+    # Check if any admin exists
+    existing_admin = await users_collection.find_one({"role": "admin"})
+    if existing_admin:
+        raise HTTPException(status_code=400, detail="Admin already exists")
+    
+    # Create admin user
+    admin_user = {
+        "username": "admin",
+        "email": "admin@divinecakery.in",
+        "hashed_password": pwd_context.hash("Admin@123"),
+        "phone": "9544183334",
+        "role": "admin",
+        "business_name": "Divine Cakery",
+        "address": "Thiruvananthapuram",
+        "wallet_balance": 0.0,
+        "is_active": True,
+        "is_approved": True,
+        "can_topup_wallet": True,
+        "onsite_pickup_only": False,
+        "delivery_charge_waived": False,
+        "admin_access_level": "superadmin",
+        "favorite_products": [],
+        "created_at": datetime.utcnow()
+    }
+    
+    result = await users_collection.insert_one(admin_user)
+    
+    return {
+        "message": "Admin user created successfully",
+        "username": "admin",
+        "password": "Admin@123",
+        "id": str(result.inserted_id)
+    }
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
