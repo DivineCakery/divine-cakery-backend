@@ -1112,7 +1112,7 @@ async def bulk_delete_users_by_admin(
         try:
             # Prevent admin from deleting themselves
             if user_id == current_user.id:
-                errors.append(f"Skipped: Cannot delete your own account")
+                errors.append("Skipped: Cannot delete your own account")
                 skipped_count += 1
                 continue
             
