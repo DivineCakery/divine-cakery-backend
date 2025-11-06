@@ -1589,16 +1589,18 @@ async def health():
 @api_router.post("/setup-admin")
 async def setup_admin():
     """
-    Temporary endpoint to create/update first admin user.
-    Should be removed after initial setup.
+    Temporary endpoint to create/update test users for Play Store reviewers.
+    Creates both admin and testcustomer accounts.
+    Should be removed after Play Store approval.
     """
     users_collection = db.users
+    results = []
     
-    # Check if user "admin" exists
-    existing_user = await users_collection.find_one({"username": "admin"})
+    # Setup admin user
+    existing_admin = await users_collection.find_one({"username": "admin"})
     
-    if existing_user:
-        # Update existing user to be admin with approval
+    if existing_admin:
+        # Update existing admin
         result = await users_collection.update_one(
             {"username": "admin"},
             {"$set": {
@@ -1609,40 +1611,90 @@ async def setup_admin():
                 "hashed_password": pwd_context.hash("Admin@123")
             }}
         )
-        return {
-            "message": "Admin user updated successfully",
+        results.append({
             "username": "admin",
             "password": "Admin@123",
+            "action": "updated",
             "modified": result.modified_count
+        })
+    else:
+        # Create new admin user
+        admin_user = {
+            "username": "admin",
+            "email": "admin@divinecakery.in",
+            "hashed_password": pwd_context.hash("Admin@123"),
+            "phone": "9544183334",
+            "role": "admin",
+            "business_name": "Divine Cakery",
+            "address": "Thiruvananthapuram",
+            "wallet_balance": 0.0,
+            "is_active": True,
+            "is_approved": True,
+            "can_topup_wallet": True,
+            "onsite_pickup_only": False,
+            "delivery_charge_waived": False,
+            "admin_access_level": "superadmin",
+            "favorite_products": [],
+            "created_at": datetime.utcnow()
         }
+        result = await users_collection.insert_one(admin_user)
+        results.append({
+            "username": "admin",
+            "password": "Admin@123",
+            "action": "created",
+            "id": str(result.inserted_id)
+        })
     
-    # Create new admin user if doesn't exist
-    admin_user = {
-        "username": "admin",
-        "email": "admin@divinecakery.in",
-        "hashed_password": pwd_context.hash("Admin@123"),
-        "phone": "9544183334",
-        "role": "admin",
-        "business_name": "Divine Cakery",
-        "address": "Thiruvananthapuram",
-        "wallet_balance": 0.0,
-        "is_active": True,
-        "is_approved": True,
-        "can_topup_wallet": True,
-        "onsite_pickup_only": False,
-        "delivery_charge_waived": False,
-        "admin_access_level": "superadmin",
-        "favorite_products": [],
-        "created_at": datetime.utcnow()
-    }
+    # Setup testcustomer user
+    existing_customer = await users_collection.find_one({"username": "testcustomer"})
     
-    result = await users_collection.insert_one(admin_user)
+    if existing_customer:
+        # Update existing customer
+        result = await users_collection.update_one(
+            {"username": "testcustomer"},
+            {"$set": {
+                "role": "customer",
+                "is_approved": True,
+                "is_active": True,
+                "hashed_password": pwd_context.hash("Test@123")
+            }}
+        )
+        results.append({
+            "username": "testcustomer",
+            "password": "Test@123",
+            "action": "updated",
+            "modified": result.modified_count
+        })
+    else:
+        # Create new testcustomer user
+        customer_user = {
+            "username": "testcustomer",
+            "email": "testcustomer@divinecakery.in",
+            "hashed_password": pwd_context.hash("Test@123"),
+            "phone": "9999888877",
+            "role": "customer",
+            "business_name": "Test Customer Business",
+            "address": "Test Address, Test City",
+            "wallet_balance": 0.0,
+            "is_active": True,
+            "is_approved": True,
+            "can_topup_wallet": False,
+            "onsite_pickup_only": False,
+            "delivery_charge_waived": False,
+            "favorite_products": [],
+            "created_at": datetime.utcnow()
+        }
+        result = await users_collection.insert_one(customer_user)
+        results.append({
+            "username": "testcustomer",
+            "password": "Test@123",
+            "action": "created",
+            "id": str(result.inserted_id)
+        })
     
     return {
-        "message": "Admin user created successfully",
-        "username": "admin",
-        "password": "Admin@123",
-        "id": str(result.inserted_id)
+        "message": "Test users setup completed successfully",
+        "users": results
     }
 
 
