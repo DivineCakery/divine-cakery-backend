@@ -1608,11 +1608,18 @@ async def health():
 
 
 # TEMPORARY: Setup endpoint to create first admin (remove after setup)
-@api_router.get("/debug/users")
-async def debug_users(current_user: User = Depends(get_current_admin)):
-    """Debug endpoint to see user data structure"""
-    users = await db.users.find().limit(3).to_list(3)
-    return {"count": len(users), "sample": users}
+@api_router.get("/debug/users-raw")
+async def debug_users_raw():
+    """Debug endpoint to see raw user data - NO AUTH to avoid dependency issues"""
+    try:
+        users = await db.users.find().limit(5).to_list(5)
+        # Convert ObjectId to string for JSON serialization
+        for user in users:
+            if "_id" in user:
+                user["_id"] = str(user["_id"])
+        return {"count": len(users), "users": users}
+    except Exception as e:
+        return {"error": str(e), "type": str(type(e))}
 
 
 @api_router.post("/fix-user-ids")
