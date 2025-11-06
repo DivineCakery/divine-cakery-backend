@@ -1572,17 +1572,34 @@ async def health():
 @api_router.post("/setup-admin")
 async def setup_admin():
     """
-    Temporary endpoint to create first admin user.
+    Temporary endpoint to create/update first admin user.
     Should be removed after initial setup.
     """
     users_collection = db.users
     
-    # Check if any admin exists
-    existing_admin = await users_collection.find_one({"role": "admin"})
-    if existing_admin:
-        raise HTTPException(status_code=400, detail="Admin already exists")
+    # Check if user "admin" exists
+    existing_user = await users_collection.find_one({"username": "admin"})
     
-    # Create admin user
+    if existing_user:
+        # Update existing user to be admin with approval
+        result = await users_collection.update_one(
+            {"username": "admin"},
+            {"$set": {
+                "role": "admin",
+                "is_approved": True,
+                "is_active": True,
+                "admin_access_level": "superadmin",
+                "hashed_password": pwd_context.hash("Admin@123")
+            }}
+        )
+        return {
+            "message": "Admin user updated successfully",
+            "username": "admin",
+            "password": "Admin@123",
+            "modified": result.modified_count
+        }
+    
+    # Create new admin user if doesn't exist
     admin_user = {
         "username": "admin",
         "email": "admin@divinecakery.in",
