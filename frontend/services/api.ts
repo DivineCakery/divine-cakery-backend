@@ -1,7 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+// Production backend URL - DO NOT CHANGE
+const API_BASE_URL = 'https://divine-cakery.emergent.host';
 
 class ApiService {
   constructor() {
