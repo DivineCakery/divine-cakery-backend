@@ -1669,7 +1669,9 @@ async def setup_admin():
         })
     else:
         # Create new testcustomer user
+        customer_id = str(uuid.uuid4())
         customer_user = {
+            "id": customer_id,
             "username": "testcustomer",
             "email": "testcustomer@divinecakery.in",
             "hashed_password": pwd_context.hash("Test@123"),
@@ -1691,7 +1693,7 @@ async def setup_admin():
             "username": "testcustomer",
             "password": "Test@123",
             "action": "created",
-            "id": str(result.inserted_id)
+            "id": customer_id
         })
     
     return {
