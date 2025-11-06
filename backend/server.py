@@ -1625,8 +1625,9 @@ async def debug_users_raw():
 @api_router.post("/fix-user-fields")
 async def fix_user_fields():
     """
-    Comprehensive migration to fix all missing required fields in users.
+    Comprehensive migration to fix all missing/invalid required fields in users.
     Adds: id, is_approved, favorite_products, created_at, is_active
+    Fixes: admin_access_level invalid values
     """
     all_users = await db.users.find().to_list(1000)
     
@@ -1653,6 +1654,20 @@ async def fix_user_fields():
         if "is_active" not in user:
             updates["is_active"] = True
         
+        # Fix invalid admin_access_level values
+        if "admin_access_level" in user:
+            access_level = user["admin_access_level"]
+            # Map invalid values to valid ones
+            if access_level not in ["full", "limited", "reports"]:
+                if access_level in ["superadmin", "admin"]:
+                    updates["admin_access_level"] = "full"
+                elif access_level == "none":
+                    # For customers, remove this field (not needed)
+                    if user.get("role") == "customer":
+                        updates["admin_access_level"] = "full"  # Default for safety
+                else:
+                    updates["admin_access_level"] = "full"  # Default fallback
+        
         # Apply updates if any
         if updates:
             result = await db.users.update_one(
@@ -1661,12 +1676,12 @@ async def fix_user_fields():
             )
             if result.modified_count > 0:
                 fixed_count += 1
-                details.append(f"{username}: added {list(updates.keys())}")
+                details.append(f"{username}: fixed {list(updates.keys())}")
     
     return {
-        "message": f"Fixed {fixed_count} users with missing fields",
+        "message": f"Fixed {fixed_count} users with missing/invalid fields",
         "fixed": fixed_count,
-        "details": details[:10]  # Show first 10 for brevity
+        "details": details[:15]  # Show first 15 for brevity
     }
 
 
