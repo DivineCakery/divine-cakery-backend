@@ -158,7 +158,7 @@ async def get_current_user_optional(token: str = Depends(oauth2_scheme)) -> User
         if user_dict is None:
             return None
         return User(**user_dict)
-    except:
+    except Exception:
         return None
 
 
