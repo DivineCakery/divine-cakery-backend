@@ -1608,6 +1608,13 @@ async def health():
 
 
 # TEMPORARY: Setup endpoint to create first admin (remove after setup)
+@api_router.get("/debug/users")
+async def debug_users(current_user: User = Depends(get_current_admin)):
+    """Debug endpoint to see user data structure"""
+    users = await db.users.find().limit(3).to_list(3)
+    return {"count": len(users), "sample": users}
+
+
 @api_router.post("/fix-user-ids")
 async def fix_user_ids():
     """
