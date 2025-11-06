@@ -1612,7 +1612,7 @@ async def health():
 async def debug_users_raw():
     """Debug endpoint to see raw user data - NO AUTH to avoid dependency issues"""
     try:
-        users = await db.users.find().limit(5).to_list(5)
+        users = await db.users.find().to_list(1000)  # Get ALL users
         # Convert ObjectId to string for JSON serialization
         for user in users:
             if "_id" in user:
