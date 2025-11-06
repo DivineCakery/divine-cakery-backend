@@ -282,16 +282,32 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_data: UserLogin):
+    logger.info(f"Login attempt for username: {user_data.username}")
     user_dict = await db.users.find_one({"username": user_data.username})
-    if not user_dict or not verify_password(user_data.password, user_dict["hashed_password"]):
+    
+    if not user_dict:
+        logger.warning(f"User not found: {user_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    logger.info(f"User found: {user_data.username}, role: {user_dict.get('role')}, approved: {user_dict.get('is_approved')}")
+    
+    if not verify_password(user_data.password, user_dict["hashed_password"]):
+        logger.warning(f"Password verification failed for user: {user_data.username}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    logger.info(f"Password verified for user: {user_data.username}")
+    
     # Check if customer account is approved (admins don't need approval)
     if user_dict.get("role") == UserRole.CUSTOMER and not user_dict.get("is_approved", True):
+        logger.warning(f"Customer account not approved: {user_data.username}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Registration pending approval from admin. You will be notified within 1 day.",
@@ -302,6 +318,7 @@ async def login(user_data: UserLogin):
         data={"sub": user_dict["username"], "role": user_dict["role"]},
         expires_delta=access_token_expires
     )
+    logger.info(f"Login successful for user: {user_data.username}")
     return {"access_token": access_token, "token_type": "bearer"}
 
 
