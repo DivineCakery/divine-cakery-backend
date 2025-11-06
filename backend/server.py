@@ -889,10 +889,32 @@ async def get_all_users(current_user: User = Depends(get_current_admin)):
     # Enrich users with wallet balance
     enriched_users = []
     for user in users:
-        # Fetch wallet balance for each user
-        wallet = await db.wallets.find_one({"user_id": user["id"]})
-        user["wallet_balance"] = wallet.get("balance", 0.0) if wallet else 0.0
-        enriched_users.append(User(**user))
+        try:
+            # Ensure required fields exist with defaults
+            if "id" not in user:
+                logger.error(f"User missing 'id' field: {user.get('username', 'unknown')}")
+                continue
+            
+            if "created_at" not in user:
+                user["created_at"] = datetime.utcnow()
+            
+            if "is_active" not in user:
+                user["is_active"] = True
+                
+            if "is_approved" not in user:
+                user["is_approved"] = True
+                
+            if "favorite_products" not in user:
+                user["favorite_products"] = []
+            
+            # Fetch wallet balance for each user
+            wallet = await db.wallets.find_one({"user_id": user["id"]})
+            user["wallet_balance"] = wallet.get("balance", 0.0) if wallet else 0.0
+            
+            enriched_users.append(User(**user))
+        except Exception as e:
+            logger.error(f"Failed to process user {user.get('username', 'unknown')}: {str(e)}")
+            continue
     
     return enriched_users
 
