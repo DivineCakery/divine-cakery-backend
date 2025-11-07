@@ -85,8 +85,7 @@ export default function ManageCategoriesScreen() {
 
   const handleDelete = (category: any) => {
     // Check if this is an admin-only category
-    const adminOnlyCategories = ['Packing', 'Slicing', 'Prep'];
-    const isAdminCategory = adminOnlyCategories.includes(category.name);
+    const isAdminCategory = category.is_admin_only;
     
     const title = isAdminCategory ? '⚠️ Delete Admin Category' : 'Delete Category';
     const message = isAdminCategory 
