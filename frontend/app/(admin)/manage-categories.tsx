@@ -228,6 +228,21 @@ export default function ManageCategoriesScreen() {
               keyboardType="numeric"
             />
 
+            <View style={styles.switchContainer}>
+              <View style={styles.switchLabelContainer}>
+                <Text style={styles.switchLabel}>Admin Display Only</Text>
+                <Text style={styles.switchSubLabel}>
+                  Hide this category from customers (visible only to admin)
+                </Text>
+              </View>
+              <Switch
+                value={formData.is_admin_only}
+                onValueChange={(value) => setFormData({ ...formData, is_admin_only: value })}
+                trackColor={{ false: '#ccc', true: '#8B4513' }}
+                thumbColor={formData.is_admin_only ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
