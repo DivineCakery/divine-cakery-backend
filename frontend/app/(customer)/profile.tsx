@@ -56,7 +56,6 @@ export default function ProfileScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerName}>{user?.username || 'User'}</Text>
-        <Text style={styles.headerEmail}>{user?.email || ''}</Text>
       </View>
 
       <View style={styles.content}>
