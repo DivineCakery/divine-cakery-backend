@@ -206,6 +206,21 @@ export default function ProductsScreen() {
     setFilteredProducts(filtered);
   };
 
+  const getCategoryCount = (categoryName: string) => {
+    if (categoryName === 'All') {
+      return products.length;
+    }
+    
+    return products.filter((p) => {
+      if (p.categories && Array.isArray(p.categories)) {
+        return p.categories.some((cat: string) => 
+          cat.toLowerCase() === categoryName.toLowerCase()
+        );
+      }
+      return p.category?.toLowerCase() === categoryName.toLowerCase();
+    }).length;
+  };
+
   const getQuantity = (productId: string) => {
     return quantities[productId] || 1;
   };
