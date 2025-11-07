@@ -72,16 +72,6 @@ export default function ProfileScreen() {
             <View style={styles.divider} />
 
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="email" size={24} color="#8B4513" />
-              <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{user?.email}</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.infoRow}>
               <MaterialCommunityIcons name="phone" size={24} color="#8B4513" />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Phone</Text>
