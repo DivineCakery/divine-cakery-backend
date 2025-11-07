@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderBottomColor: '#8B4513',
-    transform: [{ rotate: '180deg' }],
+    borderRadius: 0,
   },
   infoRow: {
     flexDirection: 'row',
