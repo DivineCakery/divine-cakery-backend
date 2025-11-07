@@ -166,11 +166,21 @@ export default function RegisterScreen() {
               placeholder="Password *"
               value={formData.password}
               onChangeText={(text) => setFormData({ ...formData, password: text })}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               autoCapitalize="none"
               autoCorrect={false}
               editable={!loading}
             />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <MaterialCommunityIcons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="#8B4513"
+              />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
