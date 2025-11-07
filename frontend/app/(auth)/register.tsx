@@ -124,19 +124,6 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <MaterialCommunityIcons name="email" size={24} color="#8B4513" style={styles.icon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Email *"
-              value={formData.email}
-              onChangeText={(text) => setFormData({ ...formData, email: text })}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              editable={!loading}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
             <MaterialCommunityIcons name="phone" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
