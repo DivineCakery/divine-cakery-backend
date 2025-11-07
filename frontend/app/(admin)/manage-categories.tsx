@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Modal,
   TextInput,
+  Switch,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { Ionicons } from '@expo/vector-icons';
