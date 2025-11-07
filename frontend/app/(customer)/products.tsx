@@ -410,7 +410,7 @@ export default function ProductsScreen() {
                   selectedCategory === item && styles.categoryTextActive,
                 ]}
               >
-                {item}
+                {item} ({getCategoryCount(item)})
               </Text>
             </TouchableOpacity>
           )}
