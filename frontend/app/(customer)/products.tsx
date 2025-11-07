@@ -185,9 +185,16 @@ export default function ProductsScreen() {
     let filtered = products;
 
     if (selectedCategory !== 'All') {
-      filtered = filtered.filter(
-        (p) => p.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
+      filtered = filtered.filter((p) => {
+        // Support both single category (old) and multiple categories (new)
+        if (p.categories && Array.isArray(p.categories)) {
+          return p.categories.some((cat: string) => 
+            cat.toLowerCase() === selectedCategory.toLowerCase()
+          );
+        }
+        // Fallback to single category field
+        return p.category?.toLowerCase() === selectedCategory.toLowerCase();
+      });
     }
 
     if (searchQuery) {
