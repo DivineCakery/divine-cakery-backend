@@ -115,8 +115,7 @@ export default function ManageCategoriesScreen() {
   };
 
   const renderCategory = ({ item }: { item: any }) => {
-    const adminOnlyCategories = ['Packing', 'Slicing', 'Prep'];
-    const isAdminCategory = adminOnlyCategories.includes(item.name);
+    const isAdminCategory = item.is_admin_only;
     
     return (
       <View style={styles.categoryCard}>
