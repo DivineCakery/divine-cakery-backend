@@ -97,8 +97,10 @@ export default function ProductsScreen() {
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
-      setCategoriesData(data);
-      const categoryNames = data.map((cat: any) => cat.name);
+      // Filter out admin-only categories for customers
+      const customerCategories = data.filter((cat: any) => !cat.is_admin_only);
+      setCategoriesData(customerCategories);
+      const categoryNames = customerCategories.map((cat: any) => cat.name);
       setCategories(['All', ...categoryNames]);
     } catch (error) {
       console.error('Error fetching categories:', error);
