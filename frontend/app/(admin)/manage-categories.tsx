@@ -21,7 +21,7 @@ export default function ManageCategoriesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
-  const [formData, setFormData] = useState({ name: '', description: '', display_order: 0 });
+  const [formData, setFormData] = useState({ name: '', description: '', display_order: 0, is_admin_only: false });
 
   useEffect(() => {
     fetchCategories();
