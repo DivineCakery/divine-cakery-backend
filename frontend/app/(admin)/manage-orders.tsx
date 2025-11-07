@@ -673,6 +673,21 @@ const styles = StyleSheet.create({
   },
   orderDetails: { marginBottom: 10 },
   detailText: { fontSize: 14, color: '#666', marginBottom: 3 },
+  notesContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#FFF8DC',
+    borderRadius: 6,
+  },
+  notesText: { 
+    fontSize: 13, 
+    color: '#666', 
+    fontStyle: 'italic',
+    flex: 1,
+    marginLeft: 6,
+  },
   customerSection: {
     backgroundColor: '#F5F5F5',
     padding: 12,
