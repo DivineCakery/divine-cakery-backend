@@ -432,6 +432,33 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: 'top',
   },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFF8DC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#8B4513',
+  },
+  switchLabelContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  switchLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  switchSubLabel: {
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 16,
+  },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
