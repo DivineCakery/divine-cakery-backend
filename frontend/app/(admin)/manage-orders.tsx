@@ -348,7 +348,7 @@ export default function ManageOrdersScreen() {
             <Text style={styles.editDateText}>Edit</Text>
           </TouchableOpacity>
         </View>
-        {item.notes && (
+        {item.notes && typeof item.notes === 'string' && item.notes.trim() !== '' && (
           <View style={styles.notesContainer}>
             <Ionicons name="document-text" size={16} color="#666" />
             <Text style={styles.notesText}>Note: {item.notes}</Text>
