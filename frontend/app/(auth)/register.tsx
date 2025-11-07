@@ -283,6 +283,9 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 16,
   },
+  eyeIcon: {
+    padding: 5,
+  },
   button: {
     backgroundColor: '#8B4513',
     borderRadius: 10,
