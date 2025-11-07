@@ -403,7 +403,7 @@ export default function CheckoutScreen() {
         <View style={styles.card}>
           <TextInput
             style={styles.notesInput}
-            placeholder="Special instructions..."
+            placeholder="Special instructions. eg. Need delivery before 11am"
             value={notes}
             onChangeText={setNotes}
             multiline
