@@ -45,9 +45,9 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRegister = async () => {
-    // Check all fields are filled
+    // Check all required fields are filled (email removed)
     if (!formData.username || !formData.password || !formData.confirmPassword || 
-        !formData.email || !formData.phone || !formData.business_name || !formData.address) {
+        !formData.phone || !formData.business_name || !formData.address) {
       showAlert('Error', 'All fields are mandatory. Please fill in all fields.');
       return;
     }
@@ -59,13 +59,6 @@ export default function RegisterScreen() {
 
     if (formData.password.length < 6) {
       showAlert('Error', 'Password must be at least 6 characters');
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      showAlert('Error', 'Please enter a valid email address');
       return;
     }
 
