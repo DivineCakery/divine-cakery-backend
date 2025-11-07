@@ -506,7 +506,12 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   contactButton: {
-    padding: 6,
+    backgroundColor: '#FFF8DC',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fff',
   },
   section: {
     padding: 12,
