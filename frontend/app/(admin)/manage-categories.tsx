@@ -47,13 +47,18 @@ export default function ManageCategoriesScreen() {
 
   const handleAddNew = () => {
     setEditingCategory(null);
-    setFormData({ name: '', description: '', display_order: categories.length });
+    setFormData({ name: '', description: '', display_order: categories.length, is_admin_only: false });
     setShowModal(true);
   };
 
   const handleEdit = (category: any) => {
     setEditingCategory(category);
-    setFormData({ name: category.name, description: category.description || '', display_order: category.display_order });
+    setFormData({ 
+      name: category.name, 
+      description: category.description || '', 
+      display_order: category.display_order,
+      is_admin_only: category.is_admin_only || false
+    });
     setShowModal(true);
   };
 
