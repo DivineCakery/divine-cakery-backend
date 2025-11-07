@@ -85,7 +85,7 @@ export default function RegisterScreen() {
       // Show success popup
       showAlert(
         'Registration Pending Approval',
-        `✅ Thank you for registering with Divine Cakery!\n\n📋 Registration Details:\n• Username: ${formData.username}\n• Business: ${formData.business_name || 'N/A'}\n\n⏳ Your account is pending admin approval. You will be notified via WhatsApp within 1 day once approved.\n\n📧 An email notification has been sent to the admin.\n\nThank you for your patience!`,
+        `✅ Thank you for registering with Divine Cakery!\n\n📋 Registration Details:\n• Username: ${formData.username}\n• Business: ${formData.business_name || 'N/A'}\n\n⏳ Your account is pending admin approval. You will be notified via WhatsApp within 1 day once approved.\n\nThank you for your patience!`,
         () => {
           // Navigate to login
           router.replace('/login' as any);
