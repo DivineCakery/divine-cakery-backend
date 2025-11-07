@@ -152,6 +152,15 @@ export default function OrdersScreen() {
               </Text>
             </View>
 
+            {item.delivery_date && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Delivery Date:</Text>
+                <Text style={[styles.infoValue, { fontWeight: '600', color: '#8B4513' }]}>
+                  {new Date(item.delivery_date).toLocaleDateString('en-IN')}
+                </Text>
+              </View>
+            )}
+
             {item.delivery_address && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Delivery Address:</Text>
