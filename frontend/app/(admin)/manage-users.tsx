@@ -258,6 +258,17 @@ export default function ManageUsersScreen() {
       )}
 
       <View style={styles.actionButtons} pointerEvents="box-none">
+        {!isAdmin && !isOrderAgent && item.user_type !== 'order_agent' && (
+          <TouchableOpacity
+            style={styles.agentButton}
+            onPress={() => openOrderAgentModal(item.id, item.username)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="people" size={18} color="#fff" />
+            <Text style={styles.agentButtonText}>Create Order Agent</Text>
+          </TouchableOpacity>
+        )}
+
         {!isAdmin && (
           <TouchableOpacity
             style={styles.walletButton}
