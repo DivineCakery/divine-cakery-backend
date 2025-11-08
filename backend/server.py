@@ -1527,8 +1527,21 @@ async def get_daily_items_report(
 
 
 @api_router.get("/admin/reports/preparation-list")
-async def get_preparation_list_report(current_user: User = Depends(get_current_admin)):
+async def get_preparation_list_report(
+    date: str = None,
+    current_user: User = Depends(get_current_admin)
+):
     """Get preparation list report: Previous Day Closing Stock - All Orders"""
+    from datetime import datetime as dt
+    
+    # Parse date or use today
+    if date:
+        try:
+            report_date = dt.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    else:
+        report_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Get all products
     products_cursor = db.products.find({})
@@ -1584,6 +1597,8 @@ async def get_preparation_list_report(current_user: User = Depends(get_current_a
     preparation_list.sort(key=lambda x: x["units_to_prepare"], reverse=True)
     
     return {
+        "date": report_date.strftime("%Y-%m-%d"),
+        "day_name": report_date.strftime("%A"),
         "total_items": len(preparation_list),
         "items": preparation_list
     }
