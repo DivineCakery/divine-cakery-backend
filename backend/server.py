@@ -821,7 +821,20 @@ async def get_orders(
     delivery_date: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    query = {"user_id": current_user.id} if current_user.role != UserRole.ADMIN else {}
+    # Build query based on user role and type
+    if current_user.role == UserRole.ADMIN:
+        query = {}
+    elif current_user.user_type == "owner":
+        # Owner sees their own orders AND orders placed by their linked order agent
+        user_ids = [current_user.id]
+        # Find if this owner has a linked order agent
+        linked_agent = await db.users.find_one({"linked_owner_id": current_user.id})
+        if linked_agent:
+            user_ids.append(linked_agent["id"])
+        query = {"user_id": {"$in": user_ids}}
+    else:
+        # Order agent or regular customer sees only their own orders
+        query = {"user_id": current_user.id}
     
     # Add delivery date filter if provided
     # Note: Since we don't store delivery_date separately, we filter by created_at
