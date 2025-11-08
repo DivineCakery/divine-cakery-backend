@@ -412,14 +412,24 @@ export default function CheckoutScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <TouchableOpacity
-          style={[
-            styles.paymentOption,
-            paymentMethod === 'wallet' && styles.paymentOptionActive,
-          ]}
-          onPress={() => setPaymentMethod('wallet')}
-        >
+      {user?.user_type === 'order_agent' && (
+        <View style={styles.agentNotice}>
+          <Ionicons name="information-circle" size={20} color="#2196F3" />
+          <Text style={styles.agentNoticeText}>
+            Order Agent Mode: Order will be placed without payment. Payment will be handled by the linked owner account.
+          </Text>
+        </View>
+      )}
+
+      {user?.user_type !== 'order_agent' && (
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              paymentMethod === 'wallet' && styles.paymentOptionActive,
+            ]}
+            onPress={() => setPaymentMethod('wallet')}
+          >
           <View style={styles.paymentOptionContent}>
             <Ionicons
               name={paymentMethod === 'wallet' ? 'radio-button-on' : 'radio-button-off'}
