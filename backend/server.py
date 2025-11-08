@@ -1528,19 +1528,17 @@ async def get_daily_items_report(
 
 @api_router.get("/admin/reports/preparation-list")
 async def get_preparation_list_report(current_user: User = Depends(get_current_admin)):
-    """Get preparation list report: Closing Stock - Confirmed Orders only"""
+    """Get preparation list report: Previous Day Closing Stock - All Orders"""
     
     # Get all products
     products_cursor = db.products.find({})
     products = await products_cursor.to_list(10000)
     
-    # Get only CONFIRMED orders
-    orders_cursor = db.orders.find({
-        "order_status": OrderStatus.CONFIRMED
-    })
+    # Get ALL orders (both pending and confirmed)
+    orders_cursor = db.orders.find({})
     orders = await orders_cursor.to_list(10000)
     
-    # Calculate total ordered quantity for each product from confirmed orders
+    # Calculate total ordered quantity for each product from ALL orders
     ordered_quantities = {}
     for order in orders:
         for item in order.get("items", []):
@@ -1552,30 +1550,37 @@ async def get_preparation_list_report(current_user: User = Depends(get_current_a
             else:
                 ordered_quantities[product_id] = quantity
     
-    # Calculate preparation list (only negative/deficit items)
+    # Calculate preparation list for ALL products
     preparation_list = []
     for product in products:
         product_id = product.get("id")
         product_name = product.get("name")
-        closing_stock = product.get("closing_stock", 0)
+        
+        # Use previous day's closing stock (stored in previous_closing_stock field)
+        # If not available, fallback to current closing_stock
+        previous_closing_stock = product.get("previous_closing_stock", product.get("closing_stock", 0))
         ordered_qty = ordered_quantities.get(product_id, 0)
         
-        # Calculate: Closing Stock - Confirmed Orders
-        balance = closing_stock - ordered_qty
+        # Calculate: Previous Day Closing Stock - All Orders
+        balance = previous_closing_stock - ordered_qty
         
-        # Only show items with negative balance (need to prepare more)
+        # Determine units to prepare
         if balance < 0:
-            units_to_prepare = abs(balance)  # Show as positive number
-            preparation_list.append({
-                "product_id": product_id,
-                "product_name": product_name,
-                "closing_stock": closing_stock,
-                "ordered_quantity": ordered_qty,
-                "units_to_prepare": units_to_prepare,
-                "unit": product.get("unit", "piece")
-            })
+            units_to_prepare = abs(balance)  # Deficit - need to prepare
+        else:
+            units_to_prepare = 0  # Surplus or exact - no preparation needed
+        
+        preparation_list.append({
+            "product_id": product_id,
+            "product_name": product_name,
+            "previous_closing_stock": previous_closing_stock,
+            "ordered_quantity": ordered_qty,
+            "balance": balance,
+            "units_to_prepare": units_to_prepare,
+            "unit": product.get("unit", "piece")
+        })
     
-    # Sort by units_to_prepare (descending)
+    # Sort by units_to_prepare (descending) so deficit items appear first
     preparation_list.sort(key=lambda x: x["units_to_prepare"], reverse=True)
     
     return {
