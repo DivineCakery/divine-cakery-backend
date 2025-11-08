@@ -742,13 +742,18 @@ async def create_order(
 ):
     # Check if payment method is wallet
     if order_data.payment_method == "wallet":
-        wallet = await db.wallets.find_one({"user_id": current_user.id})
+        # Order agents use their linked owner's wallet
+        wallet_user_id = current_user.id
+        if current_user.user_type == "order_agent" and current_user.linked_owner_id:
+            wallet_user_id = current_user.linked_owner_id
+        
+        wallet = await db.wallets.find_one({"user_id": wallet_user_id})
         if not wallet or wallet["balance"] < order_data.total_amount:
             raise HTTPException(status_code=400, detail="Insufficient wallet balance")
         
-        # Deduct from wallet
+        # Deduct from wallet (owner's wallet for order agents)
         await db.wallets.update_one(
-            {"user_id": current_user.id},
+            {"user_id": wallet_user_id},
             {
                 "$inc": {"balance": -order_data.total_amount},
                 "$set": {"updated_at": datetime.utcnow()}
@@ -756,7 +761,7 @@ async def create_order(
         )
         
         await db.users.update_one(
-            {"id": current_user.id},
+            {"id": wallet_user_id},
             {"$inc": {"wallet_balance": -order_data.total_amount}}
         )
         
