@@ -15,7 +15,7 @@ import uuid
 # Configuration
 BACKEND_URL = "https://bakeryportal-2.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+ADMIN_PASSWORD = "Admin@123"
 
 class DivineCakeryTester:
     def __init__(self):
