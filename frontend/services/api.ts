@@ -284,8 +284,9 @@ class ApiService {
     return response.data;
   }
 
-  async getPreparationListReport() {
-    const response = await this.api.get('/admin/reports/preparation-list');
+  async getPreparationListReport(date?: string) {
+    const params = date ? { date } : {};
+    const response = await this.api.get('/admin/reports/preparation-list', { params });
     return response.data;
   }
 
