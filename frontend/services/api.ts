@@ -234,6 +234,22 @@ class ApiService {
     return response.data;
   }
 
+  // Order Agent Management
+  async createOrderAgent(ownerId: string, agentData: any) {
+    const response = await this.api.post(`/admin/create-order-agent?owner_id=${ownerId}`, agentData);
+    return response.data;
+  }
+
+  async getLinkedAgent(ownerId: string) {
+    const response = await this.api.get(`/admin/get-linked-agent/${ownerId}`);
+    return response.data;
+  }
+
+  async unlinkOrderAgent(agentId: string) {
+    const response = await this.api.delete(`/admin/unlink-order-agent/${agentId}`);
+    return response.data;
+  }
+
   async getAdminStats() {
     const response = await this.api.get('/admin/stats');
     return response.data;
