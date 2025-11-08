@@ -1622,6 +1622,38 @@ async def debug_users_raw():
         return {"error": str(e), "type": str(type(e))}
 
 
+@api_router.post("/migrate-user-types")
+async def migrate_user_types():
+    """
+    Migration endpoint to set user_type for existing users.
+    All existing users without user_type become 'owner'
+    """
+    all_users = await db.users.find().to_list(1000)
+    
+    fixed_count = 0
+    for user in all_users:
+        updates = {}
+        
+        if "user_type" not in user:
+            updates["user_type"] = "owner"
+        
+        if "linked_owner_id" not in user:
+            updates["linked_owner_id"] = None
+        
+        if updates:
+            result = await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": updates}
+            )
+            if result.modified_count > 0:
+                fixed_count += 1
+    
+    return {
+        "message": f"Migrated {fixed_count} users to have user_type",
+        "fixed": fixed_count
+    }
+
+
 @api_router.post("/fix-user-fields")
 async def fix_user_fields():
     """
