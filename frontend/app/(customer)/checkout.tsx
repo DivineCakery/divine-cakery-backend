@@ -497,6 +497,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFF8DC',
   },
+  agentNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#E3F2FD',
+    padding: 16,
+    margin: 20,
+    borderRadius: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+  },
+  agentNoticeText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 14,
+    color: '#1565C0',
+    lineHeight: 20,
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
