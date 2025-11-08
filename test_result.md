@@ -292,6 +292,30 @@ frontend:
           agent: "main"
           comment: "✅ VERIFIED: App loads correctly at https://bakeryportal-2.preview.emergentagent.com. Registration page displays properly. All alert/confirmation buttons throughout the app are now web-compatible and will work in mobile web browsers as well as native apps."
 
+  - task: "Reports page - Preparation sheet date display"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/services/api.ts, /app/frontend/app/(admin)/reports.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added date display to preparation sheet report. Changes: 1) Backend: Modified /api/admin/reports/preparation-list endpoint to accept optional date parameter and return date and day_name fields (same format as daily items report) 2) Frontend API: Updated getPreparationListReport() to accept date parameter 3) Frontend UI: Added date selector with navigation controls (same as daily items report), displays day name and formatted date, both tabs now use same selectedDate state. Date format matches daily items report: day_name (e.g., 'Monday') and formatted date using toLocaleDateString."
+
+  - task: "Reports page - Closing stock counter display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/reports.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Verified closing stock counter display. The 'Prev. Day Stock' field shows the previous_closing_stock value for each product in the preparation list. This field is already being displayed correctly in the preparationStat section of each product card."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
