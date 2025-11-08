@@ -56,7 +56,22 @@ export default function ProfileScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Text style={styles.headerName}>{user?.username || 'User'}</Text>
+        {user?.user_type === 'order_agent' && (
+          <View style={styles.agentBadge}>
+            <Ionicons name="people" size={14} color="#fff" />
+            <Text style={styles.agentBadgeText}>ORDER AGENT</Text>
+          </View>
+        )}
       </View>
+
+      {user?.user_type === 'order_agent' && (
+        <View style={styles.restrictedNotice}>
+          <Ionicons name="information-circle" size={24} color="#2196F3" />
+          <Text style={styles.restrictedNoticeText}>
+            Order Agent accounts cannot edit profile information. Contact the linked owner or admin for changes.
+          </Text>
+        </View>
+      )}
 
       <View style={styles.content}>
         <View style={styles.infoSection}>
