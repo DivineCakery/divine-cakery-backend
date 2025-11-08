@@ -14,6 +14,8 @@ interface User {
   created_at: string;
   is_active: boolean;
   can_topup_wallet?: boolean;
+  user_type?: 'owner' | 'order_agent';
+  linked_owner_id?: string;
 }
 
 interface AuthState {
