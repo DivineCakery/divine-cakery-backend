@@ -580,6 +580,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     marginLeft: 8,
   },
+  agentButton: {
+    flex: 1,
+    backgroundColor: '#2196F3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  agentButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
   walletButton: {
     flex: 1,
     backgroundColor: '#4CAF50',
