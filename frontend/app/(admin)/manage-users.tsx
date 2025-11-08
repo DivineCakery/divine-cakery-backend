@@ -229,6 +229,7 @@ export default function ManageUsersScreen() {
           <View style={styles.nameRow}>
             <Text style={styles.userName}>{item.username}</Text>
             {isAdmin && <Text style={styles.adminBadge}>ADMIN</Text>}
+            {isOrderAgent && <Text style={styles.orderAgentBadge}>ORDER AGENT</Text>}
           </View>
           {item.business_name && (
             <Text style={styles.businessName}>{item.business_name}</Text>
