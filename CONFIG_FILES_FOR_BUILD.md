@@ -69,7 +69,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://sweet-deploy.preview.emergentagent.com"
+        "EXPO_PUBLIC_BACKEND_URL": "https://bakeryportal-2.preview.emergentagent.com"
       }
     }
   },
@@ -84,7 +84,7 @@
 ## .env - Create this file with your backend URL
 
 ```
-EXPO_PUBLIC_BACKEND_URL=https://sweet-deploy.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://bakeryportal-2.preview.emergentagent.com
 ```
 
 ---

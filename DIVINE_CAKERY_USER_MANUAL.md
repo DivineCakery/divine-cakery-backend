@@ -73,7 +73,7 @@ Divine Cakery is a wholesale bakery management and ordering platform designed to
 4. App loads automatically
 
 **Option 3: Web Browser**
-1. Visit: https://sweet-deploy.preview.emergentagent.com
+1. Visit: https://bakeryportal-2.preview.emergentagent.com
 2. Use on any device with a web browser
 
 ### 2.2 Customer Registration

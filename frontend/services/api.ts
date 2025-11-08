@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Backend URL - Temporarily using preview for testing dual-login
-const API_BASE_URL = 'https://sweet-deploy.preview.emergentagent.com';
+const API_BASE_URL = 'https://bakeryportal-2.preview.emergentagent.com';
 
 class ApiService {
   constructor() {

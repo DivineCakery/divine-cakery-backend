@@ -16,7 +16,7 @@ echo -e "${GREEN}✅ Configuration verified:${NC}"
 echo "   - App Name: Divine Cakery"
 echo "   - Package: com.divinecakery.app"
 echo "   - Version: 1.0.0"
-echo "   - Backend: https://sweet-deploy.preview.emergentagent.com"
+echo "   - Backend: https://bakeryportal-2.preview.emergentagent.com"
 echo ""
 
 echo -e "${YELLOW}📋 Prerequisites:${NC}"
