@@ -963,6 +963,112 @@ async def create_user_by_admin(
     return User(**user_dict)
 
 
+@api_router.post("/admin/create-order-agent")
+async def create_order_agent(
+    owner_id: str,
+    agent_data: UserCreate,
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    Create an Order Agent linked to an Owner.
+    Order Agent has restricted payment access.
+    """
+    # Check if owner exists and is actually an owner
+    owner = await db.users.find_one({"id": owner_id})
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
+    
+    if owner.get("user_type") != "owner":
+        raise HTTPException(status_code=400, detail="Target user must be an owner")
+    
+    # Check if owner already has an order agent
+    existing_agent = await db.users.find_one({"linked_owner_id": owner_id})
+    if existing_agent:
+        raise HTTPException(status_code=400, detail="This owner already has an order agent")
+    
+    # Check if username exists
+    existing_user = await db.users.find_one({"username": agent_data.username})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Create order agent
+    agent_id = str(uuid.uuid4())
+    hashed_password = get_password_hash(agent_data.password)
+    
+    agent_dict = {
+        "id": agent_id,
+        "username": agent_data.username,
+        "email": agent_data.email,
+        "phone": agent_data.phone,
+        "role": UserRole.CUSTOMER,
+        "business_name": owner.get("business_name", ""),
+        "address": owner.get("address", ""),
+        "wallet_balance": 0.0,
+        "can_topup_wallet": False,  # Order agents cannot top up
+        "hashed_password": hashed_password,
+        "created_at": datetime.utcnow(),
+        "is_active": True,
+        "is_approved": True,
+        "favorite_products": [],
+        "user_type": "order_agent",
+        "linked_owner_id": owner_id,
+        "onsite_pickup_only": owner.get("onsite_pickup_only", False),
+        "delivery_charge_waived": owner.get("delivery_charge_waived", False)
+    }
+    
+    await db.users.insert_one(agent_dict)
+    
+    # Order agent shares wallet with owner (no separate wallet)
+    
+    return {
+        "message": "Order agent created successfully",
+        "agent_id": agent_id,
+        "agent_username": agent_data.username,
+        "linked_to_owner": owner.get("username")
+    }
+
+
+@api_router.get("/admin/get-linked-agent/{owner_id}")
+async def get_linked_agent(
+    owner_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get the order agent linked to an owner"""
+    agent = await db.users.find_one({"linked_owner_id": owner_id})
+    
+    if not agent:
+        return {"has_agent": False, "agent": None}
+    
+    return {
+        "has_agent": True,
+        "agent": {
+            "id": agent["id"],
+            "username": agent["username"],
+            "email": agent.get("email"),
+            "phone": agent.get("phone"),
+            "is_active": agent.get("is_active", True),
+            "created_at": agent.get("created_at")
+        }
+    }
+
+
+@api_router.delete("/admin/unlink-order-agent/{agent_id}")
+async def unlink_order_agent(
+    agent_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Delete/unlink an order agent"""
+    agent = await db.users.find_one({"id": agent_id, "user_type": "order_agent"})
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Order agent not found")
+    
+    # Delete the agent
+    await db.users.delete_one({"id": agent_id})
+    
+    return {"message": "Order agent deleted successfully"}
+
+
 @api_router.get("/admin/pending-users", response_model=List[User])
 async def get_pending_users(current_user: User = Depends(get_current_admin)):
     """Get all users pending approval"""
