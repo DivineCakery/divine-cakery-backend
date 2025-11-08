@@ -253,6 +253,46 @@ export default function ReportsScreen() {
         ) : (
           /* Preparation List View */
           <View style={styles.preparationSection}>
+            {/* Date Selector - Same as Daily Items */}
+            <View style={styles.dateSelector}>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => changeDate(-1)}
+              >
+                <Ionicons name="chevron-back" size={24} color="#8B4513" />
+              </TouchableOpacity>
+              
+              <View style={styles.dateDisplay}>
+                <Text style={styles.dateText}>{preparationList?.day_name}</Text>
+                <Text style={styles.dateSubtext}>
+                  {new Date(selectedDate).toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => changeDate(1)}
+                disabled={selectedDate >= new Date()}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={selectedDate >= new Date() ? '#ccc' : '#8B4513'}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {selectedDate.toDateString() !== new Date().toDateString() && (
+              <TouchableOpacity style={styles.todayButton} onPress={goToToday}>
+                <Ionicons name="today" size={16} color="#8B4513" />
+                <Text style={styles.todayButtonText}>Go to Today</Text>
+              </TouchableOpacity>
+            )}
+
             <View style={styles.preparationHeader}>
               <Ionicons name="restaurant" size={28} color="#8B4513" />
               <Text style={styles.preparationTitle}>Items to Prepare</Text>
