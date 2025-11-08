@@ -218,7 +218,9 @@ export default function WalletScreen() {
             <Ionicons name="lock-closed" size={40} color="#666" />
             <Text style={styles.restrictedTitle}>Wallet Top-up Restricted</Text>
             <Text style={styles.restrictedText}>
-              Your account does not have access to wallet top-up facility. Please contact Divine Cakery admin for assistance.
+              {user?.user_type === 'order_agent' 
+                ? 'Order Agents cannot add money to wallet. The linked owner account manages wallet balance.'
+                : 'Your account does not have access to wallet top-up facility. Please contact Divine Cakery admin for assistance.'}
             </Text>
           </View>
         )}
