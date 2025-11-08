@@ -526,6 +526,7 @@ const styles = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   userName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   adminBadge: { backgroundColor: '#FF9800', color: '#fff', fontSize: 10, fontWeight: 'bold', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  orderAgentBadge: { backgroundColor: '#2196F3', color: '#fff', fontSize: 10, fontWeight: 'bold', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginLeft: 8 },
   accessLevel: { fontSize: 12, color: '#666', marginTop: 4, fontStyle: 'italic' },
   businessName: { fontSize: 14, color: '#8B4513', marginTop: 2 },
   infoText: { fontSize: 14, color: '#666', marginBottom: 5 },
