@@ -140,6 +140,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     user_dict = await db.users.find_one({"username": token_data.username})
     if user_dict is None:
         raise credentials_exception
+    
+    # If user is an order agent, fetch owner's wallet balance
+    if user_dict.get("user_type") == "order_agent" and user_dict.get("linked_owner_id"):
+        owner_dict = await db.users.find_one({"id": user_dict["linked_owner_id"]})
+        if owner_dict:
+            # Use owner's wallet balance
+            user_dict["wallet_balance"] = owner_dict.get("wallet_balance", 0.0)
+    
     user = User(**user_dict)
     return user
 
