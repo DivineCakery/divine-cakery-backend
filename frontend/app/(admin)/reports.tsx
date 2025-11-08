@@ -286,12 +286,18 @@ export default function ReportsScreen() {
                       <Text style={styles.preparationProductName}>{item.product_name}</Text>
                       <View style={styles.preparationStats}>
                         <View style={styles.preparationStat}>
-                          <Text style={styles.preparationStatLabel}>Closing Stock:</Text>
-                          <Text style={styles.preparationStatValue}>{item.closing_stock} {item.unit}</Text>
+                          <Text style={styles.preparationStatLabel}>Prev. Day Stock:</Text>
+                          <Text style={styles.preparationStatValue}>{item.previous_closing_stock} {item.unit}</Text>
                         </View>
                         <View style={styles.preparationStat}>
                           <Text style={styles.preparationStatLabel}>Orders:</Text>
                           <Text style={styles.preparationStatValue}>{item.ordered_quantity} {item.unit}</Text>
+                        </View>
+                        <View style={styles.preparationStat}>
+                          <Text style={styles.preparationStatLabel}>Balance:</Text>
+                          <Text style={[styles.preparationStatValue, { color: item.balance < 0 ? '#f44336' : '#4CAF50' }]}>
+                            {item.balance} {item.unit}
+                          </Text>
                         </View>
                       </View>
                     </View>
