@@ -543,6 +543,150 @@ class DivineCakeryTester:
             self.log_result("Admin Delivery Date Override", False, f"Exception: {str(e)}")
             return False
     
+    def test_preparation_list_date_display(self):
+        """Test preparation list date display feature - NEW FEATURE TEST"""
+        try:
+            print("\n📋 TESTING PREPARATION LIST DATE DISPLAY FEATURE")
+            print("-" * 50)
+            
+            # Test 1: Without date parameter (should default to today)
+            print("📅 Test 1: Preparation list without date parameter...")
+            
+            response = self.session.get(f"{BACKEND_URL}/admin/reports/preparation-list")
+            
+            if response.status_code != 200:
+                self.log_result("Preparation List - No Date", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            data = response.json()
+            
+            # Verify required fields exist
+            required_fields = ["date", "day_name", "total_items", "items"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if missing_fields:
+                self.log_result("Preparation List - No Date", False, f"Missing fields: {missing_fields}")
+                return False
+            
+            # Verify date format (should be today's date)
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+            if data["date"] != today:
+                self.log_result("Preparation List - No Date", False, f"Expected today's date {today}, got {data['date']}")
+                return False
+            
+            # Verify day_name is a string
+            if not isinstance(data["day_name"], str):
+                self.log_result("Preparation List - No Date", False, f"day_name should be string, got {type(data['day_name'])}")
+                return False
+            
+            self.log_result("Preparation List - No Date", True, f"Date: {data['date']}, Day: {data['day_name']}, Items: {data['total_items']}")
+            
+            # Test 2: With specific date parameter
+            print("\n📅 Test 2: Preparation list with specific date...")
+            
+            test_date = "2025-06-02"  # Monday
+            expected_day = "Monday"
+            
+            response = self.session.get(f"{BACKEND_URL}/admin/reports/preparation-list?date={test_date}")
+            
+            if response.status_code != 200:
+                self.log_result("Preparation List - With Date", False, f"HTTP {response.status_code}: {response.text}")
+                return False
+            
+            data = response.json()
+            
+            # Verify date matches requested date
+            if data.get("date") != test_date:
+                self.log_result("Preparation List - With Date", False, f"Expected {test_date}, got {data.get('date')}")
+                return False
+            
+            # Verify day_name matches expected day
+            if data.get("day_name") != expected_day:
+                self.log_result("Preparation List - With Date", False, f"Expected {expected_day}, got {data.get('day_name')}")
+                return False
+            
+            self.log_result("Preparation List - With Date", True, f"Date: {data['date']}, Day: {data['day_name']}")
+            
+            # Test 3: Verify items array structure
+            print("\n📋 Test 3: Verifying items array structure...")
+            
+            if isinstance(data["items"], list) and len(data["items"]) > 0:
+                item = data["items"][0]
+                required_item_fields = ["product_id", "product_name", "previous_closing_stock", 
+                                      "ordered_quantity", "balance", "units_to_prepare", "unit"]
+                missing_item_fields = [field for field in required_item_fields if field not in item]
+                
+                if missing_item_fields:
+                    self.log_result("Preparation List - Items Structure", False, f"Missing item fields: {missing_item_fields}")
+                    return False
+                
+                self.log_result("Preparation List - Items Structure", True, f"All required item fields present")
+            else:
+                self.log_result("Preparation List - Items Structure", True, "No items in list (empty is valid)")
+            
+            # Test 4: Invalid date format
+            print("\n❌ Test 4: Testing invalid date format...")
+            
+            invalid_date = "invalid-date-format"
+            response = self.session.get(f"{BACKEND_URL}/admin/reports/preparation-list?date={invalid_date}")
+            
+            if response.status_code == 400:
+                self.log_result("Preparation List - Invalid Date", True, "Invalid date format correctly rejected")
+            else:
+                self.log_result("Preparation List - Invalid Date", False, f"Expected 400, got {response.status_code}")
+                return False
+            
+            # Test 5: Authentication requirement
+            print("\n🔒 Test 5: Testing authentication requirement...")
+            
+            # Test without token
+            response = requests.get(f"{BACKEND_URL}/admin/reports/preparation-list")
+            
+            if response.status_code == 401:
+                self.log_result("Preparation List - Auth Required", True, "Endpoint correctly requires authentication")
+            else:
+                self.log_result("Preparation List - Auth Required", False, f"Expected 401, got {response.status_code}")
+                return False
+            
+            # Test 6: Format consistency with daily items report
+            print("\n🔄 Test 6: Testing format consistency with daily items report...")
+            
+            # Get daily items for comparison
+            daily_response = self.session.get(f"{BACKEND_URL}/admin/reports/daily-items")
+            prep_response = self.session.get(f"{BACKEND_URL}/admin/reports/preparation-list")
+            
+            if daily_response.status_code == 200 and prep_response.status_code == 200:
+                daily_data = daily_response.json()
+                prep_data = prep_response.json()
+                
+                # Check if both have date and day_name fields with same format
+                daily_has_fields = {"date", "day_name"}.issubset(daily_data.keys())
+                prep_has_fields = {"date", "day_name"}.issubset(prep_data.keys())
+                
+                if daily_has_fields and prep_has_fields:
+                    # Check date format consistency (YYYY-MM-DD)
+                    daily_date_format = len(daily_data["date"]) == 10 and daily_data["date"].count("-") == 2
+                    prep_date_format = len(prep_data["date"]) == 10 and prep_data["date"].count("-") == 2
+                    
+                    if daily_date_format and prep_date_format:
+                        self.log_result("Preparation List - Format Consistency", True, "Format matches daily items report")
+                    else:
+                        self.log_result("Preparation List - Format Consistency", False, "Date format inconsistency")
+                        return False
+                else:
+                    self.log_result("Preparation List - Format Consistency", False, "Missing date fields in reports")
+                    return False
+            else:
+                self.log_result("Preparation List - Format Consistency", False, "Failed to fetch reports for comparison")
+                return False
+            
+            print("\n✅ PREPARATION LIST DATE DISPLAY FEATURE: ALL TESTS PASSED")
+            return True
+            
+        except Exception as e:
+            self.log_result("Preparation List Date Display", False, f"Exception: {str(e)}")
+            return False
+    
     def test_admin_stats_endpoint(self):
         """Test admin stats endpoint for comparison"""
         try:
