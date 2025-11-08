@@ -166,8 +166,33 @@ export default function ManageUsersScreen() {
     );
   };
 
+  const handleCreateOrderAgent = async () => {
+    if (!agentFormData.username || !agentFormData.password || !agentFormData.phone) {
+      showAlert('Error', 'Please fill all fields');
+      return;
+    }
+
+    try {
+      await apiService.createOrderAgent(selectedUserId, agentFormData);
+      showAlert('Success', `Order Agent '${agentFormData.username}' created and linked to '${selectedUsername}'`);
+      setShowOrderAgentModal(false);
+      setAgentFormData({ username: '', password: '', phone: '' });
+      fetchUsers();
+    } catch (error: any) {
+      showAlert('Error', error.response?.data?.detail || 'Failed to create order agent');
+    }
+  };
+
+  const openOrderAgentModal = (userId: string, username: string) => {
+    setSelectedUserId(userId);
+    setSelectedUsername(username);
+    setAgentFormData({ username: '', password: '', phone: '' });
+    setShowOrderAgentModal(true);
+  };
+
   const renderUser = ({ item }: any) => {
     const isAdmin = item.role === 'admin';
+    const isOrderAgent = item.user_type === 'order_agent';
     const accessLevelLabel = item.admin_access_level === 'full' ? 'Full Access' 
       : item.admin_access_level === 'limited' ? 'Limited Access' 
       : item.admin_access_level === 'reports' ? 'Reports Only' 
