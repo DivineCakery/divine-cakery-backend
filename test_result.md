@@ -324,10 +324,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Dynamic category management - Backend API"
-    - "Dynamic category management - Admin UI"
-    - "Dynamic categories in product form"
-    - "Dynamic categories in customer product listing"
+    - "Reports page - Preparation sheet date display"
+    - "Reports page - Closing stock counter display"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
