@@ -254,7 +254,7 @@ export default function ReportsScreen() {
           /* Preparation List View */
           <View style={styles.preparationSection}>
             {/* Date Selector - Same as Daily Items */}
-            <View style={styles.dateSelector}>
+            <View style={styles.dateSelector} key="prep-date-selector">
               <TouchableOpacity
                 style={styles.dateButton}
                 onPress={() => changeDate(-1)}
