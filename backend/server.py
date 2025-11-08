@@ -1759,6 +1759,40 @@ async def debug_users_raw():
         return {"error": str(e), "type": str(type(e))}
 
 
+@api_router.post("/migrate-product-categories")
+async def migrate_product_categories():
+    """
+    Migration endpoint to ensure all products have categories array.
+    Converts single category field to categories array.
+    """
+    all_products = await db.products.find().to_list(1000)
+    
+    fixed_count = 0
+    for product in all_products:
+        updates = {}
+        
+        # If categories field is missing or empty
+        if not product.get("categories") or len(product.get("categories", [])) == 0:
+            # Use the category field to populate categories array
+            if product.get("category"):
+                updates["categories"] = [product["category"]]
+            else:
+                updates["categories"] = []
+        
+        if updates:
+            result = await db.products.update_one(
+                {"_id": product["_id"]},
+                {"$set": updates}
+            )
+            if result.modified_count > 0:
+                fixed_count += 1
+    
+    return {
+        "message": f"Migrated {fixed_count} products to have categories array",
+        "fixed": fixed_count
+    }
+
+
 @api_router.post("/migrate-user-types")
 async def migrate_user_types():
     """
