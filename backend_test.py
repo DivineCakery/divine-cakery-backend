@@ -603,6 +603,10 @@ class DivineCakeryTester:
         print("\n🎯 MAIN FEATURE TEST...")
         self.test_admin_delivery_date_override()
         
+        # NEW FEATURE TEST: Preparation List Date Display
+        print("\n📋 PREPARATION LIST DATE DISPLAY TESTS...")
+        self.test_preparation_list_date_display()
+        
         # Summary
         print("\n" + "=" * 50)
         print("📋 TEST SUMMARY")
