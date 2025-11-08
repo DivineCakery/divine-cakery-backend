@@ -94,3 +94,7 @@ android-sdk/ -e
 *.env
 *.env.*
 divine-cakery-frontend.tar.gz
+-e 
+# Environment files
+*.env
+*.env.*
