@@ -1,8 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Production backend URL - DO NOT CHANGE
-const API_BASE_URL = 'https://divine-cakery.emergent.host';
+// Backend URL - Temporarily using preview for testing dual-login
+const API_BASE_URL = 'https://sweet-deploy.preview.emergentagent.com';
 
 class ApiService {
   constructor() {
