@@ -48,15 +48,19 @@ export default function ReportsScreen() {
   const fetchReports = async () => {
     try {
       const dateStr = selectedDate.toISOString().split('T')[0];
+      console.log(`Fetching reports for date: ${dateStr}, activeTab: ${activeTab}`);
       if (activeTab === 'daily') {
         const data = await apiService.getDailyItemsReport(dateStr);
+        console.log('Daily report data:', JSON.stringify(data, null, 2));
         setReport(data);
       } else {
         // Add timestamp to force fresh data
         const timestamp = new Date().getTime();
-        console.log(`Fetching preparation list at ${timestamp}`);
+        console.log(`Fetching preparation list at ${timestamp} for date: ${dateStr}`);
         const data = await apiService.getPreparationListReport(dateStr);
         console.log('Preparation List Data:', JSON.stringify(data, null, 2));
+        console.log('Preparation List date field:', data.date);
+        console.log('Preparation List day_name field:', data.day_name);
         setPreparationList(data);
       }
     } catch (error) {
