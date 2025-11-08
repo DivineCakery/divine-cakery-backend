@@ -85,6 +85,8 @@ class UserCreate(BaseModel):
     onsite_pickup_only: bool = False
     delivery_charge_waived: bool = False
     admin_access_level: Optional[AdminAccessLevel] = AdminAccessLevel.FULL
+    user_type: str = "owner"
+    linked_owner_id: Optional[str] = None
 
 
 class UserLogin(BaseModel):
