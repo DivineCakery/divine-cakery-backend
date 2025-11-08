@@ -551,11 +551,16 @@ async def get_favorites(current_user: User = Depends(get_current_user)):
 # Wallet Routes
 @api_router.get("/wallet", response_model=WalletResponse)
 async def get_wallet(current_user: User = Depends(get_current_user)):
-    wallet = await db.wallets.find_one({"user_id": current_user.id})
+    # Order agents use their linked owner's wallet
+    wallet_user_id = current_user.id
+    if current_user.user_type == "order_agent" and current_user.linked_owner_id:
+        wallet_user_id = current_user.linked_owner_id
+    
+    wallet = await db.wallets.find_one({"user_id": wallet_user_id})
     if not wallet:
         # Create wallet if it doesn't exist
         wallet = {
-            "user_id": current_user.id,
+            "user_id": wallet_user_id,
             "balance": 0.0,
             "updated_at": datetime.utcnow()
         }
