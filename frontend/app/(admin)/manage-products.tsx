@@ -60,9 +60,11 @@ export default function ManageProductsScreen() {
     : products.filter((product: any) => {
         // Check both the old category field and new categories array
         if (product.categories && Array.isArray(product.categories)) {
-          return product.categories.includes(selectedCategory);
+          return product.categories.some((cat: string) => 
+            cat.toLowerCase() === selectedCategory.toLowerCase()
+          );
         }
-        return product.category === selectedCategory;
+        return product.category?.toLowerCase() === selectedCategory.toLowerCase();
       });
 
   const onRefresh = () => {
