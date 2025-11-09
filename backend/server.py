@@ -26,7 +26,9 @@ from models import (
     Wallet, Transaction, TransactionCreate, TransactionType, TransactionStatus,
     PaymentOrderCreate, PaymentVerification, MessageResponse, WalletResponse,
     Discount, DiscountCreate, DiscountUpdate, DiscountType,
-    Category, CategoryCreate, CategoryUpdate
+    Category, CategoryCreate, CategoryUpdate,
+    StandingOrder, StandingOrderCreate, StandingOrderUpdate, StandingOrderStatus,
+    RecurrenceType, DurationType, StandingOrderItem
 )
 
 
