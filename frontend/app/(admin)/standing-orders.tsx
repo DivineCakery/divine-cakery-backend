@@ -1279,14 +1279,17 @@ const styles = StyleSheet.create({
   },
   datePickerModal: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   datePickerContainer: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
     paddingBottom: 20,
+    maxWidth: 500,
+    width: '90%',
+    maxHeight: '80%',
   },
   datePickerHeader: {
     flexDirection: 'row',
