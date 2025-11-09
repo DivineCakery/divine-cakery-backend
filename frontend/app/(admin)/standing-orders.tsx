@@ -1334,6 +1334,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#8B4513',
   },
+  webDatePickerContent: {
+    padding: 20,
+  },
   notesInput: {
     borderWidth: 1,
     borderColor: '#ddd',
