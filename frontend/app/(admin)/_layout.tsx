@@ -13,7 +13,7 @@ export default function AdminLayout() {
   const canShowTab = (tabName: string) => {
     if (accessLevel === 'full') return true;
     if (accessLevel === 'limited') {
-      return ['dashboard', 'manage-orders', 'manage-stock', 'reports'].includes(tabName);
+      return ['dashboard', 'manage-orders', 'manage-stock', 'standing-orders', 'reports'].includes(tabName);
     }
     if (accessLevel === 'reports') {
       return ['dashboard', 'reports'].includes(tabName);
