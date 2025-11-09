@@ -589,7 +589,11 @@ export default function StandingOrdersScreen() {
             <Text style={styles.sectionLabel}>Start From Date *</Text>
             <TouchableOpacity
               style={styles.datePickerButton}
-              onPress={() => setShowStartDatePicker(true)}
+              onPress={() => {
+                console.log('Start date button pressed!');
+                setShowStartDatePicker(true);
+                console.log('showStartDatePicker set to true');
+              }}
             >
               <Ionicons name="calendar" size={20} color="#8B4513" />
               <Text style={styles.datePickerText}>{startDate.toDateString()}</Text>
