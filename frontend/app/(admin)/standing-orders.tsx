@@ -65,6 +65,19 @@ export default function StandingOrdersScreen() {
     fetchData();
   }, [filterStatus]);
 
+  // Debug logs for date picker state
+  useEffect(() => {
+    console.log('showStartDatePicker changed:', showStartDatePicker);
+    console.log('Platform.OS:', Platform.OS);
+    console.log('showCreateModal:', showCreateModal);
+  }, [showStartDatePicker]);
+
+  useEffect(() => {
+    console.log('showEndDatePicker changed:', showEndDatePicker);
+    console.log('Platform.OS:', Platform.OS);
+    console.log('showCreateModal:', showCreateModal);
+  }, [showEndDatePicker]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
