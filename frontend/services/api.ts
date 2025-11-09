@@ -331,6 +331,43 @@ class ApiService {
     const response = await this.api.delete(`/admin/discounts/${discountId}`);
     return response.data;
   }
+
+  // Standing Orders Management
+  async createStandingOrder(standingOrderData: any) {
+    const response = await this.api.post('/admin/standing-orders', standingOrderData);
+    return response.data;
+  }
+
+  async getStandingOrders(status?: string) {
+    const params = status ? { status } : {};
+    const response = await this.api.get('/admin/standing-orders', { params });
+    return response.data;
+  }
+
+  async getStandingOrder(standingOrderId: string) {
+    const response = await this.api.get(`/admin/standing-orders/${standingOrderId}`);
+    return response.data;
+  }
+
+  async getGeneratedOrders(standingOrderId: string) {
+    const response = await this.api.get(`/admin/standing-orders/${standingOrderId}/generated-orders`);
+    return response.data;
+  }
+
+  async updateStandingOrder(standingOrderId: string, standingOrderData: any) {
+    const response = await this.api.put(`/admin/standing-orders/${standingOrderId}`, standingOrderData);
+    return response.data;
+  }
+
+  async deleteStandingOrder(standingOrderId: string) {
+    const response = await this.api.delete(`/admin/standing-orders/${standingOrderId}`);
+    return response.data;
+  }
+
+  async regenerateStandingOrderOrders(standingOrderId: string, daysAhead: number = 10) {
+    const response = await this.api.post(`/admin/standing-orders/${standingOrderId}/regenerate?days_ahead=${daysAhead}`);
+    return response.data;
+  }
 }
 
 export default new ApiService();
