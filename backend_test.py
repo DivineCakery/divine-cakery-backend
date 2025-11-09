@@ -14,7 +14,7 @@ BASE_URL = "https://standing-orders-app.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
-class DivineCakeryTester:
+class ProductBulkUploadTester:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
