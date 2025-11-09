@@ -107,7 +107,9 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         if standing_order_data.duration_type == DurationType.END_DATE:
             if not standing_order_data.end_date:
                 raise HTTPException(status_code=400, detail="End date required for end_date duration type")
-            if standing_order_data.end_date < datetime.utcnow():
+            # Remove timezone info for comparison
+            end_date_naive = standing_order_data.end_date.replace(tzinfo=None) if standing_order_data.end_date.tzinfo else standing_order_data.end_date
+            if end_date_naive < datetime.utcnow():
                 raise HTTPException(status_code=400, detail="End date must be in the future")
         
         # Create standing order
