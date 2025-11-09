@@ -630,7 +630,11 @@ export default function StandingOrdersScreen() {
             {durationType === 'end_date' && (
               <TouchableOpacity
                 style={styles.datePickerButton}
-                onPress={() => setShowEndDatePicker(true)}
+                onPress={() => {
+                  console.log('End date button pressed!');
+                  setShowEndDatePicker(true);
+                  console.log('showEndDatePicker set to true');
+                }}
               >
                 <Ionicons name="calendar" size={20} color="#8B4513" />
                 <Text style={styles.datePickerText}>{endDate.toDateString()}</Text>
