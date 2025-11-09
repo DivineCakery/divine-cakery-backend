@@ -299,3 +299,63 @@ class MessageResponse(BaseModel):
 class WalletResponse(BaseModel):
     balance: float
     updated_at: datetime
+
+
+
+# Standing Order Models
+class RecurrenceType(str, Enum):
+    WEEKLY_DAYS = "weekly_days"  # Based on specific days of week
+    INTERVAL = "interval"  # Based on day intervals (every N days)
+
+
+class DurationType(str, Enum):
+    END_DATE = "end_date"  # Has a specific end date
+    INDEFINITE = "indefinite"  # Runs indefinitely
+
+
+class StandingOrderStatus(str, Enum):
+    ACTIVE = "active"
+    CANCELLED = "cancelled"
+
+
+class StandingOrderItem(BaseModel):
+    product_id: str
+    product_name: str
+    quantity: int
+    price: float
+
+
+class StandingOrderCreate(BaseModel):
+    customer_id: str
+    items: List[StandingOrderItem]
+    recurrence_type: RecurrenceType
+    recurrence_config: dict  # For weekly_days: {"days": [0,2,4]} (Mon=0, Sun=6), For interval: {"days": 2}
+    duration_type: DurationType
+    end_date: Optional[datetime] = None
+    notes: Optional[str] = None
+
+
+class StandingOrderUpdate(BaseModel):
+    items: Optional[List[StandingOrderItem]] = None
+    recurrence_type: Optional[RecurrenceType] = None
+    recurrence_config: Optional[dict] = None
+    duration_type: Optional[DurationType] = None
+    end_date: Optional[datetime] = None
+    notes: Optional[str] = None
+    status: Optional[StandingOrderStatus] = None
+
+
+class StandingOrder(BaseModel):
+    id: str
+    customer_id: str
+    customer_name: str
+    items: List[StandingOrderItem]
+    recurrence_type: RecurrenceType
+    recurrence_config: dict
+    duration_type: DurationType
+    end_date: Optional[datetime] = None
+    notes: Optional[str] = None
+    status: StandingOrderStatus = StandingOrderStatus.ACTIVE
+    created_at: datetime
+    created_by: str  # Admin username who created it
+    next_delivery_date: Optional[datetime] = None  # Next scheduled delivery
