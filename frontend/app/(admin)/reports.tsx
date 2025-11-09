@@ -186,7 +186,6 @@ export default function ReportsScreen() {
               <TouchableOpacity
                 style={styles.dateButton}
                 onPress={() => changeDate(1)}
-                disabled={selectedDate >= new Date()}
               >
                 <Ionicons
                   name="chevron-forward"
@@ -280,7 +279,6 @@ export default function ReportsScreen() {
               <TouchableOpacity
                 style={styles.dateButton}
                 onPress={() => changeDate(1)}
-                disabled={selectedDate >= new Date()}
               >
                 <Ionicons
                   name="chevron-forward"
