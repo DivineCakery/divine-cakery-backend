@@ -21,18 +21,18 @@ class ProductBulkUploadTester:
         self.test_results = []
         
     def log_result(self, test_name, success, message, details=None):
-        """Log test results"""
+        """Log test result"""
         result = {
             "test": test_name,
             "success": success,
             "message": message,
-            "details": details,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "details": details or {}
         }
         self.test_results.append(result)
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"{status}: {test_name} - {message}")
-        if details:
+        if details and not success:
             print(f"   Details: {details}")
     
     def test_health_check(self):
