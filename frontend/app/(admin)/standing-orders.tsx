@@ -663,6 +663,100 @@ export default function StandingOrdersScreen() {
         </View>
       </Modal>
 
+      {/* Date Picker Modals - Outside create modal to avoid nesting issues */}
+      
+      {/* End Date Picker Modal for iOS */}
+      {Platform.OS === 'ios' && showCreateModal && showEndDatePicker && (
+        <Modal transparent animationType="slide">
+          <View style={styles.datePickerModal}>
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                  <Text style={styles.datePickerCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>Select End Date</Text>
+                <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                  <Text style={styles.datePickerDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={endDate}
+                mode="date"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setEndDate(selectedDate);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* End Date Picker for Android */}
+      {Platform.OS === 'android' && showCreateModal && showEndDatePicker && (
+        <DateTimePicker
+          value={endDate}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(event, selectedDate) => {
+            setShowEndDatePicker(false);
+            if (event.type === 'set' && selectedDate) {
+              setEndDate(selectedDate);
+            }
+          }}
+        />
+      )}
+
+      {/* Start Date Picker Modal for iOS */}
+      {Platform.OS === 'ios' && showCreateModal && showStartDatePicker && (
+        <Modal transparent animationType="slide">
+          <View style={styles.datePickerModal}>
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                  <Text style={styles.datePickerCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>Select Start Date</Text>
+                <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                  <Text style={styles.datePickerDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={startDate}
+                mode="date"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setStartDate(selectedDate);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Start Date Picker for Android */}
+      {Platform.OS === 'android' && showCreateModal && showStartDatePicker && (
+        <DateTimePicker
+          value={startDate}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(event, selectedDate) => {
+            setShowStartDatePicker(false);
+            if (event.type === 'set' && selectedDate) {
+              setStartDate(selectedDate);
+            }
+          }}
+        />
+      )}
+
       {/* Details Modal */}
       <Modal visible={showDetailsModal} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
