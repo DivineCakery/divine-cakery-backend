@@ -1,8 +1,11 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// Backend URL - Temporarily using preview for testing dual-login
-const API_BASE_URL = 'https://bakeryportal-2.preview.emergentagent.com';
+// Backend URL - Use environment variable or fallback to localhost
+const API_BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
+                     process.env.EXPO_PUBLIC_BACKEND_URL || 
+                     'http://localhost:8001';
 
 class ApiService {
   constructor() {
