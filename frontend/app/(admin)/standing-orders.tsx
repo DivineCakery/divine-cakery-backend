@@ -449,28 +449,27 @@ export default function StandingOrdersScreen() {
           <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
             {/* Customer Selection */}
             <Text style={styles.sectionLabel}>Customer *</Text>
-            <View style={styles.pickerContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {customers.map((customer: any) => (
-                  <TouchableOpacity
-                    key={customer.id}
-                    style={[
-                      styles.customerChip,
-                      selectedCustomer === customer.id && styles.customerChipSelected,
-                    ]}
-                    onPress={() => setSelectedCustomer(customer.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.customerChipText,
-                        selectedCustomer === customer.id && styles.customerChipTextSelected,
-                      ]}
-                    >
-                      {customer.name || customer.username}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedCustomer}
+                onValueChange={(value) => setSelectedCustomer(value)}
+                style={styles.picker}
+              >
+                <Picker.Item label="Select a customer..." value={null} />
+                {customers
+                  .sort((a: any, b: any) => {
+                    const nameA = (a.name || a.username).toLowerCase();
+                    const nameB = (b.name || b.username).toLowerCase();
+                    return nameA.localeCompare(nameB);
+                  })
+                  .map((customer: any) => (
+                    <Picker.Item
+                      key={customer.id}
+                      label={customer.name || customer.username}
+                      value={customer.id}
+                    />
+                  ))}
+              </Picker>
             </View>
 
             {/* Products */}
