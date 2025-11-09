@@ -55,15 +55,20 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
             if existing_order:
                 continue  # Skip if order already exists
             
-            # Calculate order total
-            total_amount = sum(item["price"] * item["quantity"] for item in standing_order["items"])
+            # Calculate order total and add subtotals to items
+            items_with_subtotal = []
+            for item in standing_order["items"]:
+                item_with_subtotal = {**item, "subtotal": item["price"] * item["quantity"]}
+                items_with_subtotal.append(item_with_subtotal)
+            
+            total_amount = sum(item["subtotal"] for item in items_with_subtotal)
             
             # Create order
             order_dict = {
                 "id": str(uuid.uuid4()),
                 "order_number": str(uuid.uuid4())[:8].upper(),
                 "user_id": standing_order["customer_id"],
-                "items": standing_order["items"],
+                "items": items_with_subtotal,
                 "total_amount": total_amount,
                 "discount_amount": 0,
                 "final_amount": total_amount,
