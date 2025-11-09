@@ -342,8 +342,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Reports page - Preparation sheet date display"
-    - "Reports page - Closing stock counter display"
+    - "Product bulk upload feature"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
