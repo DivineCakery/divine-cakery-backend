@@ -1480,14 +1480,13 @@ async def get_daily_items_report(
     else:
         delivery_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Orders created 1 day before delivery date (since delivery is next day)
-    order_date = delivery_date - timedelta(days=1)
-    order_start = order_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    order_end = order_start + timedelta(days=1)
+    # Set date range for the delivery date
+    date_start = delivery_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    date_end = date_start + timedelta(days=1)
     
-    # Get all orders created on order_date (will be delivered on delivery_date), excluding cancelled
+    # Get all orders with this delivery date, excluding cancelled
     orders = await db.orders.find({
-        "created_at": {"$gte": order_start, "$lt": order_end},
+        "delivery_date": {"$gte": date_start, "$lt": date_end},
         "order_status": {"$ne": OrderStatus.CANCELLED}
     }).to_list(10000)
     
