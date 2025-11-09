@@ -732,6 +732,36 @@ export default function StandingOrdersScreen() {
         />
       )}
 
+      {/* End Date Picker for Web */}
+      {Platform.OS === 'web' && showCreateModal && showEndDatePicker && (
+        <Modal transparent animationType="fade">
+          <View style={styles.datePickerModal}>
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                  <Text style={styles.datePickerCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>Select End Date</Text>
+                <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                  <Text style={styles.datePickerDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={endDate}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setEndDate(selectedDate);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
       {/* Start Date Picker Modal for iOS */}
       {Platform.OS === 'ios' && showCreateModal && showStartDatePicker && (
         <Modal transparent animationType="slide">
