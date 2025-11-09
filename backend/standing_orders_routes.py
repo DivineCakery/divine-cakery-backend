@@ -42,7 +42,12 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
         if should_create:
             # Check if end date has passed
             if standing_order["duration_type"] == "end_date" and standing_order.get("end_date"):
-                if delivery_date > standing_order["end_date"].replace(hour=0, minute=0, second=0, microsecond=0):
+                # Handle timezone-aware datetimes
+                end_date = standing_order["end_date"]
+                if hasattr(end_date, 'tzinfo') and end_date.tzinfo:
+                    end_date = end_date.replace(tzinfo=None)
+                end_date_only = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
+                if delivery_date > end_date_only:
                     continue
             
             # Check if order already exists for this customer on this date (avoid duplicates)
