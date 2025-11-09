@@ -644,8 +644,35 @@ export default function StandingOrdersScreen() {
                 display="default"
                 minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
-                  setShowEndDatePicker(false);
-                  if (selectedDate) setEndDate(selectedDate);
+                  setShowEndDatePicker(Platform.OS === 'ios');
+                  if (event.type === 'set' && selectedDate) {
+                    setEndDate(selectedDate);
+                    if (Platform.OS === 'android') {
+                      setShowEndDatePicker(false);
+                    }
+                  } else if (event.type === 'dismissed') {
+                    setShowEndDatePicker(false);
+                  }
+                }}
+              />
+            )}
+
+            {showStartDatePicker && (
+              <DateTimePicker
+                value={startDate}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  setShowStartDatePicker(Platform.OS === 'ios');
+                  if (event.type === 'set' && selectedDate) {
+                    setStartDate(selectedDate);
+                    if (Platform.OS === 'android') {
+                      setShowStartDatePicker(false);
+                    }
+                  } else if (event.type === 'dismissed') {
+                    setShowStartDatePicker(false);
+                  }
                 }}
               />
             )}
