@@ -778,6 +778,15 @@ async def create_order(
     if current_hour >= 4:
         delivery_date = now + timedelta(days=1)
     
+    # STANDING ORDER OVERRIDE: Delete auto-generated standing order for this customer on this delivery date
+    # Manual customer orders take precedence over auto-generated ones
+    delivery_date_only = delivery_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    await db.orders.delete_many({
+        "user_id": current_user.id,
+        "delivery_date": delivery_date_only,
+        "is_standing_order": True
+    })
+    
     # Create order with new format order number
     order_id = await generate_order_number()
     order_dict = {
