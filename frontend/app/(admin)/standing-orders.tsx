@@ -968,6 +968,27 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+  },
+  picker: {
+    height: 50,
+  },
+  productPickerWrapper: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    marginRight: 8,
+  },
+  productPicker: {
+    height: 50,
+  },
   pickerContainer: {
     marginBottom: 8,
   },
