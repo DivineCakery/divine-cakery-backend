@@ -190,7 +190,7 @@ export default function ReportsScreen() {
                 <Ionicons
                   name="chevron-forward"
                   size={24}
-                  color={selectedDate >= new Date() ? '#ccc' : '#8B4513'}
+                  color={'#8B4513'}
                 />
               </TouchableOpacity>
             </View>
@@ -283,7 +283,7 @@ export default function ReportsScreen() {
                 <Ionicons
                   name="chevron-forward"
                   size={24}
-                  color={selectedDate >= new Date() ? '#ccc' : '#8B4513'}
+                  color={'#8B4513'}
                 />
               </TouchableOpacity>
             </View>
