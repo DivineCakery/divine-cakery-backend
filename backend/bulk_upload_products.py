@@ -78,8 +78,8 @@ async def login_admin(client):
     """Login and get admin token"""
     print("Logging in as admin...")
     response = await client.post(
-        f"{BACKEND_URL}/login",
-        data={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD}
+        f"{BACKEND_URL}/auth/login",
+        json={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD}
     )
     
     if response.status_code == 200:
