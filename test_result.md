@@ -325,6 +325,18 @@ frontend:
           agent: "testing"
           comment: "✅ COMPREHENSIVE BACKEND TESTING COMPLETE: All 6 test scenarios passed successfully. 1) ✅ GET /api/admin/reports/preparation-list without date parameter defaults to today (2025-11-08, Saturday) 2) ✅ GET /api/admin/reports/preparation-list?date=2025-06-02 returns correct date (2025-06-02, Monday) 3) ✅ Response includes all required fields: date, day_name, total_items, items array 4) ✅ Items array contains all required fields: product_id, product_name, previous_closing_stock, ordered_quantity, balance, units_to_prepare, unit 5) ✅ Invalid date format correctly returns 400 error 6) ✅ Endpoint requires admin authentication (401 without token) 7) ✅ Response format matches daily items report format exactly. Backend implementation is fully functional and production-ready."
 
+  - task: "Preparation list - Show only items with orders"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Modified preparation list endpoint to show only products with orders (ordered_quantity > 0). Added filter to skip products with no orders, making the report cleaner and more useful for preparation planning. Products with zero orders are now excluded from the list."
+
   - task: "Reports page - Closing stock counter display"
     implemented: true
     working: "NA"
