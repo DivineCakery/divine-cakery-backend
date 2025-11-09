@@ -1539,7 +1539,7 @@ async def get_preparation_list_report(
     date: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Get preparation list report: Previous Day Closing Stock - All Orders"""
+    """Get preparation list report: Shows only products with orders (ordered quantity > 0)"""
     from datetime import datetime as dt
     
     # Parse date or use today
