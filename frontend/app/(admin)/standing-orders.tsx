@@ -633,39 +633,93 @@ export default function StandingOrdersScreen() {
               </TouchableOpacity>
             )}
 
-            {showEndDatePicker && (
+            {/* End Date Picker Modal for iOS */}
+            {Platform.OS === 'ios' && showEndDatePicker && (
+              <Modal transparent animationType="slide">
+                <View style={styles.datePickerModal}>
+                  <View style={styles.datePickerContainer}>
+                    <View style={styles.datePickerHeader}>
+                      <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                        <Text style={styles.datePickerCancel}>Cancel</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.datePickerTitle}>Select End Date</Text>
+                      <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                        <Text style={styles.datePickerDone}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={endDate}
+                      mode="date"
+                      display="spinner"
+                      minimumDate={new Date()}
+                      onChange={(event, selectedDate) => {
+                        if (selectedDate) {
+                          setEndDate(selectedDate);
+                        }
+                      }}
+                    />
+                  </View>
+                </View>
+              </Modal>
+            )}
+
+            {/* End Date Picker for Android */}
+            {Platform.OS === 'android' && showEndDatePicker && (
               <DateTimePicker
                 value={endDate}
                 mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                display="default"
                 minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
-                  if (Platform.OS === 'android') {
-                    setShowEndDatePicker(false);
-                  }
+                  setShowEndDatePicker(false);
                   if (event.type === 'set' && selectedDate) {
                     setEndDate(selectedDate);
-                  } else if (event.type === 'dismissed') {
-                    setShowEndDatePicker(false);
                   }
                 }}
               />
             )}
 
-            {showStartDatePicker && (
+            {/* Start Date Picker Modal for iOS */}
+            {Platform.OS === 'ios' && showStartDatePicker && (
+              <Modal transparent animationType="slide">
+                <View style={styles.datePickerModal}>
+                  <View style={styles.datePickerContainer}>
+                    <View style={styles.datePickerHeader}>
+                      <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                        <Text style={styles.datePickerCancel}>Cancel</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.datePickerTitle}>Select Start Date</Text>
+                      <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                        <Text style={styles.datePickerDone}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={startDate}
+                      mode="date"
+                      display="spinner"
+                      minimumDate={new Date()}
+                      onChange={(event, selectedDate) => {
+                        if (selectedDate) {
+                          setStartDate(selectedDate);
+                        }
+                      }}
+                    />
+                  </View>
+                </View>
+              </Modal>
+            )}
+
+            {/* Start Date Picker for Android */}
+            {Platform.OS === 'android' && showStartDatePicker && (
               <DateTimePicker
                 value={startDate}
                 mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                display="default"
                 minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
-                  if (Platform.OS === 'android') {
-                    setShowStartDatePicker(false);
-                  }
+                  setShowStartDatePicker(false);
                   if (event.type === 'set' && selectedDate) {
                     setStartDate(selectedDate);
-                  } else if (event.type === 'dismissed') {
-                    setShowStartDatePicker(false);
                   }
                 }}
               />
