@@ -589,6 +589,16 @@ export default function StandingOrdersScreen() {
               </View>
             )}
 
+            {/* Start Date */}
+            <Text style={styles.sectionLabel}>Start From Date *</Text>
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={() => setShowStartDatePicker(true)}
+            >
+              <Ionicons name="calendar" size={20} color="#8B4513" />
+              <Text style={styles.datePickerText}>{startDate.toDateString()}</Text>
+            </TouchableOpacity>
+
             {/* Duration Type */}
             <Text style={styles.sectionLabel}>Duration *</Text>
             <View style={styles.radioGroup}>
