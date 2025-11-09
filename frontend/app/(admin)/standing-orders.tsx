@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import apiService from '../../services/api';
 import { showAlert } from '../../utils/alerts';
 import { useAuthStore } from '../../store';
