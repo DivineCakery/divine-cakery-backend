@@ -98,3 +98,4 @@ divine-cakery-frontend.tar.gz
 # Environment files
 *.env
 *.env.*
+backend/product_images.zip
