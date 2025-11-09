@@ -190,12 +190,17 @@ class ProductBulkUploadTester:
             image_base64 = product.get("image_base64")
             if image_base64 and image_base64.strip():
                 validation_results["products_with_images"] += 1
-                # Validate base64 format
+                # Validate base64 format (handle data URL format)
                 try:
-                    base64.b64decode(image_base64)
-                except:
+                    if image_base64.startswith("data:image"):
+                        # Extract base64 part after the comma
+                        base64_part = image_base64.split(",", 1)[1] if "," in image_base64 else image_base64
+                        base64.b64decode(base64_part)
+                    else:
+                        base64.b64decode(image_base64)
+                except Exception as e:
                     self.log_result("Image Base64 Validation", False, 
-                                  f"Invalid base64 image for product: {product.get('name')}")
+                                  f"Invalid base64 image for product: {product.get('name')}: {str(e)}")
             else:
                 validation_results["products_without_images"] += 1
             
