@@ -476,28 +476,23 @@ export default function StandingOrdersScreen() {
             <Text style={styles.sectionLabel}>Products *</Text>
             {selectedProducts.map((item, index) => (
               <View key={index} style={styles.productRow}>
-                <View style={styles.productSelect}>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {products.map((product: any) => (
-                      <TouchableOpacity
-                        key={product.id}
-                        style={[
-                          styles.productChip,
-                          item.product_id === product.id && styles.productChipSelected,
-                        ]}
-                        onPress={() => updateProduct(index, 'product', product.id)}
-                      >
-                        <Text
-                          style={[
-                            styles.productChipText,
-                            item.product_id === product.id && styles.productChipTextSelected,
-                          ]}
-                        >
-                          {product.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+                <View style={styles.productPickerWrapper}>
+                  <Picker
+                    selectedValue={item.product_id}
+                    onValueChange={(value) => updateProduct(index, 'product', value)}
+                    style={styles.productPicker}
+                  >
+                    <Picker.Item label="Select product..." value="" />
+                    {products
+                      .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+                      .map((product: any) => (
+                        <Picker.Item
+                          key={product.id}
+                          label={product.name}
+                          value={product.id}
+                        />
+                      ))}
+                  </Picker>
                 </View>
                 <TextInput
                   style={styles.quantityInput}
