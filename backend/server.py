@@ -2029,6 +2029,10 @@ async def setup_admin():
 # Include the router in the main app
 app.include_router(api_router)
 
+# Setup Standing Orders routes
+from standing_orders_routes import setup_standing_orders_routes
+setup_standing_orders_routes(api_router, db, get_current_admin)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
