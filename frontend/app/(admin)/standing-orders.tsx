@@ -637,15 +637,14 @@ export default function StandingOrdersScreen() {
               <DateTimePicker
                 value={endDate}
                 mode="date"
-                display="default"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
-                  setShowEndDatePicker(Platform.OS === 'ios');
+                  if (Platform.OS === 'android') {
+                    setShowEndDatePicker(false);
+                  }
                   if (event.type === 'set' && selectedDate) {
                     setEndDate(selectedDate);
-                    if (Platform.OS === 'android') {
-                      setShowEndDatePicker(false);
-                    }
                   } else if (event.type === 'dismissed') {
                     setShowEndDatePicker(false);
                   }
@@ -657,15 +656,14 @@ export default function StandingOrdersScreen() {
               <DateTimePicker
                 value={startDate}
                 mode="date"
-                display="default"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={new Date()}
                 onChange={(event, selectedDate) => {
-                  setShowStartDatePicker(Platform.OS === 'ios');
+                  if (Platform.OS === 'android') {
+                    setShowStartDatePicker(false);
+                  }
                   if (event.type === 'set' && selectedDate) {
                     setStartDate(selectedDate);
-                    if (Platform.OS === 'android') {
-                      setShowStartDatePicker(false);
-                    }
                   } else if (event.type === 'dismissed') {
                     setShowStartDatePicker(false);
                   }
