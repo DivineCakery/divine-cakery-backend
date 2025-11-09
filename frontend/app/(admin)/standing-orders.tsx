@@ -808,6 +808,36 @@ export default function StandingOrdersScreen() {
         />
       )}
 
+      {/* Start Date Picker for Web */}
+      {Platform.OS === 'web' && showCreateModal && showStartDatePicker && (
+        <Modal transparent animationType="fade">
+          <View style={styles.datePickerModal}>
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                  <Text style={styles.datePickerCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>Select Start Date</Text>
+                <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                  <Text style={styles.datePickerDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={startDate}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setStartDate(selectedDate);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
       {/* Details Modal */}
       <Modal visible={showDetailsModal} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
