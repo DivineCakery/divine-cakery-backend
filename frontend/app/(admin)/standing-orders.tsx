@@ -746,17 +746,27 @@ export default function StandingOrdersScreen() {
                   <Text style={styles.datePickerDone}>Done</Text>
                 </TouchableOpacity>
               </View>
-              <DateTimePicker
-                value={endDate}
-                mode="date"
-                display="default"
-                minimumDate={new Date()}
-                onChange={(event, selectedDate) => {
-                  if (selectedDate) {
-                    setEndDate(selectedDate);
-                  }
-                }}
-              />
+              <View style={styles.webDatePickerContent}>
+                <input
+                  type="date"
+                  value={endDate.toISOString().split('T')[0]}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => {
+                    const selectedDate = new Date(e.target.value);
+                    if (!isNaN(selectedDate.getTime())) {
+                      setEndDate(selectedDate);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    fontSize: '18px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    outline: 'none',
+                  }}
+                />
+              </View>
             </View>
           </View>
         </Modal>
