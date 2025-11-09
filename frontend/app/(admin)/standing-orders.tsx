@@ -208,6 +208,7 @@ export default function StandingOrdersScreen() {
     setRecurrenceType('weekly_days');
     setSelectedDays([]);
     setIntervalDays('1');
+    setStartDate(new Date());
     setDurationType('indefinite');
     setEndDate(new Date());
     setNotes('');
