@@ -141,8 +141,14 @@ export default function StandingOrdersScreen() {
       showAlert('Error', 'Please select a customer');
       return false;
     }
-    if (selectedProducts.length === 0 || selectedProducts.some((p) => !p.product_id)) {
+    if (selectedProducts.length === 0) {
       showAlert('Error', 'Please add at least one product');
+      return false;
+    }
+    // Check if all added products have been selected
+    const unselectedProducts = selectedProducts.filter((p) => !p.product_id);
+    if (unselectedProducts.length > 0) {
+      showAlert('Error', 'Please select a product for all added items');
       return false;
     }
     if (recurrenceType === 'weekly_days' && selectedDays.length === 0) {
