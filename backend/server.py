@@ -1571,7 +1571,7 @@ async def get_preparation_list_report(
             else:
                 ordered_quantities[product_id] = quantity
     
-    # Calculate preparation list for ALL products
+    # Calculate preparation list for products with orders only
     preparation_list = []
     for product in products:
         product_id = product.get("id")
@@ -1581,6 +1581,10 @@ async def get_preparation_list_report(
         # If not available, fallback to current closing_stock
         previous_closing_stock = product.get("previous_closing_stock", product.get("closing_stock", 0))
         ordered_qty = ordered_quantities.get(product_id, 0)
+        
+        # Skip products with no orders
+        if ordered_qty <= 0:
+            continue
         
         # Calculate: Previous Day Closing Stock - All Orders
         balance = previous_closing_stock - ordered_qty
