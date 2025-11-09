@@ -1194,6 +1194,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  datePickerModal: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  datePickerContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  datePickerCancel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  datePickerDone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8B4513',
+  },
   notesInput: {
     borderWidth: 1,
     borderColor: '#ddd',
