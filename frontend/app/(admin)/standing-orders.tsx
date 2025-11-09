@@ -36,6 +36,8 @@ export default function StandingOrdersScreen() {
   const [recurrenceType, setRecurrenceType] = useState('weekly_days'); // weekly_days or interval
   const [selectedDays, setSelectedDays] = useState([]); // [0,1,2,3,4,5,6] for Mon-Sun
   const [intervalDays, setIntervalDays] = useState('1');
+  const [startDate, setStartDate] = useState(new Date()); // Start date for recurrence
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [durationType, setDurationType] = useState('indefinite'); // end_date or indefinite
   const [endDate, setEndDate] = useState(new Date());
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
