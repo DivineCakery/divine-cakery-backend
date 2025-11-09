@@ -193,9 +193,8 @@ def test_preparation_list_filter():
                     
                     # Add wallet balance for customer
                     balance_response = make_authenticated_request(
-                        "POST", f"/admin/users/{customer_id}/add-wallet-balance", 
-                        token, 
-                        json={"amount": 1000.0}
+                        "POST", f"/admin/users/{customer_id}/add-wallet-balance?amount=1000.0", 
+                        token
                     )
                     
                     if balance_response.status_code == 200:
