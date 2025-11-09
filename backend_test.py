@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Divine Cakery Product Bulk Upload Feature
-Tests the uploaded products data integrity and API functionality
+Backend Testing Suite for Divine Cakery API
+Focus: Preparation List Filter Feature Testing
 """
 
 import requests
 import json
-from datetime import datetime
-import base64
+import os
+from datetime import datetime, timedelta
+import sys
 
-# Configuration
-BASE_URL = "https://standing-orders-app.preview.emergentagent.com/api"
+# Get backend URL from environment
+BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://standing-orders-app.preview.emergentagent.com')
+API_BASE = f"{BACKEND_URL}/api"
+
+# Admin credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
-class ProductBulkUploadTester:
+class TestResults:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
