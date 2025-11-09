@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 """
-Divine Cakery Backend API Testing Suite
-Tests the backend implementation focusing on:
-1. Date-wise revenue API endpoint
-2. Order update functionality
-3. Authentication and admin access
+Backend Test Suite for Divine Cakery Product Bulk Upload Feature
+Tests the uploaded products data integrity and API functionality
 """
 
 import requests
 import json
-from datetime import datetime, timedelta
-import uuid
+from datetime import datetime
+import base64
 
 # Configuration
-BACKEND_URL = "https://standing-orders-app.preview.emergentagent.com/api"
+BASE_URL = "https://standing-orders-app.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "Admin@123"
+ADMIN_PASSWORD = "admin123"
 
 class DivineCakeryTester:
     def __init__(self):
