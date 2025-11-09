@@ -95,6 +95,16 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="standing-orders"
+        options={{
+          title: 'Standing',
+          href: canShowTab('standing-orders') ? undefined : null,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="repeat" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="reports"
         options={{
           title: 'Reports',
