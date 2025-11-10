@@ -11,3 +11,13 @@ Bumping expo.android.versionCode from 30 to 31
 
 Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
 - Compressing project files
+Your project archive is 174 MB. You can reduce its size and the time it takes to upload by excluding files that are unnecessary for the build process in .easignore file. Learn more: https://expo.fyi/eas-build-archive
+- Uploading to EAS Build (0 / 174 MB)
+✔ Uploaded to EAS 
+- Computing project fingerprint
+✔ Computed project fingerprint
+
+See logs: https://expo.dev/accounts/divinecakery/projects/divine-cakery/builds/652e2ee7-8582-4f5e-8674-ce68ba1da91f
+
+Waiting for build to complete. You can press Ctrl+C to exit.
+- Waiting for build to complete.
