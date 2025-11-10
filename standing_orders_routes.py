@@ -255,9 +255,3 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         })
         
         # Delete standing order
-        result = await db.standing_orders.delete_one({"id": standing_order_id})
-        
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Standing order not found")
-        
-        return {"message": "Standing order deleted successfully"}
