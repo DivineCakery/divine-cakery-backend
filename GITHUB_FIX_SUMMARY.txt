@@ -1,0 +1,66 @@
+═══════════════════════════════════════════════════════════════
+🚨 URGENT FIX NEEDED: Update server.py on GitHub
+═══════════════════════════════════════════════════════════════
+
+PROBLEM: Your GitHub server.py has WRONG import (line ~1781)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP-BY-STEP FIX:
+
+1. Go to GitHub:
+   https://github.com/YOUR_USERNAME/YOUR_REPO/blob/main/backend/server.py
+
+2. Click "Edit" button (pencil icon)
+
+3. Press Ctrl+F (or Cmd+F) to search
+
+4. Search for: "from standing_orders_routes import router"
+
+5. You'll find a line like this (WRONG):
+   ┌────────────────────────────────────────────────────┐
+   │ from standing_orders_routes import router as       │
+   │ standing_orders_router                             │
+   └────────────────────────────────────────────────────┘
+
+6. DELETE that entire line
+
+7. In its place, paste these 3 lines (CORRECT):
+   ┌────────────────────────────────────────────────────┐
+   │ # Setup Standing Orders routes                     │
+   │ from standing_orders_routes import                 │
+   │ setup_standing_orders_routes                       │
+   │ setup_standing_orders_routes(api_router, db,       │
+   │ get_current_admin)                                 │
+   └────────────────────────────────────────────────────┘
+
+8. Search again for: "app.include_router(standing_orders"
+
+9. If you find a line like:
+   app.include_router(standing_orders_router, prefix="/api")
+   
+   DELETE that line too!
+
+10. Commit changes with message:
+    "Fix: Update standing_orders import"
+
+11. Go to Render → Manual Deploy → Deploy latest commit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXACT CODE TO PASTE (copy from here):
+
+# Setup Standing Orders routes BEFORE including the router
+from standing_orders_routes import setup_standing_orders_routes
+setup_standing_orders_routes(api_router, db, get_current_admin)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHY THIS FAILED:
+- You updated standing_orders_routes.py ✓
+- But server.py ALSO needs updating ✗
+- Both files must match!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After fixing, deployment should succeed!
