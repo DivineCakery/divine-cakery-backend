@@ -442,9 +442,9 @@ async def get_products(
     if category:
         # Check both old 'category' field and new 'categories' array
         query["$or"] = [
-            {"category": category},
-            {"categories": category}
-        ]
+    {"category": category},
+    {"categories": category}
+]
     if is_available is not None:
         query["is_available"] = is_available
     
