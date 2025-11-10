@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: divine-cakery-api
+    runtime: python
+    plan: starter
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: MONGO_URL
+        value: mongodb+srv://divinecakery:Tunak%2Fkk2%24@divinecakery.0vv8unb.mongodb.net/?appName=divinecakery
+      - key: DB_NAME
+        value: divine_cakery
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_RWMdSO0IeFPkBy
+      - key: RAZORPAY_KEY_SECRET
+        value: TVsEj3kHSX8Qango60GbXET5
+      - key: RAZORPAY_WEBHOOK_SECRET
+        value: ""
+      - key: SMTP_SERVER
+        value: smtp-mail.outlook.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        value: somann2@hotmail.com
+      - key: SMTP_PASSWORD
+        value: oorbxzvzsygwrzxm
+      - key: ADMIN_EMAIL
+        value: somann2@hotmail.com

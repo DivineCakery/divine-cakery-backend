@@ -99,3 +99,4 @@ divine-cakery-frontend.tar.gz
 *.env
 *.env.*
 backend/product_images.zip
+github_upload/divine-cakery-backend/product_images.zip
