@@ -449,12 +449,15 @@ async def get_products(
         query["is_available"] = is_available
     
     try:
-        products = await db.products.find(query).to_list(1000)
+        # Exclude image_base64 from list view to reduce response size
+        products = await db.products.find(query, {"image_base64": 0}).to_list(1000)
         
         # Process products with error handling
         processed_products = []
         for product in products:
             try:
+                # Set image_base64 to empty string for list view
+                product["image_base64"] = ""
                 processed_products.append(Product(**product))
             except Exception as e:
                 logger.error(f"Error processing product {product.get('id', 'unknown')}: {str(e)}")
