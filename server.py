@@ -432,7 +432,6 @@ async def create_product(
     await db.products.insert_one(product_dict)
     return Product(**product_dict)
 
-
 @api_router.get("/products", response_model=List[Product])
 async def get_products(
     category: Optional[str] = None,
@@ -448,8 +447,27 @@ async def get_products(
     if is_available is not None:
         query["is_available"] = is_available
     
-    products = await db.products.find(query).to_list(1000)
-    return [Product(**product) for product in products]
+    try:
+        products = await db.products.find(query).to_list(1000)
+        
+        # Process products and truncate large images
+        processed_products = []
+        for product in products:
+            # Truncate image_base64 if it's too large (> 500KB base64)
+            if product.get("image_base64") and len(product["image_base64"]) > 500000:
+                logger.warning(f"Product {product.get('id', 'unknown')} has large image ({len(product['image_base64'])} chars), truncating for API response")
+                product["image_base64"] = product["image_base64"][:500000] + "...truncated"
+            
+            try:
+                processed_products.append(Product(**product))
+            except Exception as e:
+                logger.error(f"Error processing product {product.get('id', 'unknown')}: {str(e)}")
+                continue
+        
+        return processed_products
+    except Exception as e:
+        logger.error(f"Error fetching products: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching products: {str(e)}")
 
 
 @api_router.get("/products/{product_id}", response_model=Product)
