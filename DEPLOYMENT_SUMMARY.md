@@ -37,7 +37,7 @@ Your app is fully configured and tested. All systems are go! 🚀
 ### **Current Environment:**
 ```
 Type: Preview/Development (Production-Ready)
-URL: https://standing-orders-app.preview.emergentagent.com
+URL: https://bakery-dashboard-5.preview.emergentagent.com
 Status: ✅ Running
 Uptime: 24/7
 SSL: ✅ Active
