@@ -111,7 +111,6 @@ export default function ManageProductsScreen() {
           <Image 
             source={{ uri: item.image_base64 }} 
             style={styles.productImage}
-            resizeMode="contain"
           />
         ) : (
           <View style={[styles.productImage, styles.noImage]}>
