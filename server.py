@@ -448,8 +448,23 @@ async def get_products(
         query["is_available"] = is_available
     
 try:
-        products = await db.products.find(query).to_list(1000)
-        
+       products = await db.products.find(query).to_list(1000)
+    
+    # Process products with error handling
+    processed_products = []
+    for product in products:
+        try:
+            processed_products.append(Product(**product))
+        except Exception as e:
+            logger.error(f"Error processing product {product.get('id', 'unknown')}: {str(e)}")
+            # Skip malformed products instead of crashing
+            continue
+    
+    logger.info(f"Successfully loaded {len(processed_products)} products")
+    return processed_products
+except Exception as e:
+    logger.error(f"Error fetching products: {str(e)}")
+    raise HTTPException(status_code=500, detail=f"Error fetching products: {str(e)}")
         # Process products with error handling
         processed_products = []
         for product in products:
