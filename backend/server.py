@@ -451,22 +451,17 @@ async def get_products(
     try:
         products = await db.products.find(query).to_list(1000)
         
-        # Process products and truncate large images
+        # Process products with error handling
         processed_products = []
         for product in products:
-            # Truncate image_base64 if it's too large (> 500KB base64 = ~375KB image)
-            if product.get("image_base64") and len(product["image_base64"]) > 500000:
-                logger.warning(f"Product {product.get('id', 'unknown')} has large image ({len(product['image_base64'])} chars), truncating for API response")
-                # Keep first 500KB for thumbnail
-                product["image_base64"] = product["image_base64"][:500000] + "...truncated"
-            
             try:
                 processed_products.append(Product(**product))
             except Exception as e:
                 logger.error(f"Error processing product {product.get('id', 'unknown')}: {str(e)}")
-                # Skip malformed products instead of crashing the entire endpoint
+                # Skip malformed products instead of crashing
                 continue
         
+        logger.info(f"Successfully loaded {len(processed_products)} products")
         return processed_products
     except Exception as e:
         logger.error(f"Error fetching products: {str(e)}")
