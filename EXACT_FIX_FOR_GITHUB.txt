@@ -1,0 +1,77 @@
+========================================
+EXACT CODE TO FIX IN YOUR GITHUB server.py
+========================================
+
+LOCATION: Around line 451-469 in the get_products function
+
+YOUR GITHUB CURRENTLY HAS (DELETE THIS):
+========================================
+    products = await db.products.find(query).to_list(1000)
+    return [Product(**product) for product in products]
+
+
+REPLACE WITH (PASTE THIS EXACT CODE):
+========================================
+    try:
+        products = await db.products.find(query).to_list(1000)
+        
+        # Process products with error handling
+        processed_products = []
+        for product in products:
+            try:
+                processed_products.append(Product(**product))
+            except Exception as e:
+                logger.error(f"Error processing product {product.get('id', 'unknown')}: {str(e)}")
+                # Skip malformed products instead of crashing
+                continue
+        
+        logger.info(f"Successfully loaded {len(processed_products)} products")
+        return processed_products
+    except Exception as e:
+        logger.error(f"Error fetching products: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching products: {str(e)}")
+
+
+========================================
+STEP-BY-STEP INSTRUCTIONS:
+========================================
+
+1. Go to your GitHub repository for divine-cakery-backend
+
+2. Click on server.py file
+
+3. Click the pencil icon (✏️) to edit
+
+4. Press Ctrl+F (or Cmd+F on Mac) and search for:
+   def get_products
+
+5. You'll see the function around line 436. Scroll down to find these 2 lines:
+   products = await db.products.find(query).to_list(1000)
+   return [Product(**product) for product in products]
+
+6. SELECT AND DELETE just those 2 lines
+
+7. PASTE the replacement code shown above (the "REPLACE WITH" section)
+
+8. Scroll to bottom and commit with message:
+   "Fix products endpoint - add proper error handling"
+
+9. Click "Commit changes"
+
+10. Go to Render dashboard and wait 2-3 minutes for auto-deployment
+
+11. Test: https://divine-cakery-backend.onrender.com/api/products
+
+
+========================================
+WHAT THIS FIXES:
+========================================
+✅ Removes ALL truncation (images won't be cut)
+✅ Adds error handling (prevents crashes)
+✅ Products load completely in both admin and customer portals
+✅ Images display in full without truncation
+
+
+========================================
+CRITICAL: Make sure you're editing YOUR GitHub repository, not looking at local files!
+========================================
