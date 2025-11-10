@@ -62,7 +62,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Image source={require('../../assets/images/icon.png')} style={styles.logo} resizeMode="contain" />
+          <Image source={require('../../assets/images/login-logo.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.subtitle}>Wholesale Bakery App</Text>
           <Text style={styles.description}>
             We are delighted to bring to you an exclusive range of breads, buns and Viennese pastries for the hotel, restaurant and catering industry. We make everything with a pride and passion that will shine through your dishes and impress your customers. Our bread products have 3-5 day shelf life in ambient surroundings and easily chilled or frozen. We provide delivery to your door step in Thiruvananthapuram city limits. Contact us at 9544183334 or Email us at contact@divinecakery.in
