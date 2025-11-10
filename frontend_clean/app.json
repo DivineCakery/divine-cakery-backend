@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "com.divinecakery.app",
-      "versionCode": 34,
+      "versionCode": 35,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
