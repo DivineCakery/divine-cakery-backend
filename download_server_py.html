@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>server.py - Download</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .buttons {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #code {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            white-space: pre;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .success {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        .instructions {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 server.py for GitHub</h1>
+        
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li><strong>Click "Copy All Code"</strong> button below</li>
+                <li>Go to your GitHub repository: <code>backend/server.py</code></li>
+                <li>Click the pencil icon to edit</li>
+                <li>Select all content (Ctrl+A) and delete</li>
+                <li>Paste the copied code (Ctrl+V)</li>
+                <li>Commit with message: "Update server.py with correct imports"</li>
+                <li>Deploy on Render</li>
+            </ol>
+        </div>
+
+        <div class="buttons">
+            <button onclick="copyCode()">📋 Copy All Code</button>
+            <button onclick="downloadCode()">⬇️ Download as server.py</button>
+        </div>
+
+        <div id="successMsg" class="success">✅ Code copied to clipboard!</div>
+
+        <h3>Preview (2153 lines):</h3>
+        <div id="code"></div>
+    </div>
+
+    <script>
+        // Embed the server.py content
+        const serverPyContent = `EOF
+cat /app/UPLOAD_THIS_SERVER_PY_TO_GITHUB.py >> /app/download_server_py.html
+cat >> /app/download_server_py.html << 'EOF'
+`;
+
+        // Display the code
+        document.getElementById('code').textContent = serverPyContent;
+
+        // Copy function
+        function copyCode() {
+            navigator.clipboard.writeText(serverPyContent).then(function() {
+                const msg = document.getElementById('successMsg');
+                msg.style.display = 'block';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+            }, function(err) {
+                alert('Failed to copy. Please select the code manually and copy with Ctrl+C');
+            });
+        }
+
+        // Download function
+        function downloadCode() {
+            const element = document.createElement('a');
+            const file = new Blob([serverPyContent], {type: 'text/plain'});
+            element.href = URL.createObjectURL(file);
+            element.download = 'server.py';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+</body>
+</html>
