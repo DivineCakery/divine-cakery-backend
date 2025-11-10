@@ -447,7 +447,7 @@ async def get_products(
     if is_available is not None:
         query["is_available"] = is_available
     
-  try:
+    try:
         products = await db.products.find(query).to_list(1000)
         
         # Process products with error handling
