@@ -112,22 +112,8 @@ export default function FavoritesScreen() {
 
   const renderFavoriteItem = ({ item }: any) => (
     <View style={styles.productCard}>
-      <TouchableOpacity
-        onPress={() => router.push(`/(customer)/product-detail?id=${item.id}`)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.imageContainer}>
-          {item.image_base64 ? (
-            <Image
-              source={{ uri: item.image_base64 }}
-              style={styles.productImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={[styles.productImage, styles.placeholderImage]}>
-              <Ionicons name="image-outline" size={40} color="#ccc" />
-            </View>
-          )}
+      <View style={styles.productInfo}>
+        <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.heartButton}
             onPress={() => handleRemoveFromFavorites(item.id)}
@@ -135,8 +121,6 @@ export default function FavoritesScreen() {
             <Ionicons name="heart" size={24} color="#FF0000" />
           </TouchableOpacity>
         </View>
-
-        <View style={styles.productInfo}>
           <View style={styles.productHeader}>
             <Text style={styles.productName}>{item.name}</Text>
             {item.food_type && (
