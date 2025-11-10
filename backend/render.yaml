@@ -2,13 +2,15 @@ services:
   - type: web
     name: divine-cakery-api
     runtime: python
-    plan: free
+    plan: starter
     region: singapore
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
+      - key: MONGO_URL
+        value: mongodb+srv://divinecakery:Tunak%2Fkk2%24@divinecakery.0vv8unb.mongodb.net/?appName=divinecakery
       - key: DB_NAME
         value: divine_cakery
       - key: SECRET_KEY
