@@ -263,18 +263,8 @@ export default function ProductsScreen() {
     
     return (
       <View style={styles.productCard}>
-        <View style={styles.imageContainer}>
-          {item.image_base64 ? (
-            <Image
-              source={{ uri: item.image_base64 }}
-              style={styles.productImage}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={[styles.productImage, styles.placeholderImage]}>
-              <MaterialCommunityIcons name="bread-slice" size={50} color="#8B4513" />
-            </View>
-          )}
+        <View style={styles.productInfo}>
+        <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.heartButton}
             onPress={() => toggleFavorite(item.id)}
@@ -286,7 +276,6 @@ export default function ProductsScreen() {
             />
           </TouchableOpacity>
         </View>
-        <View style={styles.productInfo}>
         <View style={styles.productHeader}>
           <Text style={styles.productName}>{item.name}</Text>
           {item.food_type && (
