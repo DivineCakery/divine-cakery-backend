@@ -1,0 +1,21 @@
+🚀 Divine Cakery - APK Build Process
+======================================
+
+[0;32m✅ Configuration verified:[0m
+   - App Name: Divine Cakery
+   - Package: com.divinecakery.app
+   - Version: 1.0.0
+   - Backend: https://bakery-dashboard-5.preview.emergentagent.com
+
+[1;33m📋 Prerequisites:[0m
+   1. Expo account (create at: https://expo.dev/signup)
+   2. Internet connection
+   3. 15-20 minutes of time
+
+[1;33m⚠️  IMPORTANT:[0m
+   This script must be run from YOUR LOCAL TERMINAL
+   It requires authentication which can only be done by you
+
+[0;31m❌ Please create an Expo account first:[0m
+   Go to: https://expo.dev/signup
+   It's FREE - no credit card required
