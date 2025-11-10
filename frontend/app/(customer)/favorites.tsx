@@ -153,7 +153,7 @@ export default function FavoritesScreen() {
             style={styles.moreDetailsButton}
             onPress={() => router.push(`/(customer)/product-detail?id=${item.id}`)}
           >
-            <Text style={styles.moreDetailsText}>More Details</Text>
+            <Text style={styles.moreDetailsText}>Details with photos</Text>
             <Ionicons name="chevron-forward" size={16} color="#8B4513" />
           </TouchableOpacity>
 
