@@ -268,7 +268,7 @@ export default function ProductsScreen() {
             <Image
               source={{ uri: item.image_base64 }}
               style={styles.productImage}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <View style={[styles.productImage, styles.placeholderImage]}>
