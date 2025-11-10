@@ -1,0 +1,136 @@
+============================================================
+DIVINE CAKERY - BULK PRODUCT UPLOAD
+============================================================
+
+Loading Excel file: bulk_upload_items.xlsx
+Found 113 products to upload
+
+Logging in as admin...
+✓ Login successful, token: eyJhbGciOiJIUzI1NiIs...
+
+Starting upload of 113 products...
+------------------------------------------------------------
+[1/113] ✓ 📷 Brioche burger buns
+[2/113] ✓ 📷 Potato buns
+[3/113] ✓ 📷 Brioche hotdog rolls
+[4/113] ✓ 📷 Brioche loaf
+[5/113] ✓ 📷 Sweet bread
+[6/113] ✓ 📷 Brioche slider buns
+[7/113] ✓ 📄 Red burger buns
+[8/113] ✓ 📄 Black burger buns
+[9/113] ✓ 📷 Panini bread
+[10/113] ✓ 📷 Brioche chocolate twist loaf
+[11/113] ✓ 📄 Japanese milk sandwich bread, thick slic
+[12/113] ✓ 📷 Ciabatta roll
+[13/113] ✓ 📄 Rustic sourdough baguette
+[14/113] ✓ 📷 Croissant
+[15/113] ✓ 📷 Almond croissant
+[16/113] ✓ 📷 Pain au chocolate
+[17/113] ✓ 📷 Cinnamon roll
+[18/113] ✓ 📷 Danish pastry with jam
+[19/113] ✓ 📷 Jumbo chicken puffs
+[20/113] ✓ 📷 Jumbo egg puffs
+[21/113] ✓ 📷 Jumbo vegetable puffs
+[22/113] ✓ 📷 Bread crumbs
+[23/113] ✓ 📄 Pre-cut puff sheets 5x5
+[24/113] ✓ 📄 Pre-cut puff sheets 5.5x5.5
+[25/113] ✓ 📷 Grissini
+[26/113] ✓ 📷 Lavash strips
+[27/113] ✓ 📷 White Family loaf, thick slice (18mm)
+[28/113] ✓ 📷 White Full loaf, thick slice (18mm)
+[29/113] ✓ 📷 Marbled Full loaf, thick slice (18mm)
+[30/113] ✓ 📷 Half loaf, thick slice (18mm)
+[31/113] ✓ 📷 Half loaf, denser thin slice (12mm)
+[32/113] ✓ 📷 Bloomer, thin slice
+[33/113] ✓ 📷 Small size toastie loaf
+[34/113] ✓ 📷 Milk Family loaf, thick slice (18mm)
+[35/113] ✓ 📷 Milk Full loaf, thick slice (18mm)
+[36/113] ✓ 📷 Bloomer loaf
+[37/113] ✓ 📷 Brown family loaf, thick slice (18mm)
+[38/113] ✓ 📷 Brown Full loaf, thick slice (18mm)
+[39/113] ✓ 📷 Brown half loaf, thick slice (18mm)
+[40/113] ✓ 📷 Brown half loaf, denser thin slice (12mm
+[41/113] ✓ 📷 Brown bloomer, thin slice
+[42/113] ✓ 📄 Multigrain Bloomer, thin slice
+[43/113] ✓ 📷 Tower burger buns
+[44/113] ✓ 📄 Kid's burger buns
+[45/113] ✓ 📷 Shot burger buns
+[46/113] ✓ 📷 Hotdog buns- 8in
+[47/113] ✓ 📷 Hotdog buns- 6in
+[48/113] ✓ 📷 Sweet milk buns
+[49/113] ✓ 📄 Choco- milk rolls
+[50/113] ✓ 📷 Indian Pav Buns- pav bhaji size
+[51/113] ✓ 📷 Indian pav buns- vada pav size
+[52/113] ✓ 📷 Soft roll sliders
+[53/113] ✓ 📷 Doner bread 6in
+[54/113] ✓ 📷 Garlic bread 600g
+[55/113] ✓ 📷 Pizza base- small 6in
+[56/113] ✓ 📷 Pizza base- medium 8in
+[57/113] ✓ 📄 Braided dinner rolls
+[58/113] ✓ 📷 Multi-grain dinner rolls
+[59/113] ✓ 📷 Kerala fried paal bun
+[60/113] ✓ 📷 Coconut buns
+[61/113] ✓ 📷 Dry fruit buns
+[62/113] ✓ 📄 SK BURGER B&W 90g
+[63/113] ✓ 📄 SK BURGER WHTE SEED 90g
+[64/113] ✓ 📄 SK BREAD ROLL 40g, white seed
+[65/113] ✓ 📄 SK MULTIGRAIN ROLL 30g
+[66/113] ✓ 📄 SK SW BREAD  WHITE 1700g
+[67/113] ✓ 📄 SK SW BREAD  BROWN 1700g
+[68/113] ✓ 📄 SK SW BREAD  MARBLE 1700g
+[69/113] ✓ 📄 SK GRISSINI 500g
+[70/113] ✓ 📄 SK LAVASH 500g
+[71/113] ✓ 📄 SK 400g SW WHITE
+[72/113] ✓ 📄 SK 400g SW BROWN
+[73/113] ✓ 📄 SK 400g SW MULTIGRAIN
+[74/113] ✓ 📄 DIVINE MILK BUN*4
+[75/113] ✓ 📄 DIVINE MILK BREAD 400g
+[76/113] ✓ 📄 DIVINE WHEAT BREAD 400g
+[77/113] ✓ 📄 LUL SGL HERBED 8" PIZZA BASE*2
+[78/113] ✓ 📄 LUL BREAD CRUMBS 300g
+[79/113] ✓ 📄 LUL BURGER*6
+[80/113] ✓ 📄 LUL FINGER ROLL*6
+[81/113] ✓ 📄 LUL SAMOON SEEDED*4
+[82/113] ✓ 📄 LUL SOFT ROLL*15
+[83/113] ✓ 📄 LUL WHOLEMEAL BURGER*6
+[84/113] ✓ 📄 LUL WHOLEMEAL SAMOON*6
+[85/113] ✓ 📄 LUL PAV*6
+[86/113] ✓ 📄 LUL FRUIT BREAD SMALL 330g
+[87/113] ✓ 📄 LUL FRUITY BUN*4
+[88/113] ✓ 📄 LUL BUTTER BREAD SANDWICH 750g
+[89/113] ✓ 📄 LUL BUTTER BREAD SMALL 330g
+[90/113] ✓ 📄 LUL WHITE JUMBO(440g)
+[91/113] ✓ 📄 LUL WHITE SANDWICH (750g)
+[92/113] ✓ 📄 LUL WHITE SMALL 330g
+[93/113] ✓ 📄 LUL BROWN JUMBO (440g)
+[94/113] ✓ 📄 LUL BROWN SANDWICH(750g)
+[95/113] ✓ 📄 LUL BROWN SMALL 330g
+[96/113] ✓ 📄 LUL MILK BREAD JUMBO 440g
+[97/113] ✓ 📄 LUL MILK BREAD SANDWICH 750g
+[98/113] ✓ 📄 LUL MILK BREAD SMALL 330g
+[99/113] ✓ 📄 LUL SWEET BREAD 440g
+[100/113] ✓ 📄 LUL BURGER 4'S B&W
+[101/113] ✓ 📄 LUL COCONUT BUN SGL
+[102/113] ✓ 📄 LUL HOTDOG BUN 3S
+[103/113] ✓ 📄 LUL EGG BUN 4's
+[104/113] ✓ 📄 LUL PAAL BUN FRIED
+[105/113] ✓ 📄 LUL PAAL SAMOON FRIED
+[106/113] ✓ 📄 HOT BURGER BUN TOWER*4
+[107/113] ✓ 📄 HOT HOTDOG BUN*4
+[108/113] ✓ 📄 HOT PAV*9
+[109/113] ✓ 📄 HOT PIZZA 8" *3
+[110/113] ✓ 📄 HOT PIZZA 12" *3
+[111/113] ✓ 📄 HOT PIZZA SHEET(16"X24")*1
+[112/113] ✓ 📄 HOT WHITE HALF SANDWICH( 550g)
+[113/113] ✓ 📄 HOT BROWN HALF SANDWICH (550g)
+
+============================================================
+UPLOAD SUMMARY
+============================================================
+Total products: 113
+✓ Successfully uploaded: 113
+✗ Failed: 0
+📷 With images: 51
+📄 Without images: 62
+
+============================================================
