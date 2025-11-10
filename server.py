@@ -442,9 +442,9 @@ async def get_products(
     if category:
         # Check both old 'category' field and new 'categories' array
         query["$or"] = [
-    {"category": category},
-    {"categories": category}
-]
+            {"category": category},
+            {"categories": category}
+        ]
     if is_available is not None:
         query["is_available"] = is_available
     
@@ -1123,6 +1123,8 @@ async def unlink_order_agent(
     await db.users.delete_one({"id": agent_id})
     
     return {"message": "Order agent deleted successfully"}
+
+
 @api_router.get("/admin/pending-users", response_model=List[User])
 async def get_pending_users(current_user: User = Depends(get_current_admin)):
     """Get all users pending approval"""
@@ -1777,176 +1779,375 @@ async def delete_discount(
         raise HTTPException(status_code=404, detail="Discount not found")
     
     return {"message": "Discount deleted successfully"}
-# Standing Orders Management
-from standing_orders_routes import router as standing_orders_router
-api_router.include_router(standing_orders_router)
 
 
-# Stock Management Endpoints
-@api_router.get("/admin/stock")
-async def get_stock(current_user: User = Depends(get_current_admin)):
-    """Get all products with stock information"""
-    products = await db.products.find({}).to_list(10000)
-    
-    stock_items = []
-    for product in products:
-        stock_items.append({
-            "id": product.get("id"),
-            "name": product.get("name"),
-            "opening_stock": product.get("opening_stock", 0),
-            "closing_stock": product.get("closing_stock", 0),
-            "previous_closing_stock": product.get("previous_closing_stock", 0),
-            "unit": product.get("unit", "piece"),
-            "category": product.get("category", ""),
-            "categories": product.get("categories", []),
-            "price": product.get("price", 0),
-            "is_available": product.get("is_available", True)
-        })
-    
-    return {"stock_items": stock_items}
+# Root routes
+@api_router.get("/")
+async def root():
+    return {"message": "Divine Cakery API", "version": "1.0.0"}
 
 
-@api_router.put("/admin/stock/{product_id}")
-async def update_stock(
-    product_id: str,
-    stock_data: dict,
-    current_user: User = Depends(get_current_admin)
-):
-    """Update stock for a product"""
-    product = await db.products.find_one({"id": product_id})
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    update_data = {}
-    
-    if "opening_stock" in stock_data:
-        update_data["opening_stock"] = stock_data["opening_stock"]
-    
-    if "closing_stock" in stock_data:
-        update_data["closing_stock"] = stock_data["closing_stock"]
-    
-    if "previous_closing_stock" in stock_data:
-        update_data["previous_closing_stock"] = stock_data["previous_closing_stock"]
-    
-    update_data["updated_at"] = datetime.utcnow()
-    
-    await db.products.update_one(
-        {"id": product_id},
-        {"$set": update_data}
-    )
-    
-    return {"message": "Stock updated successfully", "product_id": product_id}
-
-
-@api_router.post("/admin/stock/update-previous-closing")
-async def update_previous_closing_stock(
-    current_user: User = Depends(get_current_admin)
-):
-    """
-    Update previous_closing_stock for all products
-    Sets previous_closing_stock = current closing_stock
-    This should be run at end of day
-    """
-    products = await db.products.find({}).to_list(10000)
-    
-    updated_count = 0
-    for product in products:
-        current_closing = product.get("closing_stock", 0)
-        
-        await db.products.update_one(
-            {"id": product["id"]},
-            {"$set": {"previous_closing_stock": current_closing}}
-        )
-        updated_count += 1
-    
-    return {
-        "message": f"Updated previous closing stock for {updated_count} products",
-        "updated_count": updated_count
-    }
-
-
-# Health check endpoint
 @api_router.get("/health")
-async def health_check():
+async def health():
     return {"status": "healthy"}
 
 
-# CORS Configuration
+# TEMPORARY: Setup endpoint to create first admin (remove after setup)
+@api_router.get("/debug/users-raw")
+async def debug_users_raw():
+    """Debug endpoint to see raw user data - NO AUTH to avoid dependency issues"""
+    try:
+        users = await db.users.find().to_list(1000)  # Get ALL users
+        # Convert ObjectId to string for JSON serialization
+        for user in users:
+            if "_id" in user:
+                user["_id"] = str(user["_id"])
+        return {"count": len(users), "users": users}
+    except Exception as e:
+        return {"error": str(e), "type": str(type(e))}
+
+
+@api_router.post("/migrate-product-categories")
+async def migrate_product_categories():
+    """
+    Migration endpoint to ensure all products have categories array.
+    Converts single category field to categories array.
+    """
+    all_products = await db.products.find().to_list(1000)
+    
+    fixed_count = 0
+    for product in all_products:
+        updates = {}
+        
+        # If categories field is missing or empty
+        if not product.get("categories") or len(product.get("categories", [])) == 0:
+            # Use the category field to populate categories array
+            if product.get("category"):
+                updates["categories"] = [product["category"]]
+            else:
+                updates["categories"] = []
+        
+        if updates:
+            result = await db.products.update_one(
+                {"_id": product["_id"]},
+                {"$set": updates}
+            )
+            if result.modified_count > 0:
+                fixed_count += 1
+    
+    return {
+        "message": f"Migrated {fixed_count} products to have categories array",
+        "fixed": fixed_count
+    }
+
+
+@api_router.post("/migrate-user-types")
+async def migrate_user_types():
+    """
+    Migration endpoint to set user_type for existing users.
+    All existing users without user_type become 'owner'
+    """
+    all_users = await db.users.find().to_list(1000)
+    
+    fixed_count = 0
+    for user in all_users:
+        updates = {}
+        
+        if "user_type" not in user:
+            updates["user_type"] = "owner"
+        
+        if "linked_owner_id" not in user:
+            updates["linked_owner_id"] = None
+        
+        if updates:
+            result = await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": updates}
+            )
+            if result.modified_count > 0:
+                fixed_count += 1
+    
+    return {
+        "message": f"Migrated {fixed_count} users to have user_type",
+        "fixed": fixed_count
+    }
+
+
+@api_router.post("/fix-user-fields")
+async def fix_user_fields():
+    """
+    Comprehensive migration to fix all missing/invalid required fields in users.
+    Adds: id, is_approved, favorite_products, created_at, is_active
+    Fixes: admin_access_level invalid values
+    """
+    all_users = await db.users.find().to_list(1000)
+    
+    fixed_count = 0
+    details = []
+    
+    for user in all_users:
+        updates = {}
+        username = user.get("username", "unknown")
+        
+        # Check and add missing fields
+        if "id" not in user:
+            updates["id"] = str(uuid.uuid4())
+        
+        if "is_approved" not in user:
+            updates["is_approved"] = True
+        
+        if "favorite_products" not in user:
+            updates["favorite_products"] = []
+        
+        if "created_at" not in user:
+            updates["created_at"] = datetime.utcnow()
+        
+        if "is_active" not in user:
+            updates["is_active"] = True
+        
+        # Fix invalid admin_access_level values
+        if "admin_access_level" in user:
+            access_level = user["admin_access_level"]
+            # Map invalid values to valid ones
+            if access_level not in ["full", "limited", "reports"]:
+                if access_level in ["superadmin", "admin"]:
+                    updates["admin_access_level"] = "full"
+                elif access_level == "none":
+                    # For customers, remove this field (not needed)
+                    if user.get("role") == "customer":
+                        updates["admin_access_level"] = "full"  # Default for safety
+                else:
+                    updates["admin_access_level"] = "full"  # Default fallback
+        
+        # Apply updates if any
+        if updates:
+            result = await db.users.update_one(
+                {"_id": user["_id"]},
+                {"$set": updates}
+            )
+            if result.modified_count > 0:
+                fixed_count += 1
+                details.append(f"{username}: fixed {list(updates.keys())}")
+    
+    return {
+        "message": f"Fixed {fixed_count} users with missing/invalid fields",
+        "fixed": fixed_count,
+        "details": details[:15]  # Show first 15 for brevity
+    }
+
+
+@api_router.post("/setup-admin")
+async def setup_admin():
+    """
+    Temporary endpoint to create/update test users for Play Store reviewers.
+    Creates both admin and testcustomer accounts.
+    Should be removed after Play Store approval.
+    """
+    users_collection = db.users
+    results = []
+    
+    # Setup admin user
+    existing_admin = await users_collection.find_one({"username": "admin"})
+    
+    if existing_admin:
+        # Update existing admin
+        result = await users_collection.update_one(
+            {"username": "admin"},
+            {"$set": {
+                "role": "admin",
+                "is_approved": True,
+                "is_active": True,
+                "admin_access_level": "superadmin",
+                "hashed_password": pwd_context.hash("Admin@123")
+            }}
+        )
+        results.append({
+            "username": "admin",
+            "password": "Admin@123",
+            "action": "updated",
+            "modified": result.modified_count
+        })
+    else:
+        # Create new admin user
+        admin_id = str(uuid.uuid4())
+        admin_user = {
+            "id": admin_id,
+            "username": "admin",
+            "email": "admin@divinecakery.in",
+            "hashed_password": pwd_context.hash("Admin@123"),
+            "phone": "9544183334",
+            "role": "admin",
+            "business_name": "Divine Cakery",
+            "address": "Thiruvananthapuram",
+            "wallet_balance": 0.0,
+            "is_active": True,
+            "is_approved": True,
+            "can_topup_wallet": True,
+            "onsite_pickup_only": False,
+            "delivery_charge_waived": False,
+            "admin_access_level": "superadmin",
+            "favorite_products": [],
+            "created_at": datetime.utcnow()
+        }
+        result = await users_collection.insert_one(admin_user)
+        results.append({
+            "username": "admin",
+            "password": "Admin@123",
+            "action": "created",
+            "id": admin_id
+        })
+    
+    # Setup testcustomer user
+    existing_customer = await users_collection.find_one({"username": "testcustomer"})
+    
+    if existing_customer:
+        # Update existing customer
+        result = await users_collection.update_one(
+            {"username": "testcustomer"},
+            {"$set": {
+                "role": "customer",
+                "is_approved": True,
+                "is_active": True,
+                "hashed_password": pwd_context.hash("Test@123")
+            }}
+        )
+        results.append({
+            "username": "testcustomer",
+            "password": "Test@123",
+            "action": "updated",
+            "modified": result.modified_count
+        })
+    else:
+        # Create new testcustomer user
+        customer_id = str(uuid.uuid4())
+        customer_user = {
+            "id": customer_id,
+            "username": "testcustomer",
+            "email": "testcustomer@divinecakery.in",
+            "hashed_password": pwd_context.hash("Test@123"),
+            "phone": "9999888877",
+            "role": "customer",
+            "business_name": "Test Customer Business",
+            "address": "Test Address, Test City",
+            "wallet_balance": 0.0,
+            "is_active": True,
+            "is_approved": True,
+            "can_topup_wallet": False,
+            "onsite_pickup_only": False,
+            "delivery_charge_waived": False,
+            "favorite_products": [],
+            "created_at": datetime.utcnow()
+        }
+        result = await users_collection.insert_one(customer_user)
+        results.append({
+            "username": "testcustomer",
+            "password": "Test@123",
+            "action": "created",
+            "id": customer_id
+        })
+    
+    return {
+        "message": "Test users setup completed successfully",
+        "users": results
+    }
+
+
+# Setup Standing Orders routes BEFORE including the router
+from standing_orders_routes import setup_standing_orders_routes
+setup_standing_orders_routes(api_router, db, get_current_admin)
+
+# Include the router in the main app
+app.include_router(api_router)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
     allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include the API router
-app.include_router(api_router)
 
-
-# Root endpoint
-@app.get("/")
-async def root():
-    return {
-        "message": "Divine Cakery API",
-        "version": "1.0.0",
-        "status": "running",
-        "docs": "/docs",
-        "health": "/api/health"
-    }
-
-
-# Error handlers
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return {
-        "error": exc.detail,
-        "status_code": exc.status_code
-    }
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
-    logger.error(f"Unhandled exception: {str(exc)}")
-    return {
-        "error": "Internal server error",
-        "status_code": 500
-    }
-
-
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Divine Cakery API starting up...")
-    logger.info(f"MongoDB connected to: {os.environ.get('DB_NAME', 'divine_cakery')}")
+# Privacy Policy Endpoint (for Play Store requirement)
+@app.get("/privacy-policy")
+async def get_privacy_policy():
+    """Serve privacy policy for Play Store compliance"""
+    from fastapi.responses import HTMLResponse
     
-    # Create indexes for better query performance
-    try:
-        await db.users.create_index("username", unique=True)
-        await db.users.create_index("id", unique=True)
-        await db.products.create_index("id", unique=True)
-        await db.orders.create_index("id", unique=True)
-        await db.orders.create_index("user_id")
-        await db.orders.create_index("delivery_date")
-        await db.transactions.create_index("user_id")
-        await db.wallets.create_index("user_id", unique=True)
-        await db.categories.create_index("id", unique=True)
-        await db.discounts.create_index("customer_id")
-        await db.standing_orders.create_index("customer_id")
-        logger.info("Database indexes created successfully")
-    except Exception as e:
-        logger.warning(f"Index creation warning (may already exist): {str(e)}")
+    privacy_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Divine Cakery - Privacy Policy</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #8B4513; }
+            h2 { color: #A0522D; margin-top: 30px; }
+            .last-updated { color: #666; font-style: italic; }
+        </style>
+    </head>
+    <body>
+        <h1>Privacy Policy for Divine Cakery</h1>
+        <p class="last-updated"><strong>Last Updated:</strong> October 24, 2025</p>
+        
+        <p>Divine Cakery ("we," "our," or "us") operates the Divine Cakery mobile application. This Privacy Policy explains how we collect, use, and protect your information.</p>
+        
+        <h2>1. Information We Collect</h2>
+        <p><strong>Personal Information:</strong> Name, email, phone number, delivery address, payment information (processed via Razorpay)</p>
+        <p><strong>Order Information:</strong> Products ordered, order history, delivery preferences</p>
+        <p><strong>Usage Information:</strong> Device type, app usage data</p>
+        
+        <h2>2. How We Use Your Information</h2>
+        <ul>
+            <li>Process and fulfill orders</li>
+            <li>Send order updates via WhatsApp and email</li>
+            <li>Process payments securely through Razorpay</li>
+            <li>Provide customer support</li>
+            <li>Improve our services</li>
+        </ul>
+        
+        <h2>3. Information Sharing</h2>
+        <p>We do NOT sell your personal information. We may share information with:</p>
+        <ul>
+            <li><strong>Razorpay:</strong> For secure payment processing</li>
+            <li><strong>WhatsApp:</strong> For order notifications (with consent)</li>
+            <li><strong>Delivery Services:</strong> To fulfill orders</li>
+        </ul>
+        
+        <h2>4. Data Security</h2>
+        <p>We implement security measures including HTTPS/SSL encryption, secure database storage, and encrypted payment processing.</p>
+        
+        <h2>5. Your Rights</h2>
+        <p>You have the right to access, correct, or delete your personal information. Contact us at: contact@divinecakery.in</p>
+        
+        <h2>6. Children's Privacy</h2>
+        <p>Our app is not intended for children under 13. We do not knowingly collect information from children under 13.</p>
+        
+        <h2>7. Third-Party Services</h2>
+        <p><strong>Razorpay:</strong> <a href="https://razorpay.com/privacy/">Privacy Policy</a></p>
+        <p><strong>WhatsApp:</strong> <a href="https://www.whatsapp.com/legal/privacy-policy">Privacy Policy</a></p>
+        
+        <h2>8. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy. Continued use of the app after changes constitutes acceptance.</p>
+        
+        <h2>9. Contact Us</h2>
+        <p><strong>Divine Cakery</strong><br>
+        Email: contact@divinecakery.in<br>
+        Phone: +91 8075946225</p>
+        
+        <h2>10. Consent</h2>
+        <p>By using our app, you consent to this Privacy Policy.</p>
+        
+        <hr>
+        <p style="text-align: center; color: #666; margin-top: 40px;">© 2025 Divine Cakery. All rights reserved.</p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=privacy_html)
 
 
-# Shutdown event
 @app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Divine Cakery API shutting down...")
+async def shutdown_db_client():
     client.close()
-    logger.info("MongoDB connection closed")
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
-
