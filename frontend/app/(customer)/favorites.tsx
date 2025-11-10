@@ -192,7 +192,6 @@ export default function FavoritesScreen() {
             </View>
           </View>
         </View>
-      </TouchableOpacity>
     </View>
   );
 
