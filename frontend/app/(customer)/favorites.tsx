@@ -283,25 +283,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  imageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 200,
-    backgroundColor: '#f5f5f5',
-  },
-  productImage: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholderImage: {
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
   },
   heartButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     padding: 8,
@@ -310,6 +297,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#FFE4E4',
   },
   productInfo: {
     padding: 12,
