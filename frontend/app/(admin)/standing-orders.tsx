@@ -1354,7 +1354,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B4513',
     paddingVertical: 16,
     borderRadius: 8,
-    marginBottom: 32,
+    marginBottom: 80,
   },
   createButtonDisabled: {
     opacity: 0.6,
