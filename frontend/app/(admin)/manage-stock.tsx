@@ -138,95 +138,80 @@ export default function ManageStockScreen() {
   };
 
   const renderProduct = ({ item }: any) => (
-    <View style={styles.productCard}>
-      <View style={styles.productHeader}>
-        {item.image_base64 ? (
-          <Image 
-            source={{ uri: item.image_base64 }} 
-            style={styles.productImage}
-          />
-        ) : (
-          <View style={[styles.productImage, styles.noImage]}>
-            <Ionicons name="image-outline" size={32} color="#ccc" />
-          </View>
-        )}
-        <View style={styles.productInfo}>
-          <Text style={styles.productName}>{item.name}</Text>
-          <Text style={styles.productCategory}>{item.category}</Text>
-          <Text style={styles.productPrice}>₹{item.price.toFixed(2)} / {item.unit}</Text>
-        </View>
+    <View style={styles.compactProductCard}>
+      <View style={styles.compactProductInfo}>
+        <Text style={styles.compactProductName}>
+          {item.name} - ₹{item.price.toFixed(2)}
+        </Text>
       </View>
 
-      <View style={styles.stockContainer}>
-        <Text style={styles.stockLabel}>Closing Stock:</Text>
-        <View style={styles.stockInputContainer}>
-          <TouchableOpacity
-            style={styles.stockButton}
-            onPress={() => {
-              const newStock = Math.max(0, (item.closing_stock || 0) - 1);
-              updateClosingStock(item.id, newStock);
-            }}
-          >
-            <Ionicons name="remove" size={20} color="#8B4513" />
-          </TouchableOpacity>
-          
-          {editingStockId === item.id ? (
-            <>
-              <TextInput
-                style={styles.stockInput}
-                value={tempStockValue}
-                onChangeText={setTempStockValue}
-                keyboardType="numeric"
-                autoFocus
-                selectTextOnFocus
-              />
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={() => {
-                  const newStock = parseInt(tempStockValue) || 0;
-                  if (newStock >= 0) {
-                    updateClosingStock(item.id, newStock);
-                  }
-                  setEditingStockId(null);
-                  setTempStockValue('');
-                }}
-              >
-                <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => {
-                  setEditingStockId(null);
-                  setTempStockValue('');
-                }}
-              >
-                <Ionicons name="close-circle" size={28} color="#f44336" />
-              </TouchableOpacity>
-            </>
-          ) : (
+      <View style={styles.compactStockContainer}>
+        <TouchableOpacity
+          style={styles.compactStockButton}
+          onPress={() => {
+            const newStock = Math.max(0, (item.closing_stock || 0) - 1);
+            updateClosingStock(item.id, newStock);
+          }}
+        >
+          <Ionicons name="remove" size={18} color="#8B4513" />
+        </TouchableOpacity>
+        
+        {editingStockId === item.id ? (
+          <>
+            <TextInput
+              style={styles.compactStockInput}
+              value={tempStockValue}
+              onChangeText={setTempStockValue}
+              keyboardType="numeric"
+              autoFocus
+              selectTextOnFocus
+            />
             <TouchableOpacity
-              style={styles.stockValueButton}
+              style={styles.compactSaveButton}
               onPress={() => {
-                setEditingStockId(item.id);
-                setTempStockValue(String(item.closing_stock || 0));
+                const newStock = parseInt(tempStockValue) || 0;
+                if (newStock >= 0) {
+                  updateClosingStock(item.id, newStock);
+                }
+                setEditingStockId(null);
+                setTempStockValue('');
               }}
-              activeOpacity={0.7}
             >
-              <Text style={styles.stockValue}>{item.closing_stock || 0} {item.unit || 'units'}</Text>
-              <Ionicons name="pencil" size={12} color="#2e7d32" style={{marginLeft: 4}} />
+              <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             </TouchableOpacity>
-          )}
-          
+            <TouchableOpacity
+              style={styles.compactCancelButton}
+              onPress={() => {
+                setEditingStockId(null);
+                setTempStockValue('');
+              }}
+            >
+              <Ionicons name="close-circle" size={24} color="#f44336" />
+            </TouchableOpacity>
+          </>
+        ) : (
           <TouchableOpacity
-            style={styles.stockButton}
+            style={styles.compactStockValueButton}
             onPress={() => {
-              const newStock = (item.closing_stock || 0) + 1;
-              updateClosingStock(item.id, newStock);
+              setEditingStockId(item.id);
+              setTempStockValue(String(item.closing_stock || 0));
             }}
+            activeOpacity={0.7}
           >
-            <Ionicons name="add" size={20} color="#8B4513" />
+            <Text style={styles.compactStockValue}>{item.closing_stock || 0}</Text>
+            <Ionicons name="pencil" size={10} color="#666" style={{marginLeft: 3}} />
           </TouchableOpacity>
-        </View>
+        )}
+        
+        <TouchableOpacity
+          style={styles.compactStockButton}
+          onPress={() => {
+            const newStock = (item.closing_stock || 0) + 1;
+            updateClosingStock(item.id, newStock);
+          }}
+        >
+          <Ionicons name="add" size={18} color="#8B4513" />
+        </TouchableOpacity>
       </View>
     </View>
   );
