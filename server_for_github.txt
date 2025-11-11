@@ -1574,11 +1574,19 @@ async def get_preparation_list_report(
     products_cursor = db.products.find({})
     products = await products_cursor.to_list(10000)
     
-    # Get ALL orders (both pending and confirmed)
-    orders_cursor = db.orders.find({})
+    # Set date range for the delivery date
+    from datetime import timedelta
+    date_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    date_end = date_start + timedelta(days=1)
+    
+    # Get orders for this specific delivery date only (both pending and confirmed, but not cancelled)
+    orders_cursor = db.orders.find({
+        "delivery_date": {"$gte": date_start, "$lt": date_end},
+        "order_status": {"$ne": OrderStatus.CANCELLED}
+    })
     orders = await orders_cursor.to_list(10000)
     
-    # Calculate total ordered quantity for each product from ALL orders
+    # Calculate total ordered quantity for each product for this specific date
     ordered_quantities = {}
     for order in orders:
         for item in order.get("items", []):
