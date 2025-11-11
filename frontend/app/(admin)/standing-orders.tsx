@@ -377,13 +377,15 @@ export default function StandingOrdersScreen() {
             <Text style={styles.actionButtonText}>Cancel</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Ionicons name="trash" size={18} color="#fff" />
-          <Text style={styles.actionButtonText}>Delete</Text>
-        </TouchableOpacity>
+        {item.status === 'cancelled' && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDelete(item.id)}
+          >
+            <Ionicons name="trash" size={18} color="#fff" />
+            <Text style={styles.actionButtonText}>Delete</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
