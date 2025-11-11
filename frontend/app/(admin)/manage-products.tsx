@@ -394,4 +394,38 @@ const styles = StyleSheet.create({
   unavailableIndicator: {
     backgroundColor: '#f44336',
   },
+  // Action buttons styles
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    margin: 15,
+    marginTop: 5,
+    padding: 15,
+    borderRadius: 10,
+    elevation: 2,
+    justifyContent: 'space-around',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
+    justifyContent: 'center',
+  },
+  toggleButton: {
+    backgroundColor: '#FF9800',
+  },
+  deleteActionButton: {
+    backgroundColor: '#f44336',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginLeft: 5,
+    fontSize: 14,
+  },
 });
