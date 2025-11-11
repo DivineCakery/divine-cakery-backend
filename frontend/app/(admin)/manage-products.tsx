@@ -307,4 +307,62 @@ const styles = StyleSheet.create({
   categoryChipActive: { backgroundColor: '#8B4513', borderColor: '#8B4513' },
   categoryChipText: { fontSize: 14, color: '#666', fontWeight: '500' },
   categoryChipTextActive: { color: '#fff', fontWeight: 'bold' },
+  // Compact product card styles
+  compactProductCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 8,
+    elevation: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  selectedCard: {
+    borderColor: '#8B4513',
+    borderWidth: 2,
+    backgroundColor: '#FFF8DC',
+  },
+  radioContainer: {
+    marginRight: 15,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioButtonSelected: {
+    borderColor: '#8B4513',
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#8B4513',
+  },
+  compactProductInfo: {
+    flex: 1,
+  },
+  compactProductName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  availabilityIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  availableIndicator: {
+    backgroundColor: '#4CAF50',
+  },
+  unavailableIndicator: {
+    backgroundColor: '#f44336',
+  },
 });
