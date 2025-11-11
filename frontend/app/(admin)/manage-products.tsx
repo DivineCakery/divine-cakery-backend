@@ -124,93 +124,34 @@ export default function ManageProductsScreen() {
     );
   };
 
-  const renderProduct = ({ item }: any) => (
-    <View style={styles.productCard}>
-      <View style={styles.productHeader}>
-        {item.image_base64 ? (
-          <Image 
-            source={{ uri: item.image_base64 }} 
-            style={styles.productImage}
-          />
-        ) : (
-          <View style={[styles.productImage, styles.noImage]}>
-            <MaterialCommunityIcons name="bread-slice" size={32} color="#ccc" />
+  const renderProduct = ({ item }: any) => {
+    const isSelected = selectedProductId === item.id;
+    
+    return (
+      <TouchableOpacity
+        style={[styles.compactProductCard, isSelected && styles.selectedCard]}
+        onPress={() => setSelectedProductId(isSelected ? null : item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.radioContainer}>
+          <View style={[styles.radioButton, isSelected && styles.radioButtonSelected]}>
+            {isSelected && <View style={styles.radioButtonInner} />}
           </View>
-        )}
-        <View style={styles.productInfo}>
-          <Text style={styles.productName}>{item.name}</Text>
-          <Text style={styles.productCategory}>{item.category}</Text>
         </View>
-      </View>
-
-      <View style={styles.priceRow}>
-        <View>
-          <Text style={styles.priceLabel}>MRP:</Text>
-          <Text style={styles.mrpPrice}>₹{item.mrp?.toFixed(2) || '0.00'}</Text>
+        
+        <View style={styles.compactProductInfo}>
+          <Text style={styles.compactProductName}>
+            {item.name} - ₹{item.price.toFixed(2)}{item.packet_size ? ` - ${item.packet_size}` : ''}
+          </Text>
         </View>
-        <View>
-          <Text style={styles.priceLabel}>Price:</Text>
-          <Text style={styles.productPrice}>₹{item.price.toFixed(2)}</Text>
-        </View>
-        {item.packet_size && (
-          <View>
-            <Text style={styles.priceLabel}>Size:</Text>
-            <Text style={styles.packetSize}>{item.packet_size}</Text>
-          </View>
-        )}
-      </View>
-
-      {item.description && (
-        <Text style={styles.productDescription}>{item.description}</Text>
-      )}
-
-      {item.remarks && (
-        <View style={styles.remarksContainer}>
-          <Text style={styles.remarksLabel}>Remarks:</Text>
-          <Text style={styles.remarksText}>{item.remarks}</Text>
-        </View>
-      )}
-
-      <View style={styles.productActions}>
-        {accessLevel !== 'limited' && (
-          <>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => router.push(`/(admin)/product-form?id=${item.id}`)}
-            >
-              <Ionicons name="create" size={20} color="#fff" />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.availabilityButton,
-                item.is_available ? styles.availableButton : styles.unavailableButton,
-              ]}
-              onPress={() => toggleAvailability(item.id, item.is_available)}
-            >
-              <Text style={styles.availabilityText}>
-                {item.is_available ? 'Available' : 'Unavailable'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(item.id)}
-            >
-              <Ionicons name="trash" size={20} color="#fff" />
-            </TouchableOpacity>
-          </>
-        )}
-        {accessLevel === 'limited' && (
-          <View style={styles.viewOnlyBadge}>
-            <Ionicons name="eye" size={16} color="#666" />
-            <Text style={styles.viewOnlyText}>View Only</Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
+        
+        <View style={[
+          styles.availabilityIndicator,
+          item.is_available ? styles.availableIndicator : styles.unavailableIndicator
+        ]} />
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
