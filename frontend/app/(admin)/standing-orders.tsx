@@ -252,12 +252,19 @@ export default function StandingOrdersScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              setLoading(true);
               await apiService.updateStandingOrder(orderId, { status: 'cancelled' });
-              showAlert('Success', 'Standing order cancelled');
-              fetchData();
-            } catch (error) {
+              // Immediately refresh the list
+              await fetchData();
+              setLoading(false);
+              // Success feedback without blocking
+              setTimeout(() => {
+                showAlert('Success', 'Standing order cancelled successfully');
+              }, 100);
+            } catch (error: any) {
+              setLoading(false);
               console.error('Error cancelling standing order:', error);
-              showAlert('Error', 'Failed to cancel standing order');
+              showAlert('Error', error.response?.data?.detail || 'Failed to cancel standing order');
             }
           }
         }
