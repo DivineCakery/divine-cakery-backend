@@ -11,11 +11,12 @@ export default function AdminLayout() {
 
   // Define which tabs are visible for each access level
   const canShowTab = (tabName: string) => {
-    if (accessLevel === 'full') return true;
-    if (accessLevel === 'limited') {
+    const level = accessLevel.toLowerCase();
+    if (level === 'full') return true;
+    if (level === 'limited') {
       return ['dashboard', 'manage-orders', 'manage-stock', 'standing-orders', 'reports'].includes(tabName);
     }
-    if (accessLevel === 'reports') {
+    if (level === 'reports') {
       return ['dashboard', 'reports'].includes(tabName);
     }
     return false;
