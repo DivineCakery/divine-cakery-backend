@@ -12,8 +12,15 @@ from models import (
 
 async def generate_orders_for_standing_order(db, standing_order: dict, days_ahead: int = 10):
     """Generate orders for the next N days based on standing order configuration"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     generated_orders = []
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    logger.info(f"Generating orders for standing order: {standing_order.get('id')}")
+    logger.info(f"Recurrence type: {standing_order.get('recurrence_type')}")
+    logger.info(f"Recurrence config: {standing_order.get('recurrence_config')}")
     
     # Get customer details
     customer = await db.users.find_one({"id": standing_order["customer_id"]})
@@ -29,8 +36,11 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
         if standing_order["recurrence_type"] == "weekly_days":
             # Check if this day of week is in the configuration
             weekday = delivery_date.weekday()  # Monday=0, Sunday=6
-            if weekday in standing_order["recurrence_config"].get("days", []):
+            configured_days = standing_order["recurrence_config"].get("days", [])
+            logger.info(f"Checking date {delivery_date.strftime('%Y-%m-%d')} (weekday={weekday}) against configured days: {configured_days}")
+            if weekday in configured_days:
                 should_create = True
+                logger.info(f"✓ Should create order for {delivery_date.strftime('%Y-%m-%d')}")
         
         elif standing_order["recurrence_type"] == "interval":
             # Check if this date matches the interval pattern
