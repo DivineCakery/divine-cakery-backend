@@ -228,33 +228,40 @@ export default function ManageProductsScreen() {
       </View>
 
       {/* Action Buttons - Show when product is selected */}
-      {selectedProductId && accessLevel !== 'limited' && (
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleEditSelected}
-          >
-            <Ionicons name="create" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Edit</Text>
-          </TouchableOpacity>
+      {selectedProductId && accessLevel !== 'limited' && (() => {
+        const selectedProduct = products.find((p: any) => p.id === selectedProductId);
+        const isAvailable = selectedProduct?.is_available;
+        
+        return (
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleEditSelected}
+            >
+              <Ionicons name="create" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Edit</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.toggleButton]}
-            onPress={handleToggleSelected}
-          >
-            <Ionicons name="eye" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Toggle</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.toggleButton]}
+              onPress={handleToggleSelected}
+            >
+              <Ionicons name={isAvailable ? "eye-off" : "eye"} size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>
+                {isAvailable ? "Mark Unavailable" : "Mark Available"}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.deleteActionButton]}
-            onPress={handleDeleteSelected}
-          >
-            <Ionicons name="trash" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.deleteActionButton]}
+              onPress={handleDeleteSelected}
+            >
+              <Ionicons name="trash" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      })()}
 
       <FlatList
         data={filteredProducts}
