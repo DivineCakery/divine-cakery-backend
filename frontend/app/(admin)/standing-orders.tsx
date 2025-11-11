@@ -1130,6 +1130,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
+    paddingTop: 8,
   },
   productPickerWrapper: {
     flex: 1,
