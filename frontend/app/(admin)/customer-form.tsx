@@ -450,6 +450,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  passwordContainer: {
+    position: 'relative',
+    width: '100%',
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  passwordToggle: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    padding: 5,
+  },
   textArea: {
     minHeight: 80,
     textAlignVertical: 'top',
