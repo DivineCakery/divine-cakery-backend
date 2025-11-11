@@ -22,6 +22,7 @@ export default function CustomerFormScreen() {
   const isEdit = !!userId;
 
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
