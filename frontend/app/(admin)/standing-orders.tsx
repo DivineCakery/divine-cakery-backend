@@ -245,16 +245,23 @@ export default function StandingOrdersScreen() {
     showAlert(
       'Cancel Standing Order',
       'Are you sure? This will delete all future auto-generated orders.',
-      async () => {
-        try {
-          await apiService.updateStandingOrder(orderId, { status: 'cancelled' });
-          showAlert('Success', 'Standing order cancelled');
-          fetchData();
-        } catch (error) {
-          console.error('Error cancelling standing order:', error);
-          showAlert('Error', 'Failed to cancel standing order');
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.updateStandingOrder(orderId, { status: 'cancelled' });
+              showAlert('Success', 'Standing order cancelled');
+              fetchData();
+            } catch (error) {
+              console.error('Error cancelling standing order:', error);
+              showAlert('Error', 'Failed to cancel standing order');
+            }
+          }
         }
-      }
+      ]
     );
   };
 
@@ -262,16 +269,23 @@ export default function StandingOrdersScreen() {
     showAlert(
       'Delete Standing Order',
       'Are you sure? This will permanently delete the standing order and all future orders.',
-      async () => {
-        try {
-          await apiService.deleteStandingOrder(orderId);
-          showAlert('Success', 'Standing order deleted');
-          fetchData();
-        } catch (error) {
-          console.error('Error deleting standing order:', error);
-          showAlert('Error', 'Failed to delete standing order');
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.deleteStandingOrder(orderId);
+              showAlert('Success', 'Standing order deleted');
+              fetchData();
+            } catch (error) {
+              console.error('Error deleting standing order:', error);
+              showAlert('Error', 'Failed to delete standing order');
+            }
+          }
         }
-      }
+      ]
     );
   };
 
