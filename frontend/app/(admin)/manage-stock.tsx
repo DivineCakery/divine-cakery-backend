@@ -92,12 +92,17 @@ export default function ManageStockScreen() {
     if (selectedCategory === category) {
       // Deselect if already selected
       setSelectedCategory(null);
-      filterProducts(products, null);
+      filterProducts(products, null, searchQuery);
     } else {
       setSelectedCategory(category);
-      filterProducts(products, category);
+      filterProducts(products, category, searchQuery);
     }
   };
+
+  // Re-filter when search query changes
+  useEffect(() => {
+    filterProducts(products, selectedCategory, searchQuery);
+  }, [searchQuery]);
 
   const onRefresh = () => {
     setRefreshing(true);
