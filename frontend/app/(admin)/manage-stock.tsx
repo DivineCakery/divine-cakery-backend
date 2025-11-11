@@ -324,8 +324,8 @@ export default function ManageStockScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF8DC' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF8DC' },
-  header: { backgroundColor: '#8B4513', padding: 20, paddingTop: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
+  header: { backgroundColor: '#8B4513', padding: 15, paddingTop: 40, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   logoutButton: { padding: 5 },
   searchContainer: {
     flexDirection: 'row',
