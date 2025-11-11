@@ -861,11 +861,10 @@ export default function StandingOrdersScreen() {
       <Modal visible={showDetailsModal} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Standing Order Details</Text>
             <TouchableOpacity onPress={() => setShowDetailsModal(false)}>
               <Ionicons name="close" size={28} color="#8B4513" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Standing Order Details</Text>
-            <View style={{ width: 28 }} />
           </View>
 
           <ScrollView style={styles.modalContent}>
