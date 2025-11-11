@@ -276,12 +276,19 @@ export default function StandingOrdersScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              setLoading(true);
               await apiService.deleteStandingOrder(orderId);
-              showAlert('Success', 'Standing order deleted');
-              fetchData();
-            } catch (error) {
+              // Immediately refresh the list
+              await fetchData();
+              setLoading(false);
+              // Success feedback without blocking
+              setTimeout(() => {
+                showAlert('Success', 'Standing order deleted successfully');
+              }, 100);
+            } catch (error: any) {
+              setLoading(false);
               console.error('Error deleting standing order:', error);
-              showAlert('Error', 'Failed to delete standing order');
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete standing order');
             }
           }
         }
