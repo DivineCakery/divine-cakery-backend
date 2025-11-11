@@ -78,19 +78,32 @@ export default function ManageProductsScreen() {
     fetchProducts();
   };
 
-  const toggleAvailability = async (productId: string, currentStatus: boolean) => {
+  const handleEditSelected = () => {
+    if (!selectedProductId) return;
+    router.push(`/(admin)/product-form?id=${selectedProductId}` as any);
+  };
+
+  const handleToggleSelected = async () => {
+    if (!selectedProductId) return;
+    
+    const product = products.find((p: any) => p.id === selectedProductId);
+    if (!product) return;
+
     try {
-      await apiService.updateProduct(productId, { is_available: !currentStatus });
+      await apiService.updateProduct(selectedProductId, { is_available: !product.is_available });
       await fetchProducts();
+      showAlert('Success', `Product ${product.is_available ? 'hidden' : 'made available'}`);
     } catch (error) {
       showAlert('Error', 'Failed to update product');
     }
   };
 
-  const handleDelete = async (productId: string) => {
+  const handleDeleteSelected = () => {
+    if (!selectedProductId) return;
+
     showAlert(
       'Delete Product',
-      'Are you sure you want to delete this product?',
+      'Are you sure you want to delete this product? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -98,9 +111,10 @@ export default function ManageProductsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await apiService.deleteProduct(productId);
+              await apiService.deleteProduct(selectedProductId);
+              setSelectedProductId(null);
               await fetchProducts();
-              showAlert('Success', 'Product deleted');
+              showAlert('Success', 'Product deleted successfully');
             } catch (error) {
               showAlert('Error', 'Failed to delete product');
             }
