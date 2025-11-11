@@ -55,18 +55,22 @@ export default function ManageProductsScreen() {
     }
   };
 
-  // Filter products based on selected category
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
-    : products.filter((product: any) => {
-        // Check both the old category field and new categories array
-        if (product.categories && Array.isArray(product.categories)) {
-          return product.categories.some((cat: string) => 
+  // Filter products based on selected category and search query
+  const filteredProducts = products.filter((product: any) => {
+    // Category filter
+    const categoryMatch = selectedCategory === 'All' || 
+      (product.categories && Array.isArray(product.categories)
+        ? product.categories.some((cat: string) => 
             cat.toLowerCase() === selectedCategory.toLowerCase()
-          );
-        }
-        return product.category?.toLowerCase() === selectedCategory.toLowerCase();
-      });
+          )
+        : product.category?.toLowerCase() === selectedCategory.toLowerCase());
+    
+    // Search filter
+    const searchMatch = !searchQuery || 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return categoryMatch && searchMatch;
+  });
 
   const onRefresh = () => {
     setRefreshing(true);
