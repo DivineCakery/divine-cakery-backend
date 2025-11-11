@@ -64,19 +64,28 @@ export default function ManageStockScreen() {
     }
   };
 
-  const filterProducts = (productList: any[], category: string | null) => {
-    if (!category) {
-      setFilteredProducts(productList);
-    } else {
-      const filtered = productList.filter((product: any) => {
+  const filterProducts = (productList: any[], category: string | null, search: string = searchQuery) => {
+    let filtered = productList;
+    
+    // Category filter
+    if (category) {
+      filtered = filtered.filter((product: any) => {
         // Check both old 'category' field and new 'categories' array
         if (product.categories && Array.isArray(product.categories)) {
           return product.categories.includes(category);
         }
         return product.category === category;
       });
-      setFilteredProducts(filtered);
     }
+    
+    // Search filter
+    if (search) {
+      filtered = filtered.filter((product: any) =>
+        product.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    setFilteredProducts(filtered);
   };
 
   const handleCategoryFilter = (category: string) => {
