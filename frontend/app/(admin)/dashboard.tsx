@@ -314,6 +314,21 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </>
           )}
+
+          {/* Standing Orders - Available for Full and Limited Access */}
+          {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited') && (
+            <TouchableOpacity
+              style={[styles.settingsButton, { marginTop: 10 }]}
+              onPress={() => router.push('/(admin)/standing-orders' as any)}
+            >
+              <Ionicons name="repeat" size={24} color="#8B4513" />
+              <View style={styles.settingsButtonText}>
+                <Text style={styles.settingsButtonTitle}>Standing Orders</Text>
+                <Text style={styles.settingsButtonSubtitle}>Create recurring orders for customers</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#999" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </ScrollView>
