@@ -283,18 +283,25 @@ export default function StandingOrdersScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('Deleting standing order:', orderId);
               setLoading(true);
-              await apiService.deleteStandingOrder(orderId);
-              // Immediately refresh the list
+              
+              // Delete the order
+              const response = await apiService.deleteStandingOrder(orderId);
+              console.log('Delete response:', response);
+              
+              // Immediately update local state to remove the order
+              setStandingOrders(prev => prev.filter(order => order.id !== orderId));
+              
+              // Also refresh from server to ensure sync
               await fetchData();
+              
               setLoading(false);
-              // Success feedback without blocking
-              setTimeout(() => {
-                showAlert('Success', 'Standing order deleted successfully');
-              }, 100);
+              console.log('Standing order deleted successfully');
             } catch (error: any) {
               setLoading(false);
               console.error('Error deleting standing order:', error);
+              console.error('Error details:', error.response?.data);
               showAlert('Error', error.response?.data?.detail || 'Failed to delete standing order');
             }
           }
