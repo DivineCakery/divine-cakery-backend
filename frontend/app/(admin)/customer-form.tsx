@@ -168,14 +168,26 @@ export default function CustomerFormScreen() {
           {isEdit && <Text style={styles.hint}>Username cannot be changed</Text>}
 
           <Text style={styles.label}>{isEdit ? 'New Password (leave blank to keep current)' : 'Password *'}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder={isEdit ? 'Leave blank to keep current password' : 'Enter password'}
-            value={formData.password}
-            onChangeText={(text) => setFormData({ ...formData, password: text })}
-            secureTextEntry
-            editable={!loading}
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput]}
+              placeholder={isEdit ? 'Leave blank to keep current password' : 'Enter password'}
+              value={formData.password}
+              onChangeText={(text) => setFormData({ ...formData, password: text })}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity
+              style={styles.passwordToggle}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.label}>Email</Text>
           <TextInput
