@@ -318,7 +318,7 @@ export default function ManageStockScreen() {
         <View style={styles.dateRow}>
           <Ionicons name="calendar" size={18} color="#8B4513" />
           <Text style={styles.dateText}>
-            {formatISTDateTime(new Date()).dateStr}
+            {formatISTDateTime().dateStr} - {formatISTDateTime().timeStr}
           </Text>
         </View>
         {resetHistory.length > 0 && (
