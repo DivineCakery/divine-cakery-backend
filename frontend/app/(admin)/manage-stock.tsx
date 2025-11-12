@@ -117,21 +117,20 @@ export default function ManageStockScreen() {
   // Helper function to convert UTC to IST
   const formatISTDateTime = (utcDate: string | Date) => {
     const date = new Date(utcDate);
-    // Convert to IST (UTC + 5:30)
-    const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
     
-    const dateStr = istDate.toLocaleDateString('en-GB', { 
+    // Use Asia/Kolkata timezone directly
+    const dateStr = date.toLocaleDateString('en-GB', { 
       day: '2-digit', 
       month: 'short', 
       year: 'numeric',
-      timeZone: 'UTC' // Already adjusted, treat as UTC for display
+      timeZone: 'Asia/Kolkata'
     });
     
-    const timeStr = istDate.toLocaleTimeString('en-US', { 
+    const timeStr = date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit', 
       hour12: true,
-      timeZone: 'UTC' // Already adjusted, treat as UTC for display
+      timeZone: 'Asia/Kolkata'
     });
     
     return { dateStr, timeStr };
