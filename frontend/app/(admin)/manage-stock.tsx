@@ -698,12 +698,52 @@ const styles = StyleSheet.create({
   historyRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 4,
   },
   historyText: {
     fontSize: 12,
     color: '#666',
     marginLeft: 6,
     flex: 1,
+  },
+  fullHistoryContainer: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+  },
+  fullHistoryTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginBottom: 8,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  historyItemLeft: {
+    flexDirection: 'row',
+    flex: 1,
+  },
+  historyItemNumber: {
+    fontSize: 12,
+    color: '#999',
+    marginRight: 8,
+    width: 20,
+  },
+  historyItemDate: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+  },
+  historyItemDetails: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2,
   },
   
   // Controls styles
