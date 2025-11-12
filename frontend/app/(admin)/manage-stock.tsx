@@ -620,4 +620,71 @@ const styles = StyleSheet.create({
   compactCancelButton: {
     marginLeft: 3,
   },
+  
+  // Date and History styles
+  dateContainer: {
+    backgroundColor: '#FFF8DC',
+    padding: 12,
+    marginHorizontal: 15,
+    marginTop: 10,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#8B4513',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  dateText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginLeft: 8,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  historyText: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 6,
+    flex: 1,
+  },
+  
+  // Controls styles
+  controlsContainer: {
+    flexDirection: 'row',
+    padding: 15,
+    paddingBottom: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  selectAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  selectAllText: {
+    fontSize: 14,
+    color: '#8B4513',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  resetAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f44336',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  resetAllText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginLeft: 6,
+  },
 });
