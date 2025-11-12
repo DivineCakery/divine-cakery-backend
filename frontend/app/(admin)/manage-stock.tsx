@@ -116,13 +116,27 @@ export default function ManageStockScreen() {
 
   // Helper function to convert to IST
   const formatISTDateTime = (inputDate?: string | Date) => {
-    // Use current date if no input provided
-    const date = inputDate ? new Date(inputDate) : new Date();
+    let date: Date;
     
-    console.log('Original date:', date.toISOString());
-    console.log('Original time (UTC):', date.toUTCString());
+    if (!inputDate) {
+      // Use current date/time
+      date = new Date();
+    } else if (typeof inputDate === 'string') {
+      // Parse string date - handle both ISO and other formats
+      // Add 'Z' if not present to ensure UTC parsing
+      const dateStr = inputDate.includes('Z') ? inputDate : inputDate + 'Z';
+      date = new Date(dateStr);
+    } else {
+      date = inputDate;
+    }
     
-    // Format in IST timezone
+    // Validate date
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date:', inputDate);
+      return { dateStr: 'Invalid Date', timeStr: 'Invalid Time' };
+    }
+    
+    // Format in IST timezone (Asia/Kolkata = UTC+5:30)
     const dateStr = new Intl.DateTimeFormat('en-GB', { 
       day: '2-digit', 
       month: 'short', 
@@ -136,8 +150,6 @@ export default function ManageStockScreen() {
       hour12: true,
       timeZone: 'Asia/Kolkata'
     }).format(date);
-    
-    console.log('IST formatted:', dateStr, timeStr);
     
     return { dateStr, timeStr };
   };
