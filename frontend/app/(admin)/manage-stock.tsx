@@ -33,6 +33,7 @@ export default function ManageStockScreen() {
   const [resetHistory, setResetHistory] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [showFullHistory, setShowFullHistory] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
