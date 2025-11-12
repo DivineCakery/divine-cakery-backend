@@ -359,3 +359,16 @@ class StandingOrder(BaseModel):
     created_at: datetime
     created_by: str  # Admin username who created it
     next_delivery_date: Optional[datetime] = None  # Next scheduled delivery
+
+
+# Stock Reset Event Models
+class StockResetEvent(BaseModel):
+    id: str
+    reset_date: datetime
+    reset_by: str  # Username of admin who performed reset
+    products_count: int  # Number of products reset
+    notes: Optional[str] = None
+    
+class StockResetEventCreate(BaseModel):
+    notes: Optional[str] = None
+
