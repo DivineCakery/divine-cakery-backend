@@ -436,6 +436,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     justifyContent: 'center',
   },
+  duplicateButton: {
+    backgroundColor: '#2196F3',
+  },
   toggleButton: {
     backgroundColor: '#FF9800',
   },
