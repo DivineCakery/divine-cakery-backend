@@ -284,6 +284,51 @@ export default function ManageStockScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Date and Reset History */}
+      <View style={styles.dateContainer}>
+        <View style={styles.dateRow}>
+          <Ionicons name="calendar" size={18} color="#8B4513" />
+          <Text style={styles.dateText}>
+            {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </Text>
+        </View>
+        {resetHistory.length > 0 && (
+          <View style={styles.historyRow}>
+            <Ionicons name="time" size={16} color="#666" />
+            <Text style={styles.historyText}>
+              Last Reset: {new Date(resetHistory[0].reset_date).toLocaleDateString('en-GB', { 
+                day: '2-digit', month: 'short', year: 'numeric' 
+              })}, {new Date(resetHistory[0].reset_date).toLocaleTimeString('en-US', { 
+                hour: '2-digit', minute: '2-digit', hour12: true 
+              })} by {resetHistory[0].reset_by} ({resetHistory[0].products_count} products)
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Select All and Reset Controls */}
+      <View style={styles.controlsContainer}>
+        <TouchableOpacity 
+          style={styles.selectAllButton}
+          onPress={toggleSelectAll}
+        >
+          <Ionicons 
+            name={selectAll ? "checkbox" : "square-outline"} 
+            size={24} 
+            color="#8B4513" 
+          />
+          <Text style={styles.selectAllText}>Select All</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.resetAllButton}
+          onPress={handleResetAllStock}
+        >
+          <Ionicons name="refresh" size={20} color="#fff" />
+          <Text style={styles.resetAllText}>Reset All Stock to 0</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
