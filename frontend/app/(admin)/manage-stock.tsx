@@ -313,20 +313,49 @@ export default function ManageStockScreen() {
         <View style={styles.dateRow}>
           <Ionicons name="calendar" size={18} color="#8B4513" />
           <Text style={styles.dateText}>
-            {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {formatISTDateTime(new Date()).dateStr}
           </Text>
         </View>
         {resetHistory.length > 0 && (
-          <View style={styles.historyRow}>
-            <Ionicons name="time" size={16} color="#666" />
-            <Text style={styles.historyText}>
-              Last Reset: {new Date(resetHistory[0].reset_date).toLocaleDateString('en-GB', { 
-                day: '2-digit', month: 'short', year: 'numeric' 
-              })}, {new Date(resetHistory[0].reset_date).toLocaleTimeString('en-US', { 
-                hour: '2-digit', minute: '2-digit', hour12: true 
-              })} by {resetHistory[0].reset_by} ({resetHistory[0].products_count} products)
-            </Text>
-          </View>
+          <>
+            <TouchableOpacity 
+              style={styles.historyRow}
+              onPress={() => setShowFullHistory(!showFullHistory)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="time" size={16} color="#666" />
+              <Text style={styles.historyText}>
+                Last Reset: {formatISTDateTime(resetHistory[0].reset_date).dateStr}, {formatISTDateTime(resetHistory[0].reset_date).timeStr} by {resetHistory[0].reset_by} ({resetHistory[0].products_count} products)
+              </Text>
+              <Ionicons 
+                name={showFullHistory ? "chevron-up" : "chevron-down"} 
+                size={16} 
+                color="#666" 
+              />
+            </TouchableOpacity>
+            
+            {showFullHistory && (
+              <View style={styles.fullHistoryContainer}>
+                <Text style={styles.fullHistoryTitle}>Reset History (Last 30 days)</Text>
+                {resetHistory.map((event: any, index: number) => {
+                  const { dateStr, timeStr } = formatISTDateTime(event.reset_date);
+                  return (
+                    <View key={event.id} style={styles.historyItem}>
+                      <View style={styles.historyItemLeft}>
+                        <Text style={styles.historyItemNumber}>{index + 1}.</Text>
+                        <View>
+                          <Text style={styles.historyItemDate}>{dateStr} at {timeStr}</Text>
+                          <Text style={styles.historyItemDetails}>
+                            By {event.reset_by} • {event.products_count} products
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </>
         )}
       </View>
 
