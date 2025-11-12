@@ -30,6 +30,9 @@ export default function ManageStockScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [editingStockId, setEditingStockId] = useState<string | null>(null);
   const [tempStockValue, setTempStockValue] = useState<string>('');
+  const [resetHistory, setResetHistory] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   useFocusEffect(
     React.useCallback(() => {
