@@ -371,6 +371,17 @@ class ApiService {
     const response = await this.api.post(`/admin/standing-orders/${standingOrderId}/regenerate?days_ahead=${daysAhead}`);
     return response.data;
   }
+
+  // Stock Reset Methods
+  async resetAllStock() {
+    const response = await this.api.post('/admin/stock/reset-all');
+    return response.data;
+  }
+
+  async getStockResetHistory(limit: number = 30) {
+    const response = await this.api.get(`/admin/stock/reset-history?limit=${limit}`);
+    return response.data;
+  }
 }
 
 export default new ApiService();
