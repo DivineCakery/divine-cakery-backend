@@ -114,24 +114,30 @@ export default function ManageStockScreen() {
     fetchProducts();
   };
 
-  // Helper function to convert UTC to IST
-  const formatISTDateTime = (utcDate: string | Date) => {
-    const date = new Date(utcDate);
+  // Helper function to convert to IST
+  const formatISTDateTime = (inputDate?: string | Date) => {
+    // Use current date if no input provided
+    const date = inputDate ? new Date(inputDate) : new Date();
     
-    // Use Asia/Kolkata timezone directly
-    const dateStr = date.toLocaleDateString('en-GB', { 
+    console.log('Original date:', date.toISOString());
+    console.log('Original time (UTC):', date.toUTCString());
+    
+    // Format in IST timezone
+    const dateStr = new Intl.DateTimeFormat('en-GB', { 
       day: '2-digit', 
       month: 'short', 
       year: 'numeric',
       timeZone: 'Asia/Kolkata'
-    });
+    }).format(date);
     
-    const timeStr = date.toLocaleTimeString('en-US', { 
+    const timeStr = new Intl.DateTimeFormat('en-US', { 
       hour: '2-digit', 
       minute: '2-digit', 
       hour12: true,
       timeZone: 'Asia/Kolkata'
-    });
+    }).format(date);
+    
+    console.log('IST formatted:', dateStr, timeStr);
     
     return { dateStr, timeStr };
   };
