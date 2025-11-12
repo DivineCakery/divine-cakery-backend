@@ -248,6 +248,14 @@ export default function ManageProductsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={[styles.actionButton, styles.duplicateButton]}
+              onPress={handleDuplicateSelected}
+            >
+              <Ionicons name="copy" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Duplicate</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.actionButton, styles.toggleButton]}
               onPress={handleToggleSelected}
             >
