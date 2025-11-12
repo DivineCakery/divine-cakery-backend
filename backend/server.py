@@ -569,6 +569,66 @@ async def get_favorites(current_user: User = Depends(get_current_user)):
     return [Product(**product) for product in products]
 
 
+
+# Stock Reset Event Endpoints
+@api_router.post("/admin/stock/reset-all")
+async def reset_all_stock(
+    current_user: User = Depends(get_current_admin)
+):
+    """Reset all products stock to 0 and record the event"""
+    try:
+        from models import StockResetEvent
+        
+        # Get all products
+        products = await db.products.find({}).to_list(10000)
+        products_count = len(products)
+        
+        # Reset all products closing_stock to 0
+        await db.products.update_many(
+            {},
+            {"$set": {"closing_stock": 0}}
+        )
+        
+        # Create stock reset event record
+        reset_event = {
+            "id": str(uuid.uuid4()),
+            "reset_date": datetime.utcnow(),
+            "reset_by": current_user.username,
+            "products_count": products_count,
+            "notes": f"Stock reset for all {products_count} products"
+        }
+        
+        await db.stock_reset_events.insert_one(reset_event)
+        
+        return {
+            "message": f"Successfully reset stock for {products_count} products",
+            "products_count": products_count,
+            "reset_event": StockResetEvent(**reset_event)
+        }
+    except Exception as e:
+        logger.error(f"Error resetting stock: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to reset stock: {str(e)}")
+
+
+@api_router.get("/admin/stock/reset-history")
+async def get_stock_reset_history(
+    limit: int = 30,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get stock reset history for the last month (or specified limit)"""
+    try:
+        from models import StockResetEvent
+        
+        # Get last N reset events, sorted by most recent first
+        events = await db.stock_reset_events.find({}).sort("reset_date", -1).limit(limit).to_list(limit)
+        
+        return [StockResetEvent(**event) for event in events]
+    except Exception as e:
+        logger.error(f"Error fetching stock reset history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch history: {str(e)}")
+
+
+
 # Wallet Routes
 @api_router.get("/wallet", response_model=WalletResponse)
 async def get_wallet(current_user: User = Depends(get_current_user)):
