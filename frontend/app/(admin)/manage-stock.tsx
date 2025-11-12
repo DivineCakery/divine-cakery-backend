@@ -38,6 +38,7 @@ export default function ManageStockScreen() {
     React.useCallback(() => {
       fetchCategories();
       fetchProducts();
+      fetchResetHistory();
     }, [])
   );
 
