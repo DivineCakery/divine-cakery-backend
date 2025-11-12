@@ -108,6 +108,39 @@ export default function ProductFormScreen() {
     }
   };
 
+  const fetchProductForDuplicate = async () => {
+    try {
+      setLoading(true);
+      const product = await apiService.getProduct(duplicateId);
+      setFormData({
+        name: '', // Empty name for duplicate - user must enter new name
+        category: product.category,
+        mrp: product.mrp?.toString() || '',
+        price: product.price.toString(),
+        packet_size: product.packet_size || '',
+        unit: product.unit,
+        description: product.description || '',
+        image_base64: product.image_base64 || '',
+        shelf_life: product.shelf_life || '',
+        storage_instructions: product.storage_instructions || '',
+        food_type: product.food_type || 'veg',
+        ingredients: product.ingredients || '',
+        allergen_info: product.allergen_info || '',
+      });
+      // Set selected categories from product data
+      if (product.categories && product.categories.length > 0) {
+        setSelectedCategories(product.categories);
+      } else if (product.category) {
+        setSelectedCategories([product.category]);
+      }
+    } catch (error) {
+      showAlert('Error', 'Failed to load product for duplication');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const pickImage = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
