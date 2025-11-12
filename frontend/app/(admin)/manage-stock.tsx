@@ -112,14 +112,61 @@ export default function ManageStockScreen() {
     fetchProducts();
   };
 
+  const fetchResetHistory = async () => {
+    try {
+      const history = await apiService.getStockResetHistory(30);
+      setResetHistory(history);
+    } catch (error) {
+      console.error('Error fetching reset history:', error);
+    }
+  };
+
   const updateClosingStock = async (productId: string, newStock: number) => {
     try {
       await apiService.updateProduct(productId, { closing_stock: newStock });
       await fetchProducts();
-      showAlert('Success', 'Stock updated successfully');
+      // Removed success alert as per requirement
     } catch (error) {
       showAlert('Error', 'Failed to update closing stock');
     }
+  };
+
+  const handleResetAllStock = () => {
+    showAlert(
+      'Reset All Stock',
+      'This will set ALL products stock to 0. This action will be recorded. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset to 0',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await apiService.resetAllStock();
+              await fetchProducts();
+              await fetchResetHistory();
+              setSelectAll(false);
+              setSelectedProducts([]);
+              setLoading(false);
+              showAlert('Success', 'All stock reset to 0 successfully');
+            } catch (error) {
+              setLoading(false);
+              showAlert('Error', 'Failed to reset stock');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map((p: any) => p.id));
+    }
+    setSelectAll(!selectAll);
   };
 
   const handleLogout = () => {
