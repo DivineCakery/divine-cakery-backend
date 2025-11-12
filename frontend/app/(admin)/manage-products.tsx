@@ -83,6 +83,11 @@ export default function ManageProductsScreen() {
     router.push(`/(admin)/product-form?id=${selectedProductId}` as any);
   };
 
+  const handleDuplicateSelected = () => {
+    if (!selectedProductId) return;
+    router.push(`/(admin)/product-form?duplicate=${selectedProductId}` as any);
+  };
+
   const handleToggleSelected = async () => {
     if (!selectedProductId) return;
     
