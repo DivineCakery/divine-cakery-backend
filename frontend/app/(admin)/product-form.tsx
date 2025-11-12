@@ -21,7 +21,9 @@ export default function ProductFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const productId = params.id as string;
+  const duplicateId = params.duplicate as string;
   const isEdit = !!productId;
+  const isDuplicate = !!duplicateId;
 
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -46,8 +48,10 @@ export default function ProductFormScreen() {
     fetchCategories();
     if (isEdit) {
       fetchProduct();
+    } else if (isDuplicate) {
+      fetchProductForDuplicate();
     }
-  }, [productId]);
+  }, [productId, duplicateId]);
 
   // Refresh categories when screen gains focus (real-time update)
   useFocusEffect(
