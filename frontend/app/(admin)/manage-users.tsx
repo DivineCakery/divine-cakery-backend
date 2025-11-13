@@ -26,7 +26,6 @@ export default function ManageUsersScreen() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedUsername, setSelectedUsername] = useState('');
   const [balanceAmount, setBalanceAmount] = useState('');
-  const [agentFormData, setAgentFormData] = useState({ username: '', password: '', phone: '' });
   const [linkedAgents, setLinkedAgents] = useState<any>({});
 
   useEffect(() => {
