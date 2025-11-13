@@ -367,15 +367,18 @@ test_plan:
 
   - task: "Agent-Owner Linking UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/(admin)/customer-form.tsx, /app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Completed Agent-Owner linking UI implementation in customer form. Changes: 1) Added Picker component import from @react-native-picker/picker 2) Added new UI section 'Account Type' with User Type dropdown (Owner/Agent) 3) Added conditional 'Link to Owner' dropdown that appears only when Agent is selected 4) Updated handleSubmit to include user_type and linked_owner_id in API calls 5) Added validation: Agents must select a linked owner before submission 6) Updated backend create_user_by_admin to handle user_type, linked_owner_id, onsite_pickup_only, and delivery_charge_waived fields 7) Added styles for pickerContainer, picker, and sectionTitle. Feature allows admins to designate users as Owners or Agents and link agents to specific owner accounts directly in the Add/Edit User form. Ready for backend testing."
+        - working: true
+          agent: "testing"
+          comment: "🎉 COMPREHENSIVE AGENT-OWNER LINKING TESTING COMPLETE: All 12 test scenarios passed with 100% success rate! Verified all requested functionality: ✅ Create New Owner User: POST /api/admin/users with user_type='owner' and linked_owner_id=null works correctly ✅ Create New Agent User: POST /api/admin/users with user_type='order_agent' and linked_owner_id pointing to owner works correctly ✅ Update Existing User to Agent: PUT /api/admin/users/{user_id} successfully changes user_type to 'order_agent' and sets linked_owner_id ✅ Update Existing User to Owner: PUT /api/admin/users/{user_id} successfully changes user_type to 'owner' and clears linked_owner_id ✅ Get All Users: GET /api/admin/users returns all users with user_type and linked_owner_id fields included ✅ Edge Cases: Agent creation without linked_owner_id works (backend allows), default user_type is 'owner', backward compatibility maintained ✅ Database Persistence: All user_type and linked_owner_id values correctly saved and retrieved ✅ Admin Authentication: All endpoints properly secured with admin credentials (admin/admin123). Feature is production-ready and fully functional. Backend API correctly handles all Agent-Owner linking operations as specified."
 
 agent_communication:
     - agent: "main"
