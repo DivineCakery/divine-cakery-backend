@@ -1009,7 +1009,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#8B4513',
     gap: 4,
-    marginLeft: 'auto',
   },
   editCustomerText: {
     fontSize: 11,
