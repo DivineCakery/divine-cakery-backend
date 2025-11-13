@@ -165,29 +165,7 @@ export default function ManageUsersScreen() {
     );
   };
 
-  const handleCreateOrderAgent = async () => {
-    if (!agentFormData.username || !agentFormData.password || !agentFormData.phone) {
-      showAlert('Error', 'Please fill all fields');
-      return;
-    }
-
-    try {
-      await apiService.createOrderAgent(selectedUserId, agentFormData);
-      showAlert('Success', `Order Agent '${agentFormData.username}' created and linked to '${selectedUsername}'`);
-      setShowOrderAgentModal(false);
-      setAgentFormData({ username: '', password: '', phone: '' });
-      fetchUsers();
-    } catch (error: any) {
-      showAlert('Error', error.response?.data?.detail || 'Failed to create order agent');
-    }
-  };
-
-  const openOrderAgentModal = (userId: string, username: string) => {
-    setSelectedUserId(userId);
-    setSelectedUsername(username);
-    setAgentFormData({ username: '', password: '', phone: '' });
-    setShowOrderAgentModal(true);
-  };
+  // Order agent functionality removed
 
   const renderUser = ({ item }: any) => {
     const isAdmin = item.role === 'admin';
