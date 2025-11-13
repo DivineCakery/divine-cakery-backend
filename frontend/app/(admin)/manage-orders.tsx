@@ -256,15 +256,17 @@ export default function ManageOrdersScreen() {
     const newDate = selectedDate ? new Date(selectedDate) : new Date();
     newDate.setDate(newDate.getDate() + days);
     
-    // Restrict to past 7 days only
+    // Set date range: 7 days past to 30 days future
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 7);
+    const thirtyDaysAhead = new Date(today);
+    thirtyDaysAhead.setDate(today.getDate() + 30);
     
-    // Don't allow future dates
-    if (newDate > today) {
-      showAlert('Info', 'Cannot view future orders');
+    // Don't allow dates beyond 30 days in the future
+    if (newDate > thirtyDaysAhead) {
+      showAlert('Info', 'Cannot view orders beyond 30 days in the future');
       return;
     }
     
