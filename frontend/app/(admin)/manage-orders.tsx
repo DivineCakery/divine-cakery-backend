@@ -495,6 +495,14 @@ export default function ManageOrdersScreen() {
         </TouchableOpacity>
       )}
 
+      {/* Info Banner */}
+      <View style={styles.infoBanner}>
+        <Ionicons name="information-circle" size={18} color="#666" />
+        <Text style={styles.infoText}>
+          View orders: 7 days past • Today • 30 days future
+        </Text>
+      </View>
+
       <FlatList
         data={orders}
         renderItem={renderOrder}
