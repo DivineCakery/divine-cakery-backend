@@ -668,6 +668,8 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#fff' },
   listContainer: { padding: 15, paddingBottom: 100 },
   orderCard: { backgroundColor: '#fff', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 2 },
+  orderCardEven: { backgroundColor: '#fff' },
+  orderCardOdd: { backgroundColor: '#F8F4E6' },
   orderHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   orderNumber: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   orderAmount: { fontSize: 20, fontWeight: 'bold', color: '#8B4513' },
