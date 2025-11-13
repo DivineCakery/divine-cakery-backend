@@ -5,7 +5,7 @@
    - App Name: Divine Cakery
    - Package: com.divinecakery.app
    - Version: 1.0.0
-   - Backend: https://divine-cakery-fix.preview.emergentagent.com
+   - Backend: https://cakery-app.preview.emergentagent.com
 
 [1;33m📋 Prerequisites:[0m
    1. Expo account (create at: https://expo.dev/signup)

@@ -105,7 +105,7 @@ If you have a website, upload to: `https://yourdomain.com/privacy-policy.html`
 I can take screenshots programmatically. Tell me which pages you want and I'll capture them at the correct resolution.
 
 **Method 2: Using Your Mobile Device**
-1. Open app on Android device at: https://divine-cakery-fix.preview.emergentagent.com
+1. Open app on Android device at: https://cakery-app.preview.emergentagent.com
 2. Navigate to desired page
 3. Take screenshot (Power + Volume Down)
 4. Resize to 1080×1920 px using:
