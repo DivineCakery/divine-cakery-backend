@@ -339,8 +339,10 @@ export default function ManageOrdersScreen() {
       {/* Customer Information */}
       <View style={styles.customerSection}>
         <View style={styles.customerHeader}>
-          <Ionicons name="person-circle" size={20} color="#8B4513" />
-          <Text style={styles.customerTitle}>Customer</Text>
+          <View style={styles.customerTitleContainer}>
+            <Ionicons name="person-circle" size={20} color="#8B4513" />
+            <Text style={styles.customerTitle}>Customer</Text>
+          </View>
           <TouchableOpacity 
             style={styles.editCustomerButton}
             onPress={() => {
