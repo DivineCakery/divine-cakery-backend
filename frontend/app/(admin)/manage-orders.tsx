@@ -782,7 +782,8 @@ export default function ManageOrdersScreen() {
               <Text style={styles.inputLabel}>Delivery Date</Text>
               <TouchableOpacity
                 style={styles.datePickerButton}
-                onPress={() => setShowDatePicker(true)}
+                onPress={() => setShowOrderDatePicker(true)}
+                activeOpacity={0.7}
               >
                 <Ionicons name="calendar" size={20} color="#8B4513" />
                 <Text style={styles.datePickerText}>
@@ -793,6 +794,22 @@ export default function ManageOrdersScreen() {
                   })}
                 </Text>
               </TouchableOpacity>
+
+              {/* Date Picker */}
+              {showOrderDatePicker && (
+                <DateTimePicker
+                  value={editingOrderDate}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowOrderDatePicker(false);
+                    if (selectedDate) {
+                      setEditingOrderDate(selectedDate);
+                    }
+                  }}
+                  minimumDate={new Date()}
+                />
+              )}
 
               {/* Order Items */}
               <Text style={[styles.inputLabel, {marginTop: 15}]}>Order Items</Text>
