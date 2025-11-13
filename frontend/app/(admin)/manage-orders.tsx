@@ -431,8 +431,18 @@ export default function ManageOrdersScreen() {
       {/* Items List */}
       <View style={styles.itemsSection}>
         <View style={styles.itemsHeader}>
-          <Ionicons name="cart" size={18} color="#8B4513" />
-          <Text style={styles.itemsTitle}>Items Ordered</Text>
+          <View style={styles.itemsTitleContainer}>
+            <Ionicons name="cart" size={18} color="#8B4513" />
+            <Text style={styles.itemsTitle}>Items Ordered</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.editOrderButton}
+            onPress={() => openOrderEditor(item)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="create-outline" size={16} color="#8B4513" />
+            <Text style={styles.editOrderText}>Edit Order</Text>
+          </TouchableOpacity>
         </View>
         {item.items && item.items.map((orderItem: any, index: number) => (
           <View key={`${item.id}-item-${index}`} style={styles.itemRow}>
