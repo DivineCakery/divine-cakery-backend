@@ -392,6 +392,60 @@ export default function CustomerFormScreen() {
               <Text style={styles.hint}>
                 {formData.delivery_charge_waived ? 'Delivery charges waived for this customer' : 'Customer will be charged for delivery'}
               </Text>
+
+              {/* User Type Selection */}
+              <Text style={styles.sectionTitle}>Account Type</Text>
+              <Text style={styles.label}>User Type</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={formData.user_type}
+                  onValueChange={(value) => {
+                    setFormData({ 
+                      ...formData, 
+                      user_type: value,
+                      // Clear linked_owner_id if switching to owner
+                      linked_owner_id: value === 'owner' ? '' : formData.linked_owner_id 
+                    });
+                  }}
+                  enabled={!loading}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Owner" value="owner" />
+                  <Picker.Item label="Agent" value="order_agent" />
+                </Picker>
+              </View>
+              <Text style={styles.hint}>
+                {formData.user_type === 'owner' 
+                  ? 'This is a primary account owner who can have agents' 
+                  : 'This is an agent who can place orders on behalf of an owner'}
+              </Text>
+
+              {/* Link to Owner - Only show for agents */}
+              {formData.user_type === 'order_agent' && (
+                <>
+                  <Text style={styles.label}>Link to Owner *</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={formData.linked_owner_id}
+                      onValueChange={(value) => setFormData({ ...formData, linked_owner_id: value })}
+                      enabled={!loading}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="-- Select Owner --" value="" />
+                      {owners.map((owner: any) => (
+                        <Picker.Item 
+                          key={owner.id} 
+                          label={`${owner.username} ${owner.business_name ? `(${owner.business_name})` : ''}`} 
+                          value={owner.id} 
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                  <Text style={styles.hint}>
+                    Select the owner account this agent will be linked to
+                  </Text>
+                </>
+              )}
             </>
           )}
 
