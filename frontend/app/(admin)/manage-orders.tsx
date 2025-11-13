@@ -760,6 +760,100 @@ export default function ManageOrdersScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Order Edit Modal */}
+      <Modal
+        visible={showOrderEditModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={cancelOrderEdit}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.orderEditModalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>Edit Order #{editingOrder?.id}</Text>
+              <Text style={styles.modalSubtitle}>Modify items, quantities, or delivery date</Text>
+
+              {/* Delivery Date */}
+              <Text style={styles.inputLabel}>Delivery Date</Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons name="calendar" size={20} color="#8B4513" />
+                <Text style={styles.datePickerText}>
+                  {editingOrderDate.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Order Items */}
+              <Text style={[styles.inputLabel, {marginTop: 15}]}>Order Items</Text>
+              {editingOrderItems.map((item, index) => (
+                <View key={index} style={styles.editItemCard}>
+                  <View style={styles.editItemHeader}>
+                    <Text style={styles.editItemName}>{item.product_name}</Text>
+                    <TouchableOpacity
+                      style={styles.removeItemButton}
+                      onPress={() => removeItem(index)}
+                    >
+                      <Ionicons name="trash" size={18} color="#f44336" />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.editItemControls}>
+                    <View style={styles.quantityControl}>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => updateItemQuantity(index, item.quantity - 1)}
+                      >
+                        <Ionicons name="remove" size={20} color="#8B4513" />
+                      </TouchableOpacity>
+                      <Text style={styles.quantityText}>{item.quantity}</Text>
+                      <TouchableOpacity
+                        style={styles.quantityButton}
+                        onPress={() => updateItemQuantity(index, item.quantity + 1)}
+                      >
+                        <Ionicons name="add" size={20} color="#8B4513" />
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.editItemPrice}>
+                      ₹{item.price.toFixed(2)} × {item.quantity} = ₹{(item.price * item.quantity).toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+
+              {/* Total */}
+              <View style={styles.orderEditTotal}>
+                <Text style={styles.orderEditTotalLabel}>New Total:</Text>
+                <Text style={styles.orderEditTotalValue}>₹{calculateNewTotal().toFixed(2)}</Text>
+              </View>
+
+              {/* Buttons */}
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={cancelOrderEdit}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmModalButton]}
+                  onPress={saveOrderChanges}
+                >
+                  <Text style={styles.modalButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 
