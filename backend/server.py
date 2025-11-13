@@ -1066,7 +1066,11 @@ async def create_user_by_admin(
         "created_at": datetime.utcnow(),
         "is_active": True,
         "is_approved": True,  # Admin-created users are pre-approved
-        "favorite_products": []
+        "favorite_products": [],
+        "user_type": user_data.user_type if hasattr(user_data, 'user_type') else "owner",
+        "linked_owner_id": user_data.linked_owner_id if hasattr(user_data, 'linked_owner_id') else None,
+        "onsite_pickup_only": user_data.onsite_pickup_only if hasattr(user_data, 'onsite_pickup_only') else False,
+        "delivery_charge_waived": user_data.delivery_charge_waived if hasattr(user_data, 'delivery_charge_waived') else False
     }
     
     await db.users.insert_one(user_dict)
