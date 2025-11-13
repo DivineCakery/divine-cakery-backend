@@ -343,7 +343,11 @@ export default function ManageOrdersScreen() {
           <Text style={styles.customerTitle}>Customer</Text>
           <TouchableOpacity 
             style={styles.editCustomerButton}
-            onPress={() => openCustomerEditor(item)}
+            onPress={() => {
+              console.log('Edit button pressed for order:', item.id);
+              openCustomerEditor(item);
+            }}
+            activeOpacity={0.7}
           >
             <Ionicons name="pencil" size={14} color="#8B4513" />
             <Text style={styles.editCustomerText}>Edit</Text>
