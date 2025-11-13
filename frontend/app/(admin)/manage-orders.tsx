@@ -47,6 +47,7 @@ export default function ManageOrdersScreen() {
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [editingOrderItems, setEditingOrderItems] = useState<any[]>([]);
   const [editingOrderDate, setEditingOrderDate] = useState<Date>(new Date());
+  const [showOrderDatePicker, setShowOrderDatePicker] = useState(false);
 
   useEffect(() => {
     fetchOrders();
