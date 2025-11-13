@@ -258,6 +258,67 @@ export default function ManageOrdersScreen() {
     setEditingCustomer(null);
   };
 
+  const openOrderEditor = (order: any) => {
+    setEditingOrder(order);
+    setEditingOrderItems(JSON.parse(JSON.stringify(order.items))); // Deep copy
+    setEditingOrderDate(order.delivery_date ? new Date(order.delivery_date) : new Date());
+    setShowOrderEditModal(true);
+  };
+
+  const updateItemQuantity = (index: number, newQuantity: number) => {
+    const updatedItems = [...editingOrderItems];
+    if (newQuantity <= 0) {
+      // Remove item if quantity is 0 or less
+      updatedItems.splice(index, 1);
+    } else {
+      updatedItems[index].quantity = newQuantity;
+      updatedItems[index].subtotal = updatedItems[index].price * newQuantity;
+    }
+    setEditingOrderItems(updatedItems);
+  };
+
+  const removeItem = (index: number) => {
+    const updatedItems = editingOrderItems.filter((_, i) => i !== index);
+    setEditingOrderItems(updatedItems);
+  };
+
+  const calculateNewTotal = () => {
+    const itemsTotal = editingOrderItems.reduce((sum, item) => sum + (item.subtotal || item.price * item.quantity), 0);
+    return itemsTotal;
+  };
+
+  const saveOrderChanges = async () => {
+    if (!editingOrder || editingOrderItems.length === 0) {
+      showAlert('Error', 'Order must have at least one item');
+      return;
+    }
+
+    try {
+      const newTotal = calculateNewTotal();
+      
+      await apiService.updateOrder(editingOrder.id, {
+        items: editingOrderItems,
+        total_amount: newTotal,
+        delivery_date: editingOrderDate.toISOString(),
+      });
+
+      setShowOrderEditModal(false);
+      await fetchOrders();
+      showAlert('Success', 'Order updated successfully');
+      setEditingOrder(null);
+      setEditingOrderItems([]);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      showAlert('Error', 'Failed to update order');
+    }
+  };
+
+  const cancelOrderEdit = () => {
+    setShowOrderEditModal(false);
+    setEditingOrder(null);
+    setEditingOrderItems([]);
+  };
+
   const changeDate = (days: number) => {
     const newDate = selectedDate ? new Date(selectedDate) : new Date();
     newDate.setDate(newDate.getDate() + days);
