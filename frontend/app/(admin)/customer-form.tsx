@@ -41,10 +41,24 @@ export default function CustomerFormScreen() {
   });
 
   useEffect(() => {
+    fetchOwners();
     if (isEdit) {
       fetchUser();
     }
   }, [userId]);
+
+  const fetchOwners = async () => {
+    try {
+      const users = await apiService.getAllUsers();
+      // Filter only owners (user_type = 'owner' or no user_type for backward compatibility)
+      const ownersList = users.filter((u: any) => 
+        u.role === 'customer' && (u.user_type === 'owner' || !u.user_type)
+      );
+      setOwners(ownersList);
+    } catch (error) {
+      console.error('Error fetching owners:', error);
+    }
+  };
 
   const fetchUser = async () => {
     try {
