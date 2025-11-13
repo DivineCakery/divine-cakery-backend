@@ -1622,7 +1622,7 @@ async def get_preparation_list_report(
     date: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Get preparation list report: Shows only products with orders (ordered quantity > 0)"""
+    """Get preparation list report: Shows products with orders for today and/or tomorrow"""
     from datetime import datetime as dt
     
     # Parse date or use today
@@ -1638,65 +1638,90 @@ async def get_preparation_list_report(
     products_cursor = db.products.find({})
     products = await products_cursor.to_list(10000)
     
-    # Set date range for the delivery date
+    # Set date ranges for today and tomorrow
     from datetime import timedelta
-    date_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    date_end = date_start + timedelta(days=1)
+    today_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end = today_start + timedelta(days=1)
+    tomorrow_start = today_end
+    tomorrow_end = tomorrow_start + timedelta(days=1)
     
-    # Get orders for this specific delivery date only (both pending and confirmed, but not cancelled)
-    orders_cursor = db.orders.find({
-        "delivery_date": {"$gte": date_start, "$lt": date_end},
+    # Get orders for today (both pending and confirmed, but not cancelled)
+    orders_today_cursor = db.orders.find({
+        "delivery_date": {"$gte": today_start, "$lt": today_end},
         "order_status": {"$ne": OrderStatus.CANCELLED}
     })
-    orders = await orders_cursor.to_list(10000)
+    orders_today = await orders_today_cursor.to_list(10000)
     
-    # Calculate total ordered quantity for each product for this specific date
-    ordered_quantities = {}
-    for order in orders:
+    # Get orders for tomorrow
+    orders_tomorrow_cursor = db.orders.find({
+        "delivery_date": {"$gte": tomorrow_start, "$lt": tomorrow_end},
+        "order_status": {"$ne": OrderStatus.CANCELLED}
+    })
+    orders_tomorrow = await orders_tomorrow_cursor.to_list(10000)
+    
+    # Calculate ordered quantities for today
+    ordered_quantities_today = {}
+    for order in orders_today:
         for item in order.get("items", []):
             product_id = item.get("product_id")
             quantity = item.get("quantity", 0)
             
-            if product_id in ordered_quantities:
-                ordered_quantities[product_id] += quantity
+            if product_id in ordered_quantities_today:
+                ordered_quantities_today[product_id] += quantity
             else:
-                ordered_quantities[product_id] = quantity
+                ordered_quantities_today[product_id] = quantity
     
-    # Calculate preparation list for products with orders only
+    # Calculate ordered quantities for tomorrow
+    ordered_quantities_tomorrow = {}
+    for order in orders_tomorrow:
+        for item in order.get("items", []):
+            product_id = item.get("product_id")
+            quantity = item.get("quantity", 0)
+            
+            if product_id in ordered_quantities_tomorrow:
+                ordered_quantities_tomorrow[product_id] += quantity
+            else:
+                ordered_quantities_tomorrow[product_id] = quantity
+    
+    # Get all product IDs that have orders (either today or tomorrow)
+    all_product_ids = set(ordered_quantities_today.keys()) | set(ordered_quantities_tomorrow.keys())
+    
+    # Calculate preparation list
     preparation_list = []
     for product in products:
         product_id = product.get("id")
+        
+        # Skip products with no orders
+        if product_id not in all_product_ids:
+            continue
+            
         product_name = product.get("name")
         
         # Use previous day's closing stock (stored in previous_closing_stock field)
         # If not available, fallback to current closing_stock
         previous_closing_stock = product.get("previous_closing_stock", product.get("closing_stock", 0))
-        ordered_qty = ordered_quantities.get(product_id, 0)
         
-        # Skip products with no orders
-        if ordered_qty <= 0:
-            continue
+        ordered_today = ordered_quantities_today.get(product_id, 0)
+        ordered_tomorrow = ordered_quantities_tomorrow.get(product_id, 0)
         
-        # Calculate: Previous Day Closing Stock - All Orders
-        balance = previous_closing_stock - ordered_qty
+        # New formula: Total = Orders for today + Orders for tomorrow - Last closing stock
+        total = ordered_today + ordered_tomorrow - previous_closing_stock
         
-        # Determine units to prepare
-        if balance < 0:
-            units_to_prepare = abs(balance)  # Deficit - need to prepare
-        else:
-            units_to_prepare = 0  # Surplus or exact - no preparation needed
+        # Units to prepare is the total (if positive, need to prepare; if negative, have surplus)
+        units_to_prepare = max(0, total)  # Only show positive values
         
         preparation_list.append({
             "product_id": product_id,
             "product_name": product_name,
             "previous_closing_stock": previous_closing_stock,
-            "ordered_quantity": ordered_qty,
-            "balance": balance,
+            "orders_today": ordered_today,
+            "orders_tomorrow": ordered_tomorrow,
+            "total": total,
             "units_to_prepare": units_to_prepare,
             "unit": product.get("unit", "piece")
         })
     
-    # Sort by units_to_prepare (descending) so deficit items appear first
+    # Sort by units_to_prepare (descending) so items needing most preparation appear first
     preparation_list.sort(key=lambda x: x["units_to_prepare"], reverse=True)
     
     return {
