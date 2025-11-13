@@ -413,67 +413,7 @@ export default function ManageUsersScreen() {
         </View>
       </Modal>
 
-      {/* Create Order Agent Modal */}
-      <Modal
-        visible={showOrderAgentModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowOrderAgentModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Create Order Agent</Text>
-            <Text style={styles.modalSubtitle}>
-              Create an order agent for: {selectedUsername}
-            </Text>
-            
-            <TextInput
-              style={styles.modalInput}
-              value={agentFormData.username}
-              onChangeText={(text) => setAgentFormData({...agentFormData, username: text})}
-              placeholder="Agent Username"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-            />
-
-            <TextInput
-              style={styles.modalInput}
-              value={agentFormData.password}
-              onChangeText={(text) => setAgentFormData({...agentFormData, password: text})}
-              placeholder="Agent Password"
-              placeholderTextColor="#999"
-              secureTextEntry
-            />
-
-            <TextInput
-              style={styles.modalInput}
-              value={agentFormData.phone}
-              onChangeText={(text) => setAgentFormData({...agentFormData, phone: text})}
-              placeholder="Agent Phone"
-              placeholderTextColor="#999"
-              keyboardType="phone-pad"
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setShowOrderAgentModal(false)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.modalAddButton}
-                onPress={handleCreateOrderAgent}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalAddText}>Create Agent</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Order agent modal removed */}
     </View>
   );
 }
