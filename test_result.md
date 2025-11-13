@@ -364,6 +364,18 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Agent-Owner Linking UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/customer-form.tsx, /app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Completed Agent-Owner linking UI implementation in customer form. Changes: 1) Added Picker component import from @react-native-picker/picker 2) Added new UI section 'Account Type' with User Type dropdown (Owner/Agent) 3) Added conditional 'Link to Owner' dropdown that appears only when Agent is selected 4) Updated handleSubmit to include user_type and linked_owner_id in API calls 5) Added validation: Agents must select a linked owner before submission 6) Updated backend create_user_by_admin to handle user_type, linked_owner_id, onsite_pickup_only, and delivery_charge_waived fields 7) Added styles for pickerContainer, picker, and sectionTitle. Feature allows admins to designate users as Owners or Agents and link agents to specific owner accounts directly in the Add/Edit User form. Ready for backend testing."
+
 agent_communication:
     - agent: "main"
       message: "Implemented three new features: 1) Date-wise revenue tracking API endpoint that returns last 7 days breakdown. 2) Admin dashboard now displays 7-day revenue in a card format with day names, dates, amounts and order counts. 3) Manage orders page now automatically sends WhatsApp message when order is confirmed and shows 'Confirmed' button in grey color. Ready for backend testing."
