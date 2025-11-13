@@ -287,7 +287,22 @@ export default function ManageOrdersScreen() {
 
   const formatDisplayDate = () => {
     if (!selectedDate) return 'All Orders';
-    return selectedDate.toLocaleDateString('en-IN', {
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(selectedDate);
+    selected.setHours(0, 0, 0, 0);
+    
+    let prefix = '';
+    if (selected < today) {
+      prefix = 'Past: ';
+    } else if (selected.getTime() === today.getTime()) {
+      prefix = 'Today: ';
+    } else {
+      prefix = 'Future: ';
+    }
+    
+    return prefix + selectedDate.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
