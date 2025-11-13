@@ -78,6 +78,8 @@ export default function CustomerFormScreen() {
           delivery_charge_waived: user.delivery_charge_waived || false,
           role: user.role || 'customer',
           admin_access_level: user.admin_access_level || 'full',
+          user_type: user.user_type || 'owner',
+          linked_owner_id: user.linked_owner_id || '',
         });
       }
     } catch (error) {
