@@ -956,13 +956,34 @@ const styles = StyleSheet.create({
   itemsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    gap: 6,
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  itemsTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   itemsTitle: {
     fontSize: 13,
     fontWeight: 'bold',
     color: '#8B4513',
+  },
+  editOrderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    gap: 5,
+  },
+  editOrderText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '600',
   },
   itemRow: {
     flexDirection: 'row',
