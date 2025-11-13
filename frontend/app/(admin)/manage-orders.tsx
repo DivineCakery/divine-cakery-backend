@@ -1299,6 +1299,16 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  webDateInput: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '500',
+    flex: 1,
+    marginLeft: 10,
+    border: 'none',
+    outline: 'none',
+    backgroundColor: 'transparent',
+  },
   editItemCard: {
     backgroundColor: '#F8F8F8',
     padding: 12,
