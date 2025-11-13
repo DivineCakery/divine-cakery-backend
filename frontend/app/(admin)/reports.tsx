@@ -687,6 +687,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
+  preparationStatBold: {
+    fontWeight: 'bold',
+    color: '#8B4513',
+    fontSize: 14,
+  },
   preparationNeed: {
     backgroundColor: '#FFF3E0',
     paddingVertical: 10,
