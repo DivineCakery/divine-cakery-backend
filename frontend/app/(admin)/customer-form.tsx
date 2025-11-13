@@ -672,4 +672,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginTop: 25,
+    marginBottom: 5,
+    borderBottomWidth: 2,
+    borderBottomColor: '#8B4513',
+    paddingBottom: 5,
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginTop: 5,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
 });
