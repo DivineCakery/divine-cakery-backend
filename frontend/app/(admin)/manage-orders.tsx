@@ -780,35 +780,53 @@ export default function ManageOrdersScreen() {
 
               {/* Delivery Date */}
               <Text style={styles.inputLabel}>Delivery Date</Text>
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={() => setShowOrderDatePicker(true)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="calendar" size={20} color="#8B4513" />
-                <Text style={styles.datePickerText}>
-                  {editingOrderDate.toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-              </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                <View style={styles.datePickerButton}>
+                  <Ionicons name="calendar" size={20} color="#8B4513" />
+                  <TextInput
+                    style={styles.webDateInput}
+                    type="date"
+                    value={editingOrderDate.toISOString().split('T')[0]}
+                    onChangeText={(value) => {
+                      if (value) {
+                        setEditingOrderDate(new Date(value));
+                      }
+                    }}
+                  />
+                </View>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.datePickerButton}
+                    onPress={() => setShowOrderDatePicker(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="calendar" size={20} color="#8B4513" />
+                    <Text style={styles.datePickerText}>
+                      {editingOrderDate.toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </Text>
+                  </TouchableOpacity>
 
-              {/* Date Picker */}
-              {showOrderDatePicker && (
-                <DateTimePicker
-                  value={editingOrderDate}
-                  mode="date"
-                  display="default"
-                  onChange={(event, selectedDate) => {
-                    setShowOrderDatePicker(false);
-                    if (selectedDate) {
-                      setEditingOrderDate(selectedDate);
-                    }
-                  }}
-                  minimumDate={new Date()}
-                />
+                  {/* Date Picker for Mobile */}
+                  {showOrderDatePicker && (
+                    <DateTimePicker
+                      value={editingOrderDate}
+                      mode="date"
+                      display="default"
+                      onChange={(event, selectedDate) => {
+                        setShowOrderDatePicker(false);
+                        if (selectedDate) {
+                          setEditingOrderDate(selectedDate);
+                        }
+                      }}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                </>
               )}
 
               {/* Order Items */}
