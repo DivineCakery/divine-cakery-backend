@@ -780,54 +780,43 @@ export default function ManageOrdersScreen() {
 
               {/* Delivery Date */}
               <Text style={styles.inputLabel}>Delivery Date</Text>
-              {Platform.OS === 'web' ? (
-                <View style={styles.datePickerButton}>
-                  <Ionicons name="calendar" size={20} color="#8B4513" />
-                  <TextInput
-                    style={styles.webDateInput}
-                    type="date"
-                    value={editingOrderDate.toISOString().split('T')[0]}
-                    onChangeText={(value) => {
-                      if (value) {
-                        setEditingOrderDate(new Date(value));
-                      }
-                    }}
-                  />
-                </View>
-              ) : (
-                <>
-                  <TouchableOpacity
-                    style={styles.datePickerButton}
-                    onPress={() => setShowOrderDatePicker(true)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="calendar" size={20} color="#8B4513" />
-                    <Text style={styles.datePickerText}>
-                      {editingOrderDate.toLocaleDateString('en-IN', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </Text>
-                  </TouchableOpacity>
+              <View style={styles.dateControlContainer}>
+                <TouchableOpacity
+                  style={styles.dateChangeButton}
+                  onPress={() => {
+                    const newDate = new Date(editingOrderDate);
+                    newDate.setDate(newDate.getDate() - 1);
+                    setEditingOrderDate(newDate);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="chevron-back" size={24} color="#8B4513" />
+                </TouchableOpacity>
 
-                  {/* Date Picker for Mobile */}
-                  {showOrderDatePicker && (
-                    <DateTimePicker
-                      value={editingOrderDate}
-                      mode="date"
-                      display="default"
-                      onChange={(event, selectedDate) => {
-                        setShowOrderDatePicker(false);
-                        if (selectedDate) {
-                          setEditingOrderDate(selectedDate);
-                        }
-                      }}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                </>
-              )}
+                <View style={styles.dateCenterDisplay}>
+                  <Ionicons name="calendar" size={20} color="#8B4513" />
+                  <Text style={styles.dateDisplayText}>
+                    {editingOrderDate.toLocaleDateString('en-IN', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.dateChangeButton}
+                  onPress={() => {
+                    const newDate = new Date(editingOrderDate);
+                    newDate.setDate(newDate.getDate() + 1);
+                    setEditingOrderDate(newDate);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="chevron-forward" size={24} color="#8B4513" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.dateHint}>Use arrows to change delivery date</Text>
 
               {/* Order Items */}
               <Text style={[styles.inputLabel, {marginTop: 15}]}>Order Items</Text>
