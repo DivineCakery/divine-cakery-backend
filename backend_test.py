@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Divine Cakery API
-Focus: Preparation List Filter Feature Testing
+Backend Test Suite for Agent-Owner Linking Feature
+Tests all CRUD operations for user management with user_type and linked_owner_id fields
 """
 
 import requests
 import json
-import os
-from datetime import datetime, timedelta
 import sys
+from datetime import datetime
+from typing import Dict, Any, Optional
 
-# Get backend URL from environment
-BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://cakery-app.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
-
-# Admin credentials
+# Configuration
+BASE_URL = "https://cakery-app.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
