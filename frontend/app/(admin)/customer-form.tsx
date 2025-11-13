@@ -107,6 +107,12 @@ export default function CustomerFormScreen() {
       return;
     }
 
+    // Validate agent must have linked owner
+    if (formData.role === 'customer' && formData.user_type === 'order_agent' && !formData.linked_owner_id) {
+      showAlert('Validation Error', 'Please select an owner to link this agent to');
+      return;
+    }
+
     setLoading(true);
     try {
       const customerData: any = {
@@ -124,6 +130,8 @@ export default function CustomerFormScreen() {
         customerData.can_topup_wallet = formData.can_topup_wallet;
         customerData.onsite_pickup_only = formData.onsite_pickup_only;
         customerData.delivery_charge_waived = formData.delivery_charge_waived;
+        customerData.user_type = formData.user_type;
+        customerData.linked_owner_id = formData.user_type === 'order_agent' ? formData.linked_owner_id : null;
       }
 
       if (isEdit) {
