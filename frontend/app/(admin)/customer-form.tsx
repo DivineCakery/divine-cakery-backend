@@ -23,6 +23,7 @@ export default function CustomerFormScreen() {
 
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [owners, setOwners] = useState([]);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -35,6 +36,8 @@ export default function CustomerFormScreen() {
     delivery_charge_waived: false,
     role: 'customer',
     admin_access_level: 'full',
+    user_type: 'owner',
+    linked_owner_id: '',
   });
 
   useEffect(() => {
