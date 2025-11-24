@@ -69,6 +69,41 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+# Helper function to normalize phone numbers with +91 country code
+def normalize_phone_number(phone: str) -> str:
+    """
+    Normalize phone number to include +91 country code.
+    - If already has +91, return as is
+    - If starts with 91 (without +), add +
+    - If 10 digits, add +91
+    - Otherwise return as is
+    """
+    if not phone:
+        return phone
+    
+    # Remove all non-digit characters except +
+    cleaned = re.sub(r'[^\d+]', '', phone)
+    
+    # If already has +91
+    if cleaned.startswith('+91'):
+        return cleaned
+    
+    # If starts with 91 (11 or 12 digits total)
+    if cleaned.startswith('91') and len(cleaned) in [12, 13]:
+        return '+' + cleaned
+    
+    # If 10 digits (Indian mobile number)
+    if len(cleaned) == 10:
+        return '+91' + cleaned
+    
+    # If starts with 0, remove it and add +91 (old format)
+    if cleaned.startswith('0') and len(cleaned) == 11:
+        return '+91' + cleaned[1:]
+    
+    # Return as is if we can't determine the format
+    return cleaned if cleaned.startswith('+') else '+' + cleaned
+
+
 # Email Helper Function
 def send_email_notification(subject: str, body: str, to_email: str):
     """Send email notification using SMTP"""
