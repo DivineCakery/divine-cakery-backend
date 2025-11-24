@@ -18,6 +18,7 @@ import hashlib
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import re
 
 from models import (
     UserCreate, UserLogin, User, UserInDB, UserRole, Token, TokenData,
