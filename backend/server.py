@@ -1289,6 +1289,10 @@ async def update_user_by_admin(
         user_data["hashed_password"] = get_password_hash(user_data["password"])
         user_data.pop("password")
     
+    # If phone is being updated, normalize it
+    if "phone" in user_data and user_data["phone"]:
+        user_data["phone"] = normalize_phone_number(user_data["phone"])
+    
     # Update user
     await db.users.update_one({"id": user_id}, {"$set": user_data})
     
