@@ -59,7 +59,12 @@ export default function PendingApprovalsScreen() {
               
               // Send WhatsApp notification
               if (result.phone) {
-                const phoneNumber = result.phone.replace(/\D/g, '');
+                // Backend now returns phone with +91, just remove non-digits
+                let phoneNumber = result.phone.replace(/\D/g, '');
+                // Ensure it starts with country code (91)
+                if (!phoneNumber.startsWith('91') && phoneNumber.length === 10) {
+                  phoneNumber = '91' + phoneNumber;
+                }
                 const message = `🎉 Great news! Your Divine Cakery account has been approved! You can now login and start ordering. Welcome to our family! - Divine Cakery`;
                 const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
                 
