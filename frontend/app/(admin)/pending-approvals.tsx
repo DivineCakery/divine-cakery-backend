@@ -108,7 +108,12 @@ export default function PendingApprovalsScreen() {
               
               // Send WhatsApp notification
               if (result.phone) {
-                const phoneNumber = result.phone.replace(/\D/g, '');
+                // Backend now returns phone with +91, just remove non-digits
+                let phoneNumber = result.phone.replace(/\D/g, '');
+                // Ensure it starts with country code (91)
+                if (!phoneNumber.startsWith('91') && phoneNumber.length === 10) {
+                  phoneNumber = '91' + phoneNumber;
+                }
                 const message = `Hello! Your Divine Cakery registration requires additional verification. Please call us at ${DIVINE_WHATSAPP_NUMBER} for account approval. Thank you! - Divine Cakery`;
                 const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
                 
