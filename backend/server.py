@@ -1158,7 +1158,7 @@ async def create_order_agent(
         "id": agent_id,
         "username": agent_data.username,
         "email": agent_data.email,
-        "phone": agent_data.phone,
+        "phone": normalize_phone_number(agent_data.phone) if agent_data.phone else None,
         "role": UserRole.CUSTOMER,
         "business_name": owner.get("business_name", ""),
         "address": owner.get("address", ""),
