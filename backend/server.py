@@ -1092,7 +1092,7 @@ async def create_user_by_admin(
         "id": user_id,
         "username": user_data.username,
         "email": user_data.email,
-        "phone": user_data.phone,
+        "phone": normalize_phone_number(user_data.phone) if user_data.phone else None,
         "role": UserRole.CUSTOMER,
         "business_name": user_data.business_name,
         "address": user_data.address,
