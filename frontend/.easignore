@@ -26,9 +26,11 @@ Thumbs.db
 
 # Logs
 *.log
+*-build*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+build_*.log
 
 # Environment files (already configured in eas.json)
 .env.local
