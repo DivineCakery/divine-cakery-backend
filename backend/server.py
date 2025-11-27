@@ -528,6 +528,13 @@ async def update_product(
     update_data = {k: v for k, v in product_data.dict().items() if v is not None}
     update_data["updated_at"] = datetime.utcnow()
     
+    # Ensure categories is populated - if empty or not provided, use category field
+    if "categories" in update_data and not update_data.get("categories"):
+        update_data["categories"] = [update_data["category"]] if update_data.get("category") else []
+    elif "category" in update_data and "categories" not in update_data:
+        # If only category is provided, also update categories array
+        update_data["categories"] = [update_data["category"]]
+    
     await db.products.update_one({"id": product_id}, {"$set": update_data})
     
     updated_product = await db.products.find_one({"id": product_id})
