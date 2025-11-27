@@ -50,6 +50,7 @@ export default function ManageProductsScreen() {
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
+      console.log('Fetched categories:', data);
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
