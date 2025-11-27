@@ -214,6 +214,14 @@ export default function ProductFormScreen() {
         allergen_info: formData.allergen_info || undefined,
       };
 
+      console.log('Submitting product with categories:', {
+        category: productData.category,
+        categories: productData.categories,
+        selectedCategories: selectedCategories,
+        isDuplicate: isDuplicate,
+        isEdit: isEdit
+      });
+
       if (isEdit) {
         await apiService.updateProduct(productId, productData);
         showAlert('Success', 'Product updated successfully', [
