@@ -226,7 +226,7 @@ export default function CheckoutScreen() {
         // Prepare payment order with transaction_type and order data in notes
         const paymentData = await apiService.createPaymentOrder({
           amount: totalAmount,
-          transaction_type: 'order',
+          transaction_type: 'order_payment',
           notes: {
             order_data: {
               customer_id: user?.id,
