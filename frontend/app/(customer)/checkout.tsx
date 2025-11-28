@@ -224,40 +224,21 @@ export default function CheckoutScreen() {
         // Open Razorpay payment link in browser
         const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
         
+        clearCart();
+        await refreshUser();
+        setPlacing(false);
+        
         if (result.type === 'cancel' || result.type === 'dismiss') {
-          showAlert('Payment Cancelled', 'Payment was cancelled. Order not placed.');
-          setPlacing(false);
+          showAlert('Payment Cancelled', 'Payment was cancelled. Your order will be created only after successful payment.');
+          router.replace('/(customer)/orders');
           return;
         }
 
-        // After payment completion, create the order
-        showAlert(
-          'Payment Verification',
-          'Did you complete the payment successfully?',
-          [
-            {
-              text: 'Yes, Place Order',
-              onPress: async () => {
-                try {
-                  const response = await apiService.createOrder(orderData);
-                  clearCart();
-                  await refreshUser();
-                  showAlert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
-                    { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
-                  ]);
-                } catch (error: any) {
-                  showAlert('Error', error.response?.data?.detail || 'Failed to place order');
-                }
-                setPlacing(false);
-              }
-            },
-            {
-              text: 'No, Cancel',
-              style: 'cancel',
-              onPress: () => setPlacing(false)
-            }
-          ]
-        );
+        // After payment completion, show success message
+        // Order will be created automatically by webhook
+        showAlert('Payment Completed', 'Thank you! Your order will be confirmed shortly after payment verification.', [
+          { text: 'View Orders', onPress: () => router.replace('/(customer)/orders') },
+        ]);
       } else {
         // Wallet payment
         const response = await apiService.createOrder(orderData);
