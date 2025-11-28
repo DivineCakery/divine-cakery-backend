@@ -1220,11 +1220,15 @@ async def get_orders(
         # Remove MongoDB _id field to avoid serialization issues
         order.pop('_id', None)
         order_dict = dict(order)
-        # Fetch user information
-        user = await db.users.find_one({"id": order_dict["user_id"]})
-        if user:
-            order_dict["user_name"] = user.get("username", "N/A")
-            order_dict["user_phone"] = user.get("phone", None)
+        # Fetch user information (handle both user_id and customer_id fields)
+        user_id = order_dict.get("user_id") or order_dict.get("customer_id")
+        if user_id:
+            user = await db.users.find_one({"id": user_id})
+            if user:
+                order_dict["user_name"] = user.get("username", "N/A")
+                order_dict["user_phone"] = user.get("phone", None)
+            # Ensure user_id field exists for consistency
+            order_dict["user_id"] = user_id
         enriched_orders.append(order_dict)
     
     return enriched_orders
