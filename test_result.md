@@ -398,7 +398,25 @@ backend:
           agent: "testing"
           comment: "🎉 COMPREHENSIVE TESTING COMPLETE: All 4 critical test scenarios passed with 100% success rate! ✅ Order Payment Flow: Order payments correctly create orders without updating wallet (verified order creation with proper order_number, customer_id, items, delivery_date) ✅ Wallet Top-up Flow: Wallet top-ups correctly update wallet balance without creating orders ✅ Transaction Differentiation: Webhook correctly routes based on transaction_type ✅ Order Data Completeness: All order fields properly saved from transaction notes. CRITICAL FIXES APPLIED: 1) Fixed Razorpay 255-character notes limit by excluding large order_data from Razorpay payload 2) Fixed webhook order creation to use 'user_id' field instead of 'customer_id' 3) Enhanced get_orders endpoint to handle both field names for backward compatibility. Feature is production-ready and fully functional."
 
+frontend:
+  - task: "Checkout page - Stop loading after Razorpay browser closes"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/(customer)/checkout.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "BUG: After Razorpay payment, the checkout page shows a forever rotating circle (loading spinner) in a grey tab and doesn't close automatically. The page is stuck in loading state."
+        - working: true
+          agent: "main"
+          comment: "FIX APPLIED: Updated WebBrowser.openBrowserAsync() call to properly handle browser dismissal. Changes: 1) Store result of openBrowserAsync 2) Stop loading (setPlacing(false)) IMMEDIATELY when browser closes 3) Added WebBrowser options: dismissButtonStyle='close', showTitle=true, toolbarColor for better UX 4) Moved setPlacing(false) to execute right after browser closes, before cart clearing and alerts. This ensures the loading spinner stops as soon as the user closes the Razorpay payment browser, preventing the infinite loading issue."
+
 agent_communication:
+    - agent: "main"
+      message: "🔧 CHECKOUT LOADING FIX: Resolved the infinite loading spinner issue after Razorpay payment. Problem was that setPlacing(false) was placed after cart clearing and refreshUser, causing delay. Now stops loading immediately when WebBrowser closes. Also added better browser options (close button, title bar, branded toolbar color) for improved UX."
     - agent: "main"
       message: "🔧 CRITICAL PAYMENT WEBHOOK FIX: Resolved the issue where order payments were incorrectly processed as wallet top-ups. Root cause: Frontend was only sending amount to createPaymentOrder, missing transaction_type and order_data. Fixed by updating checkout.tsx to send: 1) transaction_type: 'order_payment' 2) notes.order_data with customer_id, items, delivery details. Backend webhook logic was already correct - it checks transaction["transaction_type"] and routes to wallet update (line 829) or order creation (line 850). Now frontend properly differentiates order payments from wallet top-ups. Ready for backend testing to verify webhook correctly creates orders."
     - agent: "testing"
