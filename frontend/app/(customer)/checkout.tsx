@@ -251,8 +251,12 @@ export default function CheckoutScreen() {
           throw new Error('Failed to create payment link');
         }
         
-        // Open Razorpay payment link in browser
-        const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
+        // Open Razorpay payment link in browser with dismissButtonStyle
+        const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url, {
+          dismissButtonStyle: 'close',
+          showTitle: true,
+          toolbarColor: '#8B4513',
+        });
         
         // Browser has closed or been dismissed (user returned from payment screen)
         // Stop loading immediately when browser is closed
