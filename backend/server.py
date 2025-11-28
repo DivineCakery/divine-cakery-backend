@@ -709,15 +709,19 @@ async def create_payment_order(
         timestamp = int(datetime.utcnow().timestamp())
         reference_id = f"txn_{short_user_id}_{timestamp}"[:40]
         
+        # Build customer data - only include fields that have values
+        customer_data = {}
+        if current_user.business_name or current_user.username:
+            customer_data["name"] = current_user.business_name or current_user.username
+        if current_user.phone:
+            customer_data["contact"] = normalize_phone_number(current_user.phone)
+        if current_user.email:
+            customer_data["email"] = current_user.email
+        
         payment_link_data = {
             "amount": int(payment_data.amount * 100),  # Convert to paise
             "currency": "INR",
             "description": f"{payment_data.transaction_type.title()} - Divine Cakery",
-            "customer": {
-                "name": current_user.business_name or current_user.username,
-                "contact": current_user.phone or "",
-                "email": current_user.email or ""
-            },
             "notify": {
                 "sms": False,
                 "email": False
@@ -727,14 +731,25 @@ async def create_payment_order(
             "notes": {
                 "user_id": current_user.id,
                 "transaction_id": transaction_id,
-                "transaction_type": payment_data.transaction_type,
-                **(payment_data.notes or {})
+                "transaction_type": payment_data.transaction_type
             },
             "callback_url": f"{os.environ.get('BACKEND_URL', 'http://localhost:8001')}/api/payments/callback",
             "callback_method": "get"
         }
         
+        # Add customer data only if we have some info
+        if customer_data:
+            payment_link_data["customer"] = customer_data
+        
+        # Add any additional notes
+        if payment_data.notes:
+            payment_link_data["notes"].update(payment_data.notes)
+        
+        logger.info(f"Creating payment link with data: amount={payment_link_data['amount']}, callback={payment_link_data['callback_url']}")
+        
         payment_link = razorpay_client.payment_link.create(payment_link_data)
+        
+        logger.info(f"Payment link created successfully: {payment_link.get('id')}")
         
         # Create transaction record
         transaction_dict = {
