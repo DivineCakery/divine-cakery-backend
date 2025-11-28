@@ -222,25 +222,24 @@ export default function CheckoutScreen() {
         }
         
         // Open Razorpay payment link in browser
-        const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
+        await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
         
-        // After browser closes (user returns from Razorpay)
-        if (result.type === 'cancel' || result.type === 'dismiss') {
-          setPlacing(false);
-          showAlert('Payment Cancelled', 'Payment was cancelled. Your order will be created only after successful payment.');
-          return;
-        }
-
-        // Payment browser closed normally (payment completed or attempted)
-        // Clear cart and refresh user data
+        // Browser has closed (user returned from payment screen)
+        // Clear cart and stop loading regardless of payment status
+        // Order will only be created by webhook if payment was successful
         clearCart();
         await refreshUser();
         setPlacing(false);
 
-        // Show success message - order will be created automatically by webhook
-        showAlert('Thank You!', 'Your payment is being processed. Your order will appear in "My Orders" within a few seconds.', [
-          { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
-        ]);
+        // Show message - order will be created automatically by webhook if payment succeeded
+        showAlert(
+          'Payment Screen Closed', 
+          'If you completed the payment, your order will appear in "My Orders" within a few seconds. Otherwise, no order will be placed.', 
+          [
+            { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
+            { text: 'OK', style: 'cancel' }
+          ]
+        );
       } else {
         // Wallet payment
         const response = await apiService.createOrder(orderData);
