@@ -702,6 +702,13 @@ async def create_payment_order(
     current_user: User = Depends(get_current_user)
 ):
     try:
+        # Debug logging to see what's received
+        logger.info(f"🔍 Payment order request: transaction_type={payment_data.transaction_type}, amount={payment_data.amount}, has_notes={payment_data.notes is not None}")
+        if payment_data.notes:
+            logger.info(f"🔍 Notes keys: {list(payment_data.notes.keys())}")
+            if 'order_data' in payment_data.notes:
+                logger.info(f"🔍 Order data exists with customer_id: {payment_data.notes['order_data'].get('customer_id')}")
+        
         # Create transaction record first
         transaction_id = str(uuid.uuid4())
         
