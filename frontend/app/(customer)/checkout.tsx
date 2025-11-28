@@ -224,20 +224,22 @@ export default function CheckoutScreen() {
         // Open Razorpay payment link in browser
         const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
         
-        clearCart();
-        await refreshUser();
-        setPlacing(false);
-        
+        // After browser closes (user returns from Razorpay)
         if (result.type === 'cancel' || result.type === 'dismiss') {
+          setPlacing(false);
           showAlert('Payment Cancelled', 'Payment was cancelled. Your order will be created only after successful payment.');
-          router.replace('/(customer)/orders');
           return;
         }
 
-        // After payment completion, show success message
-        // Order will be created automatically by webhook
-        showAlert('Payment Completed', 'Thank you! Your order will be confirmed shortly after payment verification.', [
-          { text: 'View Orders', onPress: () => router.replace('/(customer)/orders') },
+        // Payment browser closed normally (payment completed or attempted)
+        // Clear cart and refresh user data
+        clearCart();
+        await refreshUser();
+        setPlacing(false);
+
+        // Show success message - order will be created automatically by webhook
+        showAlert('Thank You!', 'Your payment is being processed. Your order will appear in "My Orders" within a few seconds.', [
+          { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
         ]);
       } else {
         // Wallet payment
