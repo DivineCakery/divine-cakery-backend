@@ -134,10 +134,14 @@ class BackendTester:
         """Create a payment order"""
         try:
             headers = {"Authorization": f"Bearer {self.test_user_token}"}
+            # Add unique identifier to notes to avoid duplicate reference_id issues
+            unique_notes = notes or {}
+            unique_notes["test_id"] = str(uuid.uuid4())[:8]
+            
             payment_data = {
                 "amount": amount,
                 "transaction_type": transaction_type,
-                "notes": notes or {}
+                "notes": unique_notes
             }
             
             response = requests.post(f"{API_BASE}/payments/create-order", json=payment_data, headers=headers)
