@@ -741,9 +741,14 @@ async def create_payment_order(
         if customer_data:
             payment_link_data["customer"] = customer_data
         
-        # Add any additional notes
+        # Add any additional notes (but exclude large order_data for Razorpay)
         if payment_data.notes:
-            payment_link_data["notes"].update(payment_data.notes)
+            # Only send essential data to Razorpay (due to 255 char limit)
+            razorpay_notes = {}
+            for key, value in payment_data.notes.items():
+                if key != "order_data":  # Skip order_data for Razorpay
+                    razorpay_notes[key] = value
+            payment_link_data["notes"].update(razorpay_notes)
         
         logger.info(f"Creating payment link with data: amount={payment_link_data['amount']}, callback={payment_link_data['callback_url']}")
         
