@@ -825,7 +825,7 @@ async def payment_webhook(request: Request):
                 }
             )
             
-            # Update wallet if wallet topup
+            # Handle different transaction types
             if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
                 user_id = transaction["user_id"]
                 amount = transaction["amount"]
@@ -846,6 +846,40 @@ async def payment_webhook(request: Request):
                 )
                 
                 logger.info(f"✅ Wallet updated successfully: user_id={user_id}, amount={amount}")
+            
+            elif transaction["transaction_type"] == TransactionType.ORDER_PAYMENT:
+                # Create the order after successful payment
+                order_data = transaction.get("notes", {}).get("order_data")
+                
+                if order_data:
+                    # Generate order number
+                    order_number = await generate_order_number()
+                    order_id = str(uuid.uuid4())
+                    
+                    # Create order document
+                    order_dict = {
+                        "id": order_id,
+                        "order_number": order_number,
+                        "customer_id": order_data["customer_id"],
+                        "items": order_data["items"],
+                        "total_amount": order_data["total_amount"],
+                        "delivery_date": datetime.fromisoformat(order_data["delivery_date"].replace('Z', '+00:00')) if isinstance(order_data["delivery_date"], str) else order_data["delivery_date"],
+                        "delivery_address": order_data.get("delivery_address"),
+                        "delivery_notes": order_data.get("delivery_notes"),
+                        "payment_method": order_data.get("payment_method", "razorpay"),
+                        "payment_status": "paid",
+                        "order_status": OrderStatus.PENDING,
+                        "created_at": datetime.utcnow(),
+                        "updated_at": datetime.utcnow(),
+                        "onsite_pickup": order_data.get("onsite_pickup", False)
+                    }
+                    
+                    # Insert order
+                    await db.orders.insert_one(order_dict)
+                    
+                    logger.info(f"✅ Order created successfully after payment: order_id={order_id}, order_number={order_number}, customer_id={order_data['customer_id']}")
+                else:
+                    logger.error("Order data not found in transaction notes")
             
             return {"status": "success", "message": "Payment processed"}
         
