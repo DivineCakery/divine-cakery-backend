@@ -764,6 +764,90 @@ async def create_payment_order(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/payments/callback")
+async def payment_callback(
+    razorpay_payment_id: str = None,
+    razorpay_payment_link_id: str = None,
+    razorpay_payment_link_reference_id: str = None,
+    razorpay_payment_link_status: str = None,
+    razorpay_signature: str = None
+):
+    """
+    Razorpay callback endpoint - called automatically after payment
+    This endpoint processes successful payments and updates wallet balance
+    """
+    try:
+        logger.info(f"Payment callback received: payment_id={razorpay_payment_id}, status={razorpay_payment_link_status}")
+        
+        if razorpay_payment_link_status == "paid":
+            # Find transaction by payment link ID
+            transaction = await db.transactions.find_one({
+                "razorpay_payment_link_id": razorpay_payment_link_id
+            })
+            
+            if not transaction:
+                logger.error(f"Transaction not found for payment_link_id: {razorpay_payment_link_id}")
+                return RedirectResponse(url="/payment-failed")
+            
+            # Update transaction status
+            await db.transactions.update_one(
+                {"id": transaction["id"]},
+                {
+                    "$set": {
+                        "razorpay_payment_id": razorpay_payment_id,
+                        "status": TransactionStatus.SUCCESS,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            
+            # Update wallet if wallet topup
+            if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
+                user_id = transaction["user_id"]
+                amount = transaction["amount"]
+                
+                # Update wallet balance
+                await db.wallets.update_one(
+                    {"user_id": user_id},
+                    {
+                        "$inc": {"balance": amount},
+                        "$set": {"updated_at": datetime.utcnow()}
+                    }
+                )
+                
+                # Update user's wallet balance
+                await db.users.update_one(
+                    {"id": user_id},
+                    {"$inc": {"wallet_balance": amount}}
+                )
+                
+                # Get user details for notification
+                user = await db.users.find_one({"id": user_id})
+                
+                # Send WhatsApp confirmation if phone available
+                if user and user.get("phone"):
+                    phone = user["phone"]
+                    # Normalize phone number
+                    phone_normalized = normalize_phone_number(phone).replace("+", "")
+                    message = f"✅ Payment Successful! ₹{amount:.2f} has been added to your Divine Cakery wallet. Thank you!"
+                    
+                    # Log for now (WhatsApp integration can be added later)
+                    logger.info(f"Would send WhatsApp to {phone_normalized}: {message}")
+                
+                logger.info(f"Wallet updated: user_id={user_id}, amount={amount}")
+            
+            # Return success page or redirect
+            return {"status": "success", "message": "Payment successful and wallet updated"}
+        
+        else:
+            logger.warning(f"Payment not successful: status={razorpay_payment_link_status}")
+            return {"status": "failed", "message": "Payment was not successful"}
+    
+    except Exception as e:
+        logger.error(f"Error in payment callback: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
 @api_router.post("/payments/verify")
 async def verify_payment(
     verification_data: PaymentVerification,
