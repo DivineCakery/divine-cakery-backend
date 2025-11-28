@@ -252,14 +252,16 @@ export default function CheckoutScreen() {
         }
         
         // Open Razorpay payment link in browser
-        await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
+        const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
         
-        // Browser has closed (user returned from payment screen)
-        // Clear cart and stop loading regardless of payment status
+        // Browser has closed or been dismissed (user returned from payment screen)
+        // Stop loading immediately when browser is closed
+        setPlacing(false);
+        
+        // Clear cart regardless of payment status
         // Order will only be created by webhook if payment was successful
         clearCart();
         await refreshUser();
-        setPlacing(false);
 
         // Show message - order will be created automatically by webhook if payment succeeded
         showAlert(
