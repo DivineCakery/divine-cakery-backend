@@ -20,6 +20,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import re
+import json
 
 from models import (
     UserCreate, UserLogin, User, UserInDB, UserRole, Token, TokenData,
