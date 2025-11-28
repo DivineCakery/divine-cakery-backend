@@ -748,7 +748,16 @@ async def create_payment_order(
             for key, value in payment_data.notes.items():
                 if key != "order_data":  # Skip order_data for Razorpay
                     razorpay_notes[key] = value
-            payment_link_data["notes"].update(razorpay_notes)
+            
+            # Check total length before sending to Razorpay
+            total_notes = {**payment_link_data["notes"], **razorpay_notes}
+            notes_str = json.dumps(total_notes)
+            logger.info(f"Razorpay notes length: {len(notes_str)} chars: {notes_str[:200]}...")
+            
+            if len(notes_str) <= 255:
+                payment_link_data["notes"].update(razorpay_notes)
+            else:
+                logger.warning(f"Notes too long for Razorpay ({len(notes_str)} chars), skipping additional notes")
         
         logger.info(f"Creating payment link with data: amount={payment_link_data['amount']}, callback={payment_link_data['callback_url']}")
         
