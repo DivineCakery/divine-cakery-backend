@@ -875,7 +875,7 @@ async def payment_webhook(request: Request):
                     order_dict = {
                         "id": order_id,
                         "order_number": order_number,
-                        "customer_id": order_data["customer_id"],
+                        "user_id": order_data["customer_id"],
                         "items": order_data["items"],
                         "total_amount": order_data["total_amount"],
                         "delivery_date": datetime.fromisoformat(order_data["delivery_date"].replace('Z', '+00:00')) if isinstance(order_data["delivery_date"], str) else order_data["delivery_date"],
