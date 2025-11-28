@@ -379,7 +379,25 @@ test_plan:
           agent: "testing"
           comment: "🎉 COMPREHENSIVE AGENT-OWNER LINKING TESTING COMPLETE: All 12 test scenarios passed with 100% success rate! Verified all requested functionality: ✅ Create New Owner User: POST /api/admin/users with user_type='owner' and linked_owner_id=null works correctly ✅ Create New Agent User: POST /api/admin/users with user_type='order_agent' and linked_owner_id pointing to owner works correctly ✅ Update Existing User to Agent: PUT /api/admin/users/{user_id} successfully changes user_type to 'order_agent' and sets linked_owner_id ✅ Update Existing User to Owner: PUT /api/admin/users/{user_id} successfully changes user_type to 'owner' and clears linked_owner_id ✅ Get All Users: GET /api/admin/users returns all users with user_type and linked_owner_id fields included ✅ Edge Cases: Agent creation without linked_owner_id works (backend allows), default user_type is 'owner', backward compatibility maintained ✅ Database Persistence: All user_type and linked_owner_id values correctly saved and retrieved ✅ Admin Authentication: All endpoints properly secured with admin credentials (admin/admin123). Feature is production-ready and fully functional. Backend API correctly handles all Agent-Owner linking operations as specified."
 
+backend:
+  - task: "Payment webhook - Order vs Wallet differentiation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/app/(customer)/checkout.tsx"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "CRITICAL BUG: When customer pays for an ORDER, the webhook incorrectly processes it as a WALLET TOP-UP. Log shows: 'Payment link created successfully' followed by '✅ Wallet updated successfully' instead of order creation. This means orders are not being created and customer wallets are incorrectly credited."
+        - working: "NA"
+          agent: "main"
+          comment: "ROOT CAUSE IDENTIFIED: Frontend checkout.tsx was calling createPaymentOrder with ONLY the amount (line 218), not passing transaction_type or order data. This caused backend webhook to process all payments as wallet top-ups. FIX IMPLEMENTED: 1) Updated checkout.tsx to pass complete payment data object including transaction_type='order_payment' 2) Added order_data in notes containing customer_id, items, delivery_date, address, etc. 3) This matches the webhook logic that checks transaction_type (line 829 WALLET_TOPUP vs line 850 ORDER_PAYMENT) and uses notes.order_data to create the order. Backend code was correct all along - the frontend was missing critical data."
+
 agent_communication:
+    - agent: "main"
+      message: "🔧 CRITICAL PAYMENT WEBHOOK FIX: Resolved the issue where order payments were incorrectly processed as wallet top-ups. Root cause: Frontend was only sending amount to createPaymentOrder, missing transaction_type and order_data. Fixed by updating checkout.tsx to send: 1) transaction_type: 'order_payment' 2) notes.order_data with customer_id, items, delivery details. Backend webhook logic was already correct - it checks transaction["transaction_type"] and routes to wallet update (line 829) or order creation (line 850). Now frontend properly differentiates order payments from wallet top-ups. Ready for backend testing to verify webhook correctly creates orders."
     - agent: "main"
       message: "Implemented three new features: 1) Date-wise revenue tracking API endpoint that returns last 7 days breakdown. 2) Admin dashboard now displays 7-day revenue in a card format with day names, dates, amounts and order counts. 3) Manage orders page now automatically sends WhatsApp message when order is confirmed and shows 'Confirmed' button in grey color. Ready for backend testing."
     - agent: "testing"
