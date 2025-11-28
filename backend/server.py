@@ -2119,6 +2119,19 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
+@api_router.get("/version")
+async def version_check():
+    return {
+        "version": "v2.0-webhook-fix",
+        "commit": "4966fd09",
+        "features": [
+            "webhook_endpoint_enabled",
+            "optional_customer_fields",
+            "phone_normalization"
+        ],
+        "timestamp": "2025-11-28T06:45:00Z"
+    }
+
 
 # TEMPORARY: Setup endpoint to create first admin (remove after setup)
 @api_router.get("/debug/users-raw")
