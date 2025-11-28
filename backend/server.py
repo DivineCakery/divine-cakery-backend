@@ -780,6 +780,84 @@ async def create_payment_order(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.post("/payments/webhook")
+async def payment_webhook(request: Request):
+    """
+    Razorpay webhook endpoint - receives payment notifications from Razorpay
+    This is the proper way to handle payment confirmations
+    """
+    try:
+        # Get webhook payload
+        payload = await request.json()
+        logger.info(f"Webhook received: {payload.get('event', 'unknown event')}")
+        
+        event = payload.get("event")
+        payment_entity = payload.get("payload", {}).get("payment_link", {}).get("entity", {})
+        
+        if event == "payment_link.paid":
+            payment_link_id = payment_entity.get("id")
+            reference_id = payment_entity.get("reference_id")
+            amount = payment_entity.get("amount", 0) / 100  # Convert from paise
+            
+            logger.info(f"Payment link paid: link_id={payment_link_id}, reference_id={reference_id}, amount={amount}")
+            
+            # Find transaction by payment link ID or reference ID
+            transaction = await db.transactions.find_one({
+                "$or": [
+                    {"razorpay_payment_link_id": payment_link_id},
+                    {"id": reference_id}
+                ]
+            })
+            
+            if not transaction:
+                logger.error(f"Transaction not found for payment_link_id: {payment_link_id}")
+                return {"status": "error", "message": "Transaction not found"}
+            
+            # Update transaction status
+            await db.transactions.update_one(
+                {"id": transaction["id"]},
+                {
+                    "$set": {
+                        "razorpay_payment_link_id": payment_link_id,
+                        "status": TransactionStatus.SUCCESS,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            
+            # Update wallet if wallet topup
+            if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
+                user_id = transaction["user_id"]
+                amount = transaction["amount"]
+                
+                # Update wallet balance
+                await db.wallets.update_one(
+                    {"user_id": user_id},
+                    {
+                        "$inc": {"balance": amount},
+                        "$set": {"updated_at": datetime.utcnow()}
+                    }
+                )
+                
+                # Update user's wallet balance
+                await db.users.update_one(
+                    {"id": user_id},
+                    {"$inc": {"wallet_balance": amount}}
+                )
+                
+                logger.info(f"✅ Wallet updated successfully: user_id={user_id}, amount={amount}")
+            
+            return {"status": "success", "message": "Payment processed"}
+        
+        else:
+            logger.info(f"Unhandled webhook event: {event}")
+            return {"status": "ok", "message": "Event received"}
+    
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
+
 @api_router.get("/payments/callback")
 async def payment_callback(
     request: Request,
@@ -790,8 +868,8 @@ async def payment_callback(
     razorpay_signature: str = None
 ):
     """
-    Razorpay callback endpoint - called automatically after payment
-    This endpoint processes successful payments and updates wallet balance
+    Razorpay callback endpoint - redirects user back to app after payment
+    NOTE: This is just for user redirect, not for payment processing
     """
     try:
         # Log all query parameters for debugging
