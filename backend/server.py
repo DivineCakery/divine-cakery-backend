@@ -2155,15 +2155,25 @@ async def health():
 
 @api_router.get("/version")
 async def version_check():
+    import subprocess
+    try:
+        # Get current git commit hash
+        commit_hash = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+    except:
+        commit_hash = "unknown"
+    
     return {
-        "version": "v2.0-webhook-fix",
-        "commit": "4966fd09",
+        "version": "v3.0-payment-checkout-fix",
+        "commit": commit_hash,
         "features": [
             "webhook_endpoint_enabled",
+            "webhook_order_creation",
             "optional_customer_fields",
-            "phone_normalization"
+            "phone_normalization",
+            "checkout_flow_fixed"
         ],
-        "timestamp": "2025-11-28T06:45:00Z"
+        "timestamp": "2025-11-28T09:00:00Z",
+        "deployed_on_render": True
     }
 
 
