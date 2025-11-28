@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Agent-Owner Linking Feature
-Tests all CRUD operations for user management with user_type and linked_owner_id fields
+Backend Testing Suite for Divine Cakery Payment Webhook
+Tests the critical payment webhook fix to ensure order payments are correctly differentiated from wallet top-ups.
 """
 
 import requests
 import json
-import sys
-from datetime import datetime
-from typing import Dict, Any, Optional
+import uuid
+from datetime import datetime, timedelta
+import time
+import os
+from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://cakeryflow.preview.emergentagent.com/api"
+BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://cakeryflow.preview.emergentagent.com')
+API_BASE = f"{BACKEND_URL}/api"
+
+# Admin credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
