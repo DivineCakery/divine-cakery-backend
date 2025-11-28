@@ -782,6 +782,7 @@ async def create_payment_order(
 
 @api_router.get("/payments/callback")
 async def payment_callback(
+    request: Request,
     razorpay_payment_id: str = None,
     razorpay_payment_link_id: str = None,
     razorpay_payment_link_reference_id: str = None,
@@ -793,7 +794,9 @@ async def payment_callback(
     This endpoint processes successful payments and updates wallet balance
     """
     try:
-        logger.info(f"Payment callback received: payment_id={razorpay_payment_id}, status={razorpay_payment_link_status}")
+        # Log all query parameters for debugging
+        logger.info(f"Payment callback received with params: {dict(request.query_params)}")
+        logger.info(f"Payment callback: payment_id={razorpay_payment_id}, link_id={razorpay_payment_link_id}, status={razorpay_payment_link_status}")
         
         if razorpay_payment_link_status == "paid":
             # Find transaction by payment link ID
