@@ -215,7 +215,37 @@ export default function CheckoutScreen() {
 
       if (paymentMethod === 'upi') {
         // UPI/Razorpay payment
-        const paymentData = await apiService.createPaymentOrder(totalAmount);
+        // Calculate delivery date ISO string for backend
+        const now = new Date();
+        const currentHour = now.getHours();
+        const deliveryDate = new Date(now);
+        if (currentHour >= 4) {
+          deliveryDate.setDate(now.getDate() + 1);
+        }
+        
+        // Prepare payment order with transaction_type and order data in notes
+        const paymentData = await apiService.createPaymentOrder({
+          amount: totalAmount,
+          transaction_type: 'order',
+          notes: {
+            order_data: {
+              customer_id: user?.id,
+              items: items.map(item => ({
+                product_id: item.product_id,
+                product_name: item.product_name,
+                quantity: item.quantity,
+                price: item.price,
+                subtotal: item.subtotal,
+              })),
+              total_amount: totalAmount,
+              delivery_date: deliveryDate.toISOString(),
+              delivery_address: orderType === 'delivery' ? deliveryAddress : undefined,
+              delivery_notes: notes || undefined,
+              payment_method: 'razorpay',
+              onsite_pickup: orderType === 'pickup'
+            }
+          }
+        });
         
         if (!paymentData.payment_link_url) {
           throw new Error('Failed to create payment link');
