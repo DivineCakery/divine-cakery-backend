@@ -702,12 +702,29 @@ async def create_payment_order(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        # Debug logging to see what's received
-        logger.info(f"🔍 Payment order request: transaction_type={payment_data.transaction_type}, amount={payment_data.amount}, has_notes={payment_data.notes is not None}")
+        # Enhanced debug logging
+        logger.info(f"🔍🔍🔍 PAYMENT REQUEST DEBUG START 🔍🔍🔍")
+        logger.info(f"🔍 transaction_type: {payment_data.transaction_type} (type: {type(payment_data.transaction_type)})")
+        logger.info(f"🔍 amount: {payment_data.amount}")
+        logger.info(f"🔍 has_notes: {payment_data.notes is not None}")
+        logger.info(f"🔍 user_id: {current_user.id}")
+        logger.info(f"🔍 username: {current_user.username}")
+        
         if payment_data.notes:
             logger.info(f"🔍 Notes keys: {list(payment_data.notes.keys())}")
+            logger.info(f"🔍 Notes content (first 500 chars): {str(payment_data.notes)[:500]}")
             if 'order_data' in payment_data.notes:
-                logger.info(f"🔍 Order data exists with customer_id: {payment_data.notes['order_data'].get('customer_id')}")
+                order_data = payment_data.notes['order_data']
+                logger.info(f"🔍 Order data found!")
+                logger.info(f"🔍 Order customer_id: {order_data.get('customer_id')}")
+                logger.info(f"🔍 Order items count: {len(order_data.get('items', []))}")
+                logger.info(f"🔍 Order total_amount: {order_data.get('total_amount')}")
+            else:
+                logger.warning(f"⚠️ No order_data in notes! This will be treated as wallet topup!")
+        else:
+            logger.warning(f"⚠️ No notes provided! This will be treated as wallet topup!")
+        
+        logger.info(f"🔍🔍🔍 PAYMENT REQUEST DEBUG END 🔍🔍🔍")
         
         # Create transaction record first
         transaction_id = str(uuid.uuid4())
