@@ -440,6 +440,8 @@ export default function CustomerFormScreen() {
                       onValueChange={(value) => setFormData({ ...formData, linked_owner_id: value })}
                       enabled={!loading}
                       style={styles.picker}
+                      mode="dropdown"
+                      dropdownIconColor="#8B4513"
                     >
                       <Picker.Item label="-- Select Owner --" value="" />
                       {owners.map((owner: any) => (
