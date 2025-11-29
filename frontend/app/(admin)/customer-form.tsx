@@ -417,6 +417,8 @@ export default function CustomerFormScreen() {
                   }}
                   enabled={!loading}
                   style={styles.picker}
+                  mode="dropdown"
+                  dropdownIconColor="#8B4513"
                 >
                   <Picker.Item label="Owner" value="owner" />
                   <Picker.Item label="Agent" value="order_agent" />
