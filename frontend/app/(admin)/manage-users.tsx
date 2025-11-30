@@ -27,6 +27,8 @@ export default function ManageUsersScreen() {
   const [selectedUsername, setSelectedUsername] = useState('');
   const [balanceAmount, setBalanceAmount] = useState('');
   const [linkedAgents, setLinkedAgents] = useState<any>({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'customer'>('all');
 
   useEffect(() => {
     fetchUsers();
