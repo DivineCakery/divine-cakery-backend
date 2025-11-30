@@ -311,6 +311,53 @@ export default function ManageUsersScreen() {
           )}
         </View>
       </View>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by name or phone..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#999"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        {/* Role Filter Buttons */}
+        <View style={styles.filterButtons}>
+          <TouchableOpacity
+            style={[styles.filterButton, roleFilter === 'all' && styles.filterButtonActive]}
+            onPress={() => setRoleFilter('all')}
+          >
+            <Text style={[styles.filterButtonText, roleFilter === 'all' && styles.filterButtonTextActive]}>
+              All ({users.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, roleFilter === 'admin' && styles.filterButtonActive]}
+            onPress={() => setRoleFilter('admin')}
+          >
+            <Text style={[styles.filterButtonText, roleFilter === 'admin' && styles.filterButtonTextActive]}>
+              Admins ({users.filter((u: any) => u.role === 'admin').length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, roleFilter === 'customer' && styles.filterButtonActive]}
+            onPress={() => setRoleFilter('customer')}
+          >
+            <Text style={[styles.filterButtonText, roleFilter === 'customer' && styles.filterButtonTextActive]}>
+              Customers ({users.filter((u: any) => u.role === 'customer').length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {selectionMode ? (
         <View style={styles.selectionHeader}>
           <TouchableOpacity
@@ -327,11 +374,32 @@ export default function ManageUsersScreen() {
           <Text style={styles.selectedCount}>{selectedUsers.length} selected</Text>
         </View>
       ) : (
-        <Text style={styles.headerSubtitle}>{users.length} Users Total</Text>
+        <Text style={styles.headerSubtitle}>
+          {(() => {
+            const filtered = users.filter((user: any) => {
+              const matchesSearch = searchQuery.length === 0 || 
+                user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (user.phone && user.phone.includes(searchQuery));
+              const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+              return matchesSearch && matchesRole;
+            });
+            return `${filtered.length} user${filtered.length !== 1 ? 's' : ''} found`;
+          })()}
+        </Text>
       )}
 
       <FlatList
-        data={users}
+        data={users.filter((user: any) => {
+          // Apply search filter
+          const matchesSearch = searchQuery.length === 0 || 
+            user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (user.phone && user.phone.includes(searchQuery));
+          
+          // Apply role filter
+          const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+          
+          return matchesSearch && matchesRole;
+        })}
         renderItem={renderUser}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
