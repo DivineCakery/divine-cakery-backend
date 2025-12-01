@@ -68,21 +68,32 @@ export default function ManageOrdersScreen() {
 
   const sendWhatsAppMessage = async (order: any) => {
     try {
-      const message = getAdminOrderNotification(order.id);
+      // Send confirmation message to CUSTOMER, not admin
+      const message = `✅ Order Confirmed!\n\nYour order #${order.id.substring(0, 8)} has been confirmed by Divine Cakery.\n\nDelivery Date: ${new Date(order.delivery_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}\n\nThank you for your order!\n- Divine Cakery`;
       
-      // Use business WhatsApp number instead of customer's
-      const whatsappUrl = `whatsapp://send?phone=${DIVINE_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`;
+      // Get customer's phone number from order
+      const customerPhone = order.user_phone || order.phone;
+      
+      if (!customerPhone) {
+        showAlert('Info', 'Order confirmed, but customer phone number not available for WhatsApp notification');
+        return;
+      }
+      
+      // Remove any non-digit characters and ensure phone number format
+      const phoneNumber = customerPhone.replace(/\D/g, '');
+      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
       
       const canOpen = await Linking.canOpenURL(whatsappUrl);
       if (canOpen) {
         await Linking.openURL(whatsappUrl);
       } else {
         // Fallback to web WhatsApp
-        const webUrl = `https://wa.me/${DIVINE_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+        const webUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         await Linking.openURL(webUrl);
       }
     } catch (error) {
-      showAlert('Error', 'Could not open WhatsApp');
+      console.log('WhatsApp notification error:', error);
+      showAlert('Info', 'Order confirmed successfully, but could not open WhatsApp for customer notification');
     }
   };
 
