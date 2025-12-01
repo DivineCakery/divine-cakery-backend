@@ -13,7 +13,7 @@ import os
 from typing import Dict, Any, List
 
 # Configuration
-BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://cakeryflow.preview.emergentagent.com')
+BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://sweetorder-4.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 # Admin credentials
