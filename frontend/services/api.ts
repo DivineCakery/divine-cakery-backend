@@ -7,6 +7,10 @@ const API_BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
                      process.env.EXPO_PUBLIC_BACKEND_URL || 
                      'http://localhost:8001';
 
+console.log('API_BASE_URL configured as:', API_BASE_URL);
+console.log('Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL:', Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL);
+console.log('process.env.EXPO_PUBLIC_BACKEND_URL:', process.env.EXPO_PUBLIC_BACKEND_URL);
+
 class ApiService {
   constructor() {
     this.api = axios.create({
