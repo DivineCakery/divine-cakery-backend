@@ -296,7 +296,19 @@ export default function CheckoutScreen() {
         setPlacing(false);
       }
     } catch (error: any) {
-      showAlert('Error', error.response?.data?.detail || 'Failed to place order');
+      console.error('Error placing order:', error);
+      console.error('Error response:', error.response);
+      
+      // Handle authentication errors specifically
+      if (error.response?.status === 401 || error.response?.data?.detail === 'Not authenticated') {
+        showAlert(
+          'Session Expired', 
+          'Your session has expired. Please log in again.',
+          [{ text: 'OK', onPress: () => router.replace('/login') }]
+        );
+      } else {
+        showAlert('Error', error.response?.data?.detail || error.message || 'Failed to place order. Please try again.');
+      }
       setPlacing(false);
     }
   };
