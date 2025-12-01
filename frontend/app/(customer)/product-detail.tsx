@@ -30,10 +30,15 @@ export default function ProductDetailScreen() {
 
   const fetchProduct = async () => {
     try {
+      console.log('Fetching product with ID:', productId);
       const data = await apiService.getProduct(productId);
+      console.log('Product data received:', data ? 'Success' : 'No data');
       setProduct(data);
     } catch (error) {
-      showAlert('Error', 'Failed to load product details');
+      console.error('Error fetching product:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      showAlert('Error', `Failed to load product details: ${error.message || 'Unknown error'}`);
       router.back();
     } finally {
       setLoading(false);
