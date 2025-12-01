@@ -144,3 +144,7 @@ backup/
 PHOTOS FOR PRODUCT LIST AND APP/
 adaptive-icon-backup.png
 >>>>>>> bef83fd1bbcd3946556e9508ea19b61d751e540a
+-e 
+# Environment files
+*.env
+*.env.*
