@@ -193,6 +193,13 @@ export default function CheckoutScreen() {
   };
 
   const proceedWithOrder = async () => {
+    // Check if user is authenticated
+    if (!user || !user.id) {
+      showAlert('Authentication Required', 'Please log in to place an order');
+      router.replace('/login');
+      return;
+    }
+
     setPlacing(true);
     try {
       const orderData = {
