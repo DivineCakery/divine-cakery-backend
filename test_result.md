@@ -184,6 +184,21 @@ backend:
           comment: "✅ TESTED: Order update endpoint working correctly. Successfully updates order status to 'confirmed'. Fixed field mapping issue where 'status' field now properly maps to 'order_status' in database."
 
 frontend:
+  - task: "Product detail page loading issue"
+    implemented: true
+    working: true
+    file: "/app/frontend/app.json"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "CRITICAL BUG: Product detail pages fail to load for customers. Main product listing works correctly, but clicking on any product shows 'Failed to load product details' error. User confirmed issue persists after reinstalling mobile app and clearing browser cache."
+        - working: true
+          agent: "main"
+          comment: "ROOT CAUSE IDENTIFIED AND FIXED: The issue was in app.json file. The extra.EXPO_PUBLIC_BACKEND_URL was hardcoded to the old production Render URL (https://divine-cakery-backend.onrender.com) which is no longer accessible. This URL takes precedence over the .env file in the API service configuration (Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL is checked first). FIX: Updated app.json line 57 to use the correct environment URL (https://sweetorder-4.preview.emergentagent.com) matching the .env configuration. Restarted Expo frontend to apply changes. Product listing worked because it was likely cached or using a different code path, but product detail pages were directly calling the hardcoded URL."
+
   - task: "Display 7-day revenue breakdown on dashboard"
     implemented: true
     working: "NA"
