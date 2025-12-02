@@ -23,6 +23,7 @@ import { DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
 export default function ProductsScreen() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [debugTapCount, setDebugTapCount] = useState(0);
   const [categories, setCategories] = useState(['All']);
   const [categoriesData, setCategoriesData] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
