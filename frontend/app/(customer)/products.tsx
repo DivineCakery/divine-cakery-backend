@@ -375,6 +375,12 @@ export default function ProductsScreen() {
           <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
         </TouchableOpacity>
         <View style={styles.headerButtons}>
+          <TouchableOpacity 
+            onPress={() => router.push('/(customer)/debug-config')} 
+            style={styles.debugButton}
+          >
+            <Ionicons name="information-circle-outline" size={24} color="#fff" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
             <MaterialCommunityIcons name="whatsapp" size={20} color="#25D366" />
             <Text style={styles.contactButtonText}>Contact Us</Text>
