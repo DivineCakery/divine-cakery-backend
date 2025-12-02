@@ -75,6 +75,65 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+# Helper function to compress base64 images
+def compress_base64_image(base64_string: str, max_width: int = 800, quality: int = 70) -> str:
+    """
+    Compress a base64 encoded image to reduce size.
+    
+    Args:
+        base64_string: Base64 encoded image string (with or without data URI prefix)
+        max_width: Maximum width of the compressed image (maintains aspect ratio)
+        quality: JPEG quality (1-100, lower = smaller file size)
+    
+    Returns:
+        Compressed base64 encoded image string
+    """
+    try:
+        # Remove data URI prefix if present
+        if ',' in base64_string:
+            base64_string = base64_string.split(',', 1)[1]
+        
+        # Decode base64 to bytes
+        image_bytes = base64.b64decode(base64_string)
+        
+        # Open image with PIL
+        img = Image.open(io.BytesIO(image_bytes))
+        
+        # Convert RGBA to RGB if necessary
+        if img.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+            img = background
+        
+        # Resize if image is too large
+        if img.width > max_width:
+            ratio = max_width / img.width
+            new_height = int(img.height * ratio)
+            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Save to bytes buffer as JPEG
+        buffer = io.BytesIO()
+        img.save(buffer, format='JPEG', quality=quality, optimize=True)
+        buffer.seek(0)
+        
+        # Encode to base64
+        compressed_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        
+        # Calculate compression ratio
+        original_size = len(base64_string)
+        compressed_size = len(compressed_base64)
+        ratio = (1 - compressed_size / original_size) * 100
+        
+        logger.info(f"Image compressed: {original_size} -> {compressed_size} bytes ({ratio:.1f}% reduction)")
+        
+        return compressed_base64
+    except Exception as e:
+        logger.error(f"Error compressing image: {e}")
+        return base64_string  # Return original if compression fails
+
+
 # Helper function to normalize phone numbers with +91 country code
 def normalize_phone_number(phone: str) -> str:
     """
