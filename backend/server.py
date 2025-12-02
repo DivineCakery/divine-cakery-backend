@@ -574,17 +574,31 @@ async def get_products(
 
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str):
+    import time
+    
+    # Time the database query
+    start_query = time.time()
     product = await db.products.find_one({"id": product_id})
+    query_time = time.time() - start_query
+    
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Compress image if present
+    # Time the image compression
+    start_compress = time.time()
     if product.get("image_base64"):
+        original_size = len(product["image_base64"])
         product["image_base64"] = compress_base64_image(
             product["image_base64"],
             max_width=800,  # Resize to max 800px width
             quality=70      # JPEG quality 70 (good balance)
         )
+        compressed_size = len(product["image_base64"])
+        compress_time = time.time() - start_compress
+        
+        logger.info(f"TIMING - Product {product_id}: Query={query_time:.3f}s, Compress={compress_time:.3f}s, Total={query_time+compress_time:.3f}s, Size={original_size}->{compressed_size}")
+    else:
+        logger.info(f"TIMING - Product {product_id}: Query={query_time:.3f}s, No image")
     
     return Product(**product)
 
