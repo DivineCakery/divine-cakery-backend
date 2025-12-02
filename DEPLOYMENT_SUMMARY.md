@@ -37,7 +37,7 @@ Your app is fully configured and tested. All systems are go! 🚀
 ### **Current Environment:**
 ```
 Type: Preview/Development (Production-Ready)
-URL: https://sweetorder-4.preview.emergentagent.com
+URL: https://bakery-optimizer.preview.emergentagent.com
 Status: ✅ Running
 Uptime: 24/7
 SSL: ✅ Active

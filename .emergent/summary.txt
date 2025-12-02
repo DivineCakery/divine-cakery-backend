@@ -1,94 +1,90 @@
 <analysis>
-The trajectory details a comprehensive effort to stabilize and enhance The Divine Cakery application. The initial phase was dominated by backend deployment issues on Render.com, starting with an  related to  and  being out of sync between the local environment and the GitHub repository. After resolving this by guiding the user to update files on GitHub, a critical 502 Bad Gateway error emerged. This was traced back to the  endpoint returning an excessively large payload (~223KB) due to including base64-encoded images for all products, which crashed the service. The fix involved modifying the backend to exclude image data from the product list view, significantly reducing the response size and stabilizing the deployment.
+The trajectory details an extensive debugging process for The Divine Cakery application, a full-stack monorepo (Expo/FastAPI). The core task was to fix a critical Network Error on the product detail page in the mobile app, which was caused by a 30-second API timeout.
 
-Following backend stabilization, the work pivoted to a series of rapid frontend UI/UX enhancements based on detailed user feedback. Key tasks included: redesigning the customer-facing products and favorites pages to remove images for faster loading; a major overhaul of the admin Standing Orders page to fix UI bugs and improve functionality; implementing a highly compact, single-select, action-oriented UI for the Manage Products and Manage Stock pages; adding a Duplicate Product feature; and developing a sophisticated stock audit trail with IST timezone correction. The final task initiated was a complete UI overhaul for the Agent-Owner linking feature, starting with refactoring the Manage Users page.
+The initial investigation was a wild goose chase, focusing on incorrect backend URL configurations in  versus  files, leading to multiple failed Expo Application Services (EAS) builds (versions 43 through 48) and significant confusion between development and production environments.
+
+A turning point occurred when the engineer added detailed timing logs to the backend. This revealed the true root cause: the database query to fetch a single product from MongoDB Atlas was taking over 30 seconds. The bottleneck was identified as transferring large (3MB+), uncompressed base64 images from the database to the Render service for every request.
+
+The final, correct solution involved a significant architectural change: instead of compressing images on-the-fly when a product is requested, images are now compressed once upon upload/update and stored in their smaller, optimized state in the database.
+
+The work concluded mid-migration. A secure API endpoint () was created to compress all existing images. The user was guided through a complex process of using their browser's developer console to execute a JavaScript snippet that calls this endpoint. The last message confirms the user successfully triggered the migration, which is now running on the Render backend. The user communicates in English, so all future responses should be in English.
 </analysis>
 
 <product_requirements>
-The Divine Cakery is a wholesale bakery management application with distinct portals for customers and administrators. The core goal is to streamline ordering, stock management, and reporting for a professional, live business environment deployed on the Google Play Store.
+The Divine Cakery is a wholesale bakery management application for administrators and customers.
 
-Recent development focused on enhancing UI/UX and adding critical admin features. Key requirements implemented include:
-1.  **UI/UX Overhauls**:
-    *   **Customer Pages (, ):** Remove product images from list views to improve performance. The button to view details was updated to Details with photos.
-    *   **Admin Pages (, ):** Create highly compact, single-line list views to save space. This involved removing images, descriptions, and MRP, and implementing a single-select (radio button) pattern with common action buttons (Edit, Delete, Duplicate, Toggle Availability) at the top of the list.
-2.  **Standing Orders ():** A series of fixes to address UI bugs, including floating action button visibility, inactive buttons, and modal layouts. The delete functionality was restricted to only Cancelled orders.
-3.  **Stock Management ():** A comprehensive audit trail was implemented. This feature logs re-stock events (when all stock is reset to zero), records the user and timestamp (in IST), and displays a viewable history.
-4.  **Agent-Owner Linking**: Implement a full UI within the Add/Edit Customer form to designate a user as an Owner or an Agent and link an agent to a specific owner account. This replaces a previous, separate workflow.
+**Implemented Core Features:**
+-   **User Roles:** The system supports distinct roles like 'customer', 'agent', and 'owner'.
+-   **Product Management:** Customers can browse products, and admins can create and manage them.
+-   **Ordering System:** Customers can add items to a cart, place orders, and manage payments.
+-   **Payment Integration:** Utilizes Razorpay for direct order payments and a customer wallet system.
+-   **Automated Workflows:** A Razorpay webhook automatically processes payments and updates orders/wallets.
+
+**Problem Solved in Trajectory:**
+The most critical issue was a Network Error preventing customers from viewing product detail pages on the production mobile app. This was diagnosed as a 30+ second API response time caused by fetching large, uncompressed base64 images from the database on every request.
+
+**Implementation to Fix the Problem:**
+The backend was refactored to compress product images upon creation or update, storing the optimized, smaller images in MongoDB. This significantly reduces the data transfer size and query time. A one-time data migration process was initiated via a protected API endpoint to compress all existing product images in the database.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend**: Expo, React Native, Expo Router (file-based routing), Zustand (state management), Axios (API calls), .
-- **Backend**: FastAPI, MongoDB (via ), Pydantic (data modeling), JWT (authentication),  (hashing).
-- **Deployment & DevOps**: Render.com for backend hosting, GitHub for version control, EAS Build for mobile app compilation,  for serving the FastAPI app.
-- **Core Concepts**: Role-Based Access Control (Admin 'full' vs 'limited'), Base64 image handling and optimization, REST API design, Asynchronous operations.
+- **Full-Stack Monorepo:** Expo (React Native) frontend, FastAPI (Python) backend.
+- **Database:** MongoDB Atlas. Performance issues were tied to storing large base64 strings.
+- **Image Processing:** Python's  library was added to compress base64 images, drastically reducing their size (e.g., 3MB to 60KB).
+- **Deployment:** Backend is auto-deployed to Render.com from a GitHub repository. Frontend builds are managed by EAS.
+- **Authentication:** JWT-based. A valid token was required to trigger the admin-only migration endpoint.
+- **API Performance Tuning:** The root cause was diagnosed by moving from configuration debugging to performance profiling (timing logs).
 </key_technical_concepts>
 
 <code_architecture>
-The application is a monorepo with a  (Expo/React Native) and a  (FastAPI) directory.
-
-**Directory Structure:**
+The application is a monorepo with  and  directories.
 
 
-**Key File Modifications:**
 
--   :
-    -   **Importance**: The core FastAPI application file defining all API routes.
-    -   **Changes**:
-        -   Fixed  by changing how  was imported.
-        -   Modified the  endpoint to exclude the  field from the database query () to fix 502 errors caused by large response payloads.
-        -   Added new endpoints for stock management:  and .
-        -   Fixed a bug in  by adding a date filter to the database query, ensuring reports were not cumulative.
+-   **backend/server.py**
+    -   **Importance:** This is the core backend application file. It was the center of the performance fix.
+    -   **Summary of changes:**
+        -   A  function was added using  and .
+        -   The  and  endpoints were modified to call this compression function *before* saving a product to the database.
+        -   The  endpoint was modified to *remove* the on-the-fly image compression, as it now fetches pre-compressed images.
+        -   Detailed  logs were added to diagnose the performance bottleneck.
+        -   A new admin-only API endpoint, , was created to trigger the one-time data migration to compress all existing images in the database.
 
--   :
-    -   **Importance**: UI for admin product management.
-    -   **Changes**:
-        -   Major UI overhaul to a compact, single-line view. Replaced individual item action buttons with a global set of buttons (Edit, Duplicate, Mark Available/Unavailable, Delete) activated by a radio-button selection.
-        -   Added a Duplicate feature handler () that navigates to the product form with pre-filled data.
+-   **backend/requirements.txt**
+    -   **Importance:** Defines Python dependencies for the Render environment.
+    -   **Summary of changes:**  was added to support image compression. Its initial absence caused a deployment failure.
 
--   :
-    -   **Importance**: UI for admin stock level management.
-    -   **Changes**:
-        -   Implemented a comprehensive stock reset and audit trail system.
-        -   Added UI for displaying the current date/time in IST, a Reset All Stock to 0 button, and an expandable audit trail showing historical reset events (user, time, products count).
-        -   Added a  helper function to correctly display UTC dates from the backend in the 'Asia/Kolkata' timezone.
+-   **backend/migrate_compress_images.py & backend/compress_batch.py**
+    -   **Importance:** These were initial attempts to create a data migration script.
+    -   **Summary of changes:** These scripts were created but ultimately abandoned because running them from the local environment resulted in network timeouts when connecting to the production MongoDB Atlas. They are now deprecated in favor of the API endpoint.
 
--   :
-    -   **Importance**: UI for managing recurring customer orders.
-    -   **Changes**:
-        -   Numerous style and layout fixes to solve issues with button visibility (FAB obscured by tab bar), modal close button placement, and picker item visibility.
-        -   Updated button handlers (, ) to use the  confirmation correctly and to provide immediate UI feedback by locally updating state before re-fetching data.
-        -   Conditionally rendered the 'Delete' button to appear only for orders with a 'cancelled' status.
+-   **frontend/services/api.ts**
+    -   **Importance:** Centralizes all frontend API calls using .
+    -   **Summary of changes:** The  for axios instances was temporarily increased from 30s to 60s as a stop-gap measure while investigating the slow API. The logic for determining  was changed multiple times, toggling priority between  and , which caused significant confusion between development and production builds.
 
--   :
-    -   **Importance**: The form for creating and editing users/customers.
-    -   **Changes**:
-        -   Began the implementation of the Agent-Owner linking feature.
-        -   Added state variables for , , and a list of .
-        -   Added logic to fetch all owner type users to populate a dropdown.
-        -   Updated  to populate these new state variables when editing an existing user.
+-   **frontend/app/(customer)/debug-config.tsx & products.tsx**
+    -   **Importance:** These files were temporarily modified to add debugging tools.
+    -   **Summary of changes:** A new screen () was created to display environment variables. A hidden button was added to the  header to navigate to this debug screen. This was part of the effort to diagnose the configuration issues before the real performance bottleneck was found.
 </code_architecture>
 
 <pending_tasks>
-- **Razorpay Live Mode**: Awaiting live API keys from the user.
-- **SMTP Configuration**: Needs to be configured for sending new user registration emails.
-- **Google Play Console Assets**: User needs to provide graphics or request their generation.
-- **Agent-Owner Linking UI**: The backend and state logic are partially in place, but the UI elements (dropdowns for 'User Type' and 'Link to Owner') need to be added to  to complete the feature.
-- **Dont show again" hang**: The issue on the `manage-users` page where a "dont show again pop-up causes the system to hang was noted but not investigated or resolved.
+- **Confirm Migration Success:** Verify that the image compression migration, which was running at the end of the session, completed successfully.
+- **Remove Debug Code:** Once the fix is confirmed, remove the temporary debug screen () and the associated trigger button from .
+- **Negative Wallet Features:** Implement discussed features for admins to make negative wallet adjustments and block customers with negative balances.
+- **Create iOS Application:** Begin work on the planned iOS version of the app.
+- **Build and Release Final Version:** Create a new production build for the Play Store (e.g., Version 50) that includes the performance fix.
 </pending_tasks>
 
 <current_work>
-The last task was the implementation of a full UI for the **Agent-Owner linking** feature, which allows an admin to define a user as an Owner or an Agent and link the agent to an owner. This work is being done primarily in .
+The immediate focus is the completion of a critical data migration task. A Network Error on the product detail page was traced back to a 30+ second API response time, caused by the backend fetching large, uncompressed base64 images from the MongoDB Atlas database.
 
-So far, the following steps have been completed:
-1.  The old, redundant Create Order Agent button and its associated modal were removed from .
-2.  In :
-    -   New state variables were added:  (to hold a list of potential owner accounts),  (to hold 'owner' or 'agent'), and .
-    -   A  hook was added to fetch all users with  from the backend to populate the  state.
-    -   The  function (used when editing a user) was updated to correctly populate the new  and  state from the fetched user data.
+A comprehensive fix was implemented:
+1.  **Code Change:** The backend code in  was refactored to compress images *before* they are saved to the database (, ). The  endpoint no longer performs compression, as it now expects to fetch already-optimized images. This change was deployed to Render.
+2.  **Data Migration:** To fix existing products, an admin-only API endpoint () was created to run a script on Render that iterates through all products in the database and compresses their images.
 
-The work stopped just before adding the actual UI components to the form's JSX. The logic and state management are prepared, but the visual elements (like a Picker for  and a conditional Picker for ) have not been rendered yet.
+The previous session concluded while guiding the user to trigger this migration. Due to browser security and token expiration issues, this involved a multi-step process where the user had to use their browser's developer console to execute a JavaScript snippet. The final screenshot from the user showed , confirming that the API call to start the migration was successfully sent and the process is currently running on the Render backend. The system is now awaiting the completion of this asynchronous task.
 </current_work>
 
 <optional_next_step>
-Continue implementing the Agent-Owner UI in  by adding the necessary form fields (Pickers/dropdowns) to the JSX, allowing the admin to select the user type and link an agent to an owner.
+Confirm with the user if the migration Promise in their browser console has resolved and what the final output was. Then, test the product details page to verify the load time is now under 2 seconds.
 </optional_next_step>
