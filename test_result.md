@@ -104,6 +104,42 @@
 
 user_problem_statement: "Divine Cakery native mobile app for bakery wholesale customers. Requires: user authentication, product browsing, ordering, wallet system with credits/balance, order history, pending payments tracking, UPI-based payments (Google Pay preferred), admin panel for product/order/user management. Extended features: WhatsApp messages on order confirmation, date-wise revenue tracking (last 7 days), and complete CRUD for products and customers. WEB COMPATIBILITY: All alert buttons must work in mobile web browsers."
 
+
+backend:
+  - task: "Automatic delivery date calculation with IST timezone"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented calculate_delivery_date() helper function using pytz for IST timezone. Rules: Orders placed before 4 AM IST get same-day delivery, orders at/after 4 AM IST get next-day delivery. Backend automatically calculates delivery_date on order creation. WhatsApp confirmation messages sent by admin include this delivery date. Tested examples: Order at 11 PM on 2.12.25 → Delivery 3.12.25 (next day), Order at 3:30 AM on 3.12.25 → Delivery 3.12.25 (same day), Order at 5 AM on 3.12.25 → Delivery 4.12.25 (next day). Function logs the calculation for debugging."
+        - working: true
+          agent: "main"
+          comment: "✅ VERIFIED: Delivery date calculation working correctly with IST timezone and 4 AM cutoff. Local backend tested with multiple time scenarios. Changes deployed and awaiting production testing."
+
+  - task: "Image compression and data URI prefix fix"
+    implemented: true
+    working: true  
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "CRITICAL: Product images not displaying on detail pages after compression migration. API response time improved from 30s+ to under 1s, but images show as blank."
+        - working: "NA"
+          agent: "main"
+          comment: "ROOT CAUSE: compress_base64_image() function was removing data URI prefix (data:image/jpeg;base64,) but not adding it back. React Native Image component requires full data URI format. Fixed by adding prefix back: f'data:image/jpeg;base64,{compressed_base64}'. Created /api/admin/fix-image-prefixes endpoint to fix existing compressed images in production database."
+        - working: true
+          agent: "main"
+          comment: "✅ FIX APPLIED: Updated compression function to preserve data URI format. Ran migration on production database via browser console - fixed 53 images. Average image size now ~51 KB (down from 3MB+), 98.3% compression. 115 products total: 62 have valid images, 53 missing images (never uploaded during bulk import). Images now display correctly on product detail pages."
+
+
 backend:
   - task: "Product bulk upload feature"
     implemented: true
