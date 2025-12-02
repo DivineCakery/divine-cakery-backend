@@ -678,6 +678,91 @@ async def migrate_compress_images_endpoint(
         "details": results[:10]  # Show first 10 for brevity
     }
 
+@api_router.post("/admin/fix-image-prefixes")
+async def fix_image_prefixes_endpoint(
+    current_user: User = Depends(get_current_admin)
+):
+    """Admin endpoint to add data URI prefix to images missing it"""
+    import time
+    
+    start_time = time.time()
+    
+    # Find products with images that don't start with 'data:'
+    products = await db.products.find({
+        "image_base64": {
+            "$exists": True,
+            "$ne": "",
+            "$not": {"$regex": "^data:"}
+        }
+    }).to_list(None)
+    
+    logger.info(f"Found {len(products)} products with images missing data URI prefix")
+    
+    fixed_count = 0
+    error_count = 0
+    results = []
+    
+    for product in products:
+        product_id = product.get("id")
+        product_name = product.get("name", "Unknown")
+        original_image = product.get("image_base64", "")
+        
+        # Skip if image is None or very short (likely corrupted)
+        if not original_image or len(original_image) < 100:
+            error_count += 1
+            logger.warning(f"Skipping {product_name}: image too short or empty")
+            continue
+        
+        # Add data URI prefix
+        fixed_image = f"data:image/jpeg;base64,{original_image}"
+        
+        # Update in database
+        result = await db.products.update_one(
+            {"id": product_id},
+            {"$set": {"image_base64": fixed_image}}
+        )
+        
+        if result.modified_count > 0:
+            fixed_count += 1
+            results.append({
+                "name": product_name,
+                "status": "fixed",
+                "original_length": len(original_image),
+                "new_length": len(fixed_image)
+            })
+        else:
+            error_count += 1
+            results.append({
+                "name": product_name,
+                "status": "failed",
+                "error": "Database update failed"
+            })
+    
+    # Verify fix
+    remaining = await db.products.count_documents({
+        "image_base64": {
+            "$exists": True,
+            "$ne": "",
+            "$not": {"$regex": "^data:"}
+        }
+    })
+    
+    elapsed_time = time.time() - start_time
+    
+    return {
+        "success": True,
+        "message": "Image prefix fix completed",
+        "stats": {
+            "total_found": len(products),
+            "fixed": fixed_count,
+            "errors": error_count,
+            "remaining_without_prefix": remaining,
+            "time_taken_seconds": round(elapsed_time, 2)
+        },
+        "details": results[:20]  # Show first 20 for brevity
+    }
+
+
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str):
     import time
