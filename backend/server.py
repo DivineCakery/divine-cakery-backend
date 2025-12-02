@@ -619,19 +619,10 @@ async def get_product(product_id: str):
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Time the image compression
-    start_compress = time.time()
+    # Images are now pre-compressed in database, no need to compress on read
     if product.get("image_base64"):
-        original_size = len(product["image_base64"])
-        product["image_base64"] = compress_base64_image(
-            product["image_base64"],
-            max_width=800,  # Resize to max 800px width
-            quality=70      # JPEG quality 70 (good balance)
-        )
-        compressed_size = len(product["image_base64"])
-        compress_time = time.time() - start_compress
-        
-        logger.info(f"TIMING - Product {product_id}: Query={query_time:.3f}s, Compress={compress_time:.3f}s, Total={query_time+compress_time:.3f}s, Size={original_size}->{compressed_size}")
+        image_size = len(product["image_base64"])
+        logger.info(f"TIMING - Product {product_id}: Query={query_time:.3f}s, ImageSize={image_size} bytes (pre-compressed in DB)")
     else:
         logger.info(f"TIMING - Product {product_id}: Query={query_time:.3f}s, No image")
     
