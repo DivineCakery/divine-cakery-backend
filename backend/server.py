@@ -1465,12 +1465,8 @@ async def create_order(
     else:
         payment_status = "pending"
     
-    # Calculate delivery date (1 day after order for orders placed after 4 AM, same day if before 4 AM)
-    now = datetime.utcnow()
-    current_hour = now.hour
-    delivery_date = now
-    if current_hour >= 4:
-        delivery_date = now + timedelta(days=1)
+    # Calculate delivery date based on IST time and 4 AM cutoff
+    delivery_date = calculate_delivery_date()
     
     # STANDING ORDER OVERRIDE: Delete auto-generated standing order for this customer on this delivery date
     # Manual customer orders take precedence over auto-generated ones
