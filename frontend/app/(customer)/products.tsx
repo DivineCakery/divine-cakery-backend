@@ -537,6 +537,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  debugButton: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
   contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
