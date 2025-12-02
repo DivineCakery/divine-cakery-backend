@@ -30,15 +30,30 @@ export default function ProductDetailScreen() {
 
   const fetchProduct = async () => {
     try {
-      console.log('Fetching product with ID:', productId);
+      console.log('=== PRODUCT DETAIL DEBUG ===');
+      console.log('Product ID:', productId);
+      console.log('API Base URL:', apiService.getBaseURL());
+      console.log('Full URL will be:', `${apiService.getBaseURL()}/api/products/${productId}`);
+      
       const data = await apiService.getProduct(productId);
-      console.log('Product data received:', data ? 'Success' : 'No data');
+      console.log('Product data received successfully');
       setProduct(data);
     } catch (error) {
-      console.error('Error fetching product:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      showAlert('Error', `Failed to load product details: ${error.message || 'Unknown error'}`);
+      console.error('=== PRODUCT FETCH ERROR ===');
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
+      console.error('Error response status:', error.response?.status);
+      console.error('Error response data:', error.response?.data);
+      console.error('Request config:', error.config?.url);
+      console.error('Full error:', JSON.stringify(error, null, 2));
+      
+      let errorMsg = 'Failed to load product details.\n\n';
+      errorMsg += `Error: ${error.message}\n`;
+      if (error.code) errorMsg += `Code: ${error.code}\n`;
+      if (error.response?.status) errorMsg += `Status: ${error.response.status}\n`;
+      errorMsg += `URL: ${error.config?.url || 'Unknown'}`;
+      
+      showAlert('Debug Error Info', errorMsg);
       router.back();
     } finally {
       setLoading(false);
