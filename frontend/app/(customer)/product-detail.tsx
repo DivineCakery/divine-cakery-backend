@@ -37,6 +37,10 @@ export default function ProductDetailScreen() {
       
       const data = await apiService.getProduct(productId);
       console.log('Product data received successfully');
+      console.log('Product name:', data.name);
+      console.log('Product image_base64 type:', typeof data.image_base64);
+      console.log('Product image_base64 length:', data.image_base64 ? data.image_base64.length : 0);
+      console.log('Product image_base64 first 100 chars:', data.image_base64 ? data.image_base64.substring(0, 100) : 'EMPTY');
       setProduct(data);
     } catch (error) {
       console.error('=== PRODUCT FETCH ERROR ===');
