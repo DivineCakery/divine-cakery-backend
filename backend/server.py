@@ -607,6 +607,74 @@ async def get_system_info():
         "pillow_available": True  # We know it's available since we import it
     }
 
+@api_router.post("/admin/migrate-compress-images")
+async def migrate_compress_images_endpoint(
+    current_user: User = Depends(get_current_admin)
+):
+    """Admin endpoint to compress all product images in database"""
+    import time
+    
+    start_time = time.time()
+    
+    # Get all products with images
+    products = await db.products.find({"image_base64": {"$exists": True, "$ne": ""}}).to_list(None)
+    
+    compressed_count = 0
+    skipped_count = 0
+    total_original_size = 0
+    total_compressed_size = 0
+    results = []
+    
+    for product in products:
+        product_id = product.get("id")
+        product_name = product.get("name", "Unknown")
+        original_image = product.get("image_base64", "")
+        original_size = len(original_image)
+        
+        # Skip if already compressed (less than 100KB)
+        if original_size < 100000:
+            skipped_count += 1
+            continue
+        
+        # Compress the image
+        compressed_image = compress_base64_image(original_image, max_width=800, quality=70)
+        compressed_size = len(compressed_image)
+        reduction = ((original_size - compressed_size) / original_size) * 100
+        
+        # Update in database
+        await db.products.update_one(
+            {"id": product_id},
+            {"$set": {"image_base64": compressed_image}}
+        )
+        
+        total_original_size += original_size
+        total_compressed_size += compressed_size
+        compressed_count += 1
+        
+        results.append({
+            "name": product_name,
+            "original_size": original_size,
+            "compressed_size": compressed_size,
+            "reduction_percent": round(reduction, 1)
+        })
+    
+    elapsed_time = time.time() - start_time
+    
+    return {
+        "success": True,
+        "message": "Image compression migration completed",
+        "stats": {
+            "total_products": len(products),
+            "compressed": compressed_count,
+            "skipped": skipped_count,
+            "original_size_mb": round(total_original_size / 1024 / 1024, 2),
+            "compressed_size_mb": round(total_compressed_size / 1024 / 1024, 2),
+            "space_saved_mb": round((total_original_size - total_compressed_size) / 1024 / 1024, 2),
+            "time_taken_seconds": round(elapsed_time, 2)
+        },
+        "details": results[:10]  # Show first 10 for brevity
+    }
+
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str):
     import time
