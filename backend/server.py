@@ -577,6 +577,15 @@ async def get_product(product_id: str):
     product = await db.products.find_one({"id": product_id})
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Compress image if present
+    if product.get("image_base64"):
+        product["image_base64"] = compress_base64_image(
+            product["image_base64"],
+            max_width=800,  # Resize to max 800px width
+            quality=70      # JPEG quality 70 (good balance)
+        )
+    
     return Product(**product)
 
 
