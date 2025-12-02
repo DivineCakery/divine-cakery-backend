@@ -15,7 +15,7 @@ class ApiService {
   constructor() {
     this.api = axios.create({
       baseURL: `${API_BASE_URL}/api`,
-      timeout: 30000,
+      timeout: 60000,  // Increased from 30s to 60s for slow Render backend
       headers: {
         'Content-Type': 'application/json',
       },
