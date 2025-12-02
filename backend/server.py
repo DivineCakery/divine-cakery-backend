@@ -526,6 +526,17 @@ async def create_product(
         "updated_at": datetime.utcnow()
     }
     
+    # Compress image before storing in database
+    if product_dict.get("image_base64"):
+        original_size = len(product_dict["image_base64"])
+        product_dict["image_base64"] = compress_base64_image(
+            product_dict["image_base64"],
+            max_width=800,
+            quality=70
+        )
+        compressed_size = len(product_dict["image_base64"])
+        logger.info(f"Product creation - Image compressed: {original_size} -> {compressed_size} bytes")
+    
     # Ensure categories is populated - if empty, use category field
     if not product_dict.get("categories"):
         product_dict["categories"] = [product_dict["category"]] if product_dict.get("category") else []
