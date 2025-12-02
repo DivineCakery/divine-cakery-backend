@@ -172,6 +172,45 @@ def normalize_phone_number(phone: str) -> str:
     return cleaned if cleaned.startswith('+') else '+' + cleaned
 
 
+# Helper function to calculate delivery date based on IST time
+def calculate_delivery_date() -> datetime:
+    """
+    Calculate delivery date based on Indian Standard Time (IST).
+    
+    Rules:
+    - Orders placed before 4 AM IST: Delivery same day
+    - Orders placed at or after 4 AM IST: Delivery next day
+    
+    Examples:
+    - Order at 11 PM on 2.12.25 → Delivery: 3.12.25 (next day)
+    - Order at 3:30 AM on 3.12.25 → Delivery: 3.12.25 (same day)
+    - Order at 5 AM on 3.12.25 → Delivery: 4.12.25 (next day)
+    """
+    import pytz
+    
+    # Get current time in IST
+    ist = pytz.timezone('Asia/Kolkata')
+    now_ist = datetime.now(ist)
+    
+    # Get the hour in IST
+    current_hour_ist = now_ist.hour
+    
+    # Calculate delivery date
+    if current_hour_ist < 4:
+        # Before 4 AM IST - deliver same day
+        delivery_date = now_ist.date()
+    else:
+        # At or after 4 AM IST - deliver next day
+        delivery_date = (now_ist + timedelta(days=1)).date()
+    
+    # Convert to datetime at midnight (for storage)
+    delivery_datetime = datetime.combine(delivery_date, datetime.min.time())
+    
+    logger.info(f"Order time IST: {now_ist.strftime('%Y-%m-%d %H:%M:%S')} → Delivery date: {delivery_datetime.strftime('%Y-%m-%d')}")
+    
+    return delivery_datetime
+
+
 # Email Helper Function
 def send_email_notification(subject: str, body: str, to_email: str):
     """Send email notification using SMTP"""
