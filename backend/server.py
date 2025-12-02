@@ -572,6 +572,30 @@ async def get_products(
         raise HTTPException(status_code=500, detail=f"Error fetching products: {str(e)}")
 
 
+@api_router.get("/debug/system-info")
+async def get_system_info():
+    """Debug endpoint to check system configuration"""
+    import platform
+    import sys
+    
+    mongo_url = os.environ.get("MONGO_URL", "Not set")
+    # Mask sensitive parts of connection string
+    if "mongodb" in mongo_url:
+        if "@" in mongo_url:
+            mongo_display = mongo_url.split("@")[0].split("//")[0] + "//***:***@" + mongo_url.split("@")[1]
+        else:
+            mongo_display = mongo_url
+    else:
+        mongo_display = mongo_url
+    
+    return {
+        "python_version": sys.version,
+        "platform": platform.platform(),
+        "mongodb_url": mongo_display,
+        "environment": "production" if "render.com" in mongo_url else "development",
+        "pillow_available": True  # We know it's available since we import it
+    }
+
 @api_router.get("/products/{product_id}", response_model=Product)
 async def get_product(product_id: str):
     import time
