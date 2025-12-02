@@ -121,6 +121,9 @@ def compress_base64_image(base64_string: str, max_width: int = 800, quality: int
         # Encode to base64
         compressed_base64 = base64.b64encode(buffer.read()).decode('utf-8')
         
+        # Add data URI prefix back for React Native Image component
+        compressed_base64_with_prefix = f"data:image/jpeg;base64,{compressed_base64}"
+        
         # Calculate compression ratio
         original_size = len(base64_string)
         compressed_size = len(compressed_base64)
@@ -128,7 +131,7 @@ def compress_base64_image(base64_string: str, max_width: int = 800, quality: int
         
         logger.info(f"Image compressed: {original_size} -> {compressed_size} bytes ({ratio:.1f}% reduction)")
         
-        return compressed_base64
+        return compressed_base64_with_prefix
     except Exception as e:
         logger.error(f"Error compressing image: {e}")
         return base64_string  # Return original if compression fails
