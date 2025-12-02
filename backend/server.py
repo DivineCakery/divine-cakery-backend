@@ -651,6 +651,17 @@ async def update_product(
     update_data = {k: v for k, v in product_data.dict().items() if v is not None}
     update_data["updated_at"] = datetime.utcnow()
     
+    # Compress image if being updated
+    if "image_base64" in update_data and update_data["image_base64"]:
+        original_size = len(update_data["image_base64"])
+        update_data["image_base64"] = compress_base64_image(
+            update_data["image_base64"],
+            max_width=800,
+            quality=70
+        )
+        compressed_size = len(update_data["image_base64"])
+        logger.info(f"Product update - Image compressed: {original_size} -> {compressed_size} bytes")
+    
     # Ensure categories is populated - if empty or not provided, use category field
     if "categories" in update_data and not update_data.get("categories"):
         update_data["categories"] = [update_data["category"]] if update_data.get("category") else []
