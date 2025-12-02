@@ -2,14 +2,14 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
-// Backend URL - Prioritize environment variable over Constants to avoid cache issues
-const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 
-                     Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
+// Backend URL - Use Constants.expoConfig for production builds, fallback to env for development
+const API_BASE_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
+                     process.env.EXPO_PUBLIC_BACKEND_URL || 
                      'http://localhost:8001';
 
 console.log('API_BASE_URL configured as:', API_BASE_URL);
-console.log('process.env.EXPO_PUBLIC_BACKEND_URL:', process.env.EXPO_PUBLIC_BACKEND_URL);
 console.log('Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL:', Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL);
+console.log('process.env.EXPO_PUBLIC_BACKEND_URL:', process.env.EXPO_PUBLIC_BACKEND_URL);
 
 class ApiService {
   constructor() {
