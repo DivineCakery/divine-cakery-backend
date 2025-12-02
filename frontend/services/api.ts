@@ -49,6 +49,21 @@ class ApiService {
     );
   }
 
+  // Debug method to get the base URL being used
+  getBaseURL() {
+    return API_BASE_URL;
+  }
+
+  // Method to get full configuration info for debugging
+  getDebugInfo() {
+    return {
+      API_BASE_URL,
+      'Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL': Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL,
+      'process.env.EXPO_PUBLIC_BACKEND_URL': process.env.EXPO_PUBLIC_BACKEND_URL,
+      'axios.baseURL': this.api.defaults.baseURL,
+    };
+  }
+
   // Auth APIs
   async register(userData: any) {
     const response = await this.api.post('/auth/register', userData);
