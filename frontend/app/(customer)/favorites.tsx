@@ -41,7 +41,14 @@ export default function FavoritesScreen() {
   };
 
   const fetchFavorites = async () => {
+    // Prevent multiple simultaneous calls
+    if (isFetchingRef.current) {
+      console.log('⏭️ Skipping fetch - already in progress');
+      return;
+    }
+
     try {
+      isFetchingRef.current = true;
       setLoading(true);
       console.log('🔄 Fetching favorites...');
       const data = await apiService.getFavorites();
@@ -74,6 +81,7 @@ export default function FavoritesScreen() {
         showAlert('Error', errorMsg);
       }
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
       setRefreshing(false);
     }
