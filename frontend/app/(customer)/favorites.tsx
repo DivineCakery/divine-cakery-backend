@@ -39,26 +39,74 @@ export default function FavoritesScreen() {
     ]);
   };
 
-  const fetchFavorites = React.useCallback(async () => {
+  // Refresh favorites when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      let isMounted = true;
+
+      const fetchFavorites = async () => {
+        try {
+          if (!isMounted) return;
+          setLoading(true);
+          console.log('🔄 Fetching favorites...');
+          const data = await apiService.getFavorites();
+          
+          if (!isMounted) return;
+          
+          console.log('✅ Favorites fetched successfully:', {
+            count: data?.length || 0,
+            isArray: Array.isArray(data),
+            data: data
+          });
+          setFavorites(data);
+        } catch (error: any) {
+          if (!isMounted) return;
+          
+          console.error('❌ Error fetching favorites:', error);
+          console.error('Error details:', {
+            status: error.response?.status,
+            message: error.message,
+            data: error.response?.data
+          });
+          
+          // Check if it's an authentication error
+          if (error.response?.status === 401) {
+            showAlert('Session Expired', 'Your session has expired. Please log in again.', [
+              {
+                text: 'OK',
+                onPress: () => {
+                  logout();
+                  router.replace('/');
+                }
+              }
+            ]);
+          } else {
+            const errorMsg = error.response?.data?.detail || error.message || 'Failed to load favorites';
+            showAlert('Error', errorMsg);
+          }
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+            setRefreshing(false);
+          }
+        }
+      };
+
+      fetchFavorites();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
+
+  const fetchFavorites = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Fetching favorites...');
       const data = await apiService.getFavorites();
-      console.log('✅ Favorites fetched successfully:', {
-        count: data?.length || 0,
-        isArray: Array.isArray(data),
-        data: data
-      });
       setFavorites(data);
     } catch (error: any) {
-      console.error('❌ Error fetching favorites:', error);
-      console.error('Error details:', {
-        status: error.response?.status,
-        message: error.message,
-        data: error.response?.data
-      });
-      
-      // Check if it's an authentication error
+      console.error('Error fetching favorites:', error);
       if (error.response?.status === 401) {
         showAlert('Session Expired', 'Your session has expired. Please log in again.', [
           {
@@ -77,14 +125,7 @@ export default function FavoritesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [logout, router]);
-
-  // Refresh favorites when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchFavorites();
-    }, [fetchFavorites])
-  );
+  };
 
   const onRefresh = () => {
     setRefreshing(true);
