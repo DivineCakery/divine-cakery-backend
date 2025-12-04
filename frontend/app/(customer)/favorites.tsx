@@ -39,15 +39,9 @@ export default function FavoritesScreen() {
     ]);
   };
 
-  // Refresh favorites when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchFavorites();
-    }, [])
-  );
-
-  const fetchFavorites = async () => {
+  const fetchFavorites = React.useCallback(async () => {
     try {
+      setLoading(true);
       const data = await apiService.getFavorites();
       setFavorites(data);
     } catch (error: any) {
@@ -72,7 +66,14 @@ export default function FavoritesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [logout, router]);
+
+  // Refresh favorites when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFavorites();
+    }, [fetchFavorites])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
