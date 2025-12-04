@@ -24,6 +24,7 @@ export default function FavoritesScreen() {
   
   const addItem = useCartStore((state) => state.addItem);
   const { logout } = useAuthStore();
+  const isFetchingRef = React.useRef(false);
 
   const handleLogout = () => {
     showAlert('Logout', 'Are you sure you want to logout?', [
