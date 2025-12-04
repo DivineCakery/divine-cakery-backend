@@ -24,6 +24,7 @@ export default function ReportsScreen() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>('daily');
   const { logout } = useAuthStore();
+  const isFetchingRef = React.useRef(false);
 
   // Refresh data when screen comes into focus
   useFocusEffect(
