@@ -178,9 +178,24 @@ export default function ProductsScreen() {
         await apiService.addToFavorites(productId);
         setFavoriteIds([...favoriteIds, productId]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling favorite:', error);
-      showAlert('Error', 'Failed to update favorites');
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        showAlert('Session Expired', 'Your session has expired. Please log in again.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              logout();
+              router.replace('/');
+            }
+          }
+        ]);
+      } else {
+        const errorMsg = error.response?.data?.detail || error.message || 'Failed to update favorites';
+        showAlert('Error', errorMsg);
+      }
     }
   };
 
