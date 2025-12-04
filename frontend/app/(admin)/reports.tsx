@@ -25,25 +25,15 @@ export default function ReportsScreen() {
   const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>('daily');
   const { logout } = useAuthStore();
 
-  useEffect(() => {
-    fetchReports();
-  }, [selectedDate, activeTab]);
-
   // Refresh data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       console.log('Reports screen focused, refreshing data...');
       setLoading(true);
       fetchReports();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, selectedDate])
   );
-
-  // Also refresh when switching tabs
-  useEffect(() => {
-    console.log('Active tab changed to:', activeTab);
-    setLoading(true);
-    fetchReports();
-  }, [activeTab]);
 
   const fetchReports = async () => {
     try {
