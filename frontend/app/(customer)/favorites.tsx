@@ -50,9 +50,24 @@ export default function FavoritesScreen() {
     try {
       const data = await apiService.getFavorites();
       setFavorites(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching favorites:', error);
-      showAlert('Error', 'Failed to load favorites');
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        showAlert('Session Expired', 'Your session has expired. Please log in again.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              logout();
+              router.replace('/');
+            }
+          }
+        ]);
+      } else {
+        const errorMsg = error.response?.data?.detail || error.message || 'Failed to load favorites';
+        showAlert('Error', errorMsg);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
