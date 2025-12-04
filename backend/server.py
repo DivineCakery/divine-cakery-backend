@@ -2261,8 +2261,8 @@ async def get_preparation_list_report(
     else:
         report_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Get all products
-    products_cursor = db.products.find({})
+    # Get all products (exclude images for performance)
+    products_cursor = db.products.find({}, {"image_base64": 0})
     products = await products_cursor.to_list(10000)
     
     # Set date ranges for today and tomorrow
