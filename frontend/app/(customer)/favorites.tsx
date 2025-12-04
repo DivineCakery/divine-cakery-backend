@@ -42,10 +42,21 @@ export default function FavoritesScreen() {
   const fetchFavorites = React.useCallback(async () => {
     try {
       setLoading(true);
+      console.log('🔄 Fetching favorites...');
       const data = await apiService.getFavorites();
+      console.log('✅ Favorites fetched successfully:', {
+        count: data?.length || 0,
+        isArray: Array.isArray(data),
+        data: data
+      });
       setFavorites(data);
     } catch (error: any) {
-      console.error('Error fetching favorites:', error);
+      console.error('❌ Error fetching favorites:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        message: error.message,
+        data: error.response?.data
+      });
       
       // Check if it's an authentication error
       if (error.response?.status === 401) {
