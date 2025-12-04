@@ -927,8 +927,16 @@ async def get_favorites(current_user: User = Depends(get_current_user)):
     if not favorite_product_ids:
         return []
     
-    # Get products from favorites list
-    products = await db.products.find({"id": {"$in": favorite_product_ids}}).to_list(1000)
+    # Get products from favorites list (exclude images for performance)
+    products = await db.products.find(
+        {"id": {"$in": favorite_product_ids}},
+        {"image_base64": 0}  # Exclude images from response
+    ).to_list(1000)
+    
+    # Set empty image for response
+    for product in products:
+        product["image_base64"] = ""
+    
     return [Product(**product) for product in products]
 
 
