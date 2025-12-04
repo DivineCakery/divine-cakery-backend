@@ -37,27 +37,49 @@ export default function ReportsScreen() {
   );
 
   const fetchReports = async () => {
+    // Prevent multiple simultaneous calls
+    if (isFetchingRef.current) {
+      console.log('⏭️ Skipping fetch - already in progress');
+      return;
+    }
+
     try {
+      isFetchingRef.current = true;
       const dateStr = selectedDate.toISOString().split('T')[0];
-      console.log(`Fetching reports for date: ${dateStr}, activeTab: ${activeTab}`);
+      console.log(`🔄 Fetching reports for date: ${dateStr}, activeTab: ${activeTab}`);
       if (activeTab === 'daily') {
         const data = await apiService.getDailyItemsReport(dateStr);
-        console.log('Daily report data:', JSON.stringify(data, null, 2));
+        console.log('✅ Daily report data:', JSON.stringify(data, null, 2));
         setReport(data);
       } else {
-        // Add timestamp to force fresh data
-        const timestamp = new Date().getTime();
-        console.log(`Fetching preparation list at ${timestamp} for date: ${dateStr}`);
         const data = await apiService.getPreparationListReport(dateStr);
-        console.log('Preparation List Data:', JSON.stringify(data, null, 2));
-        console.log('Preparation List date field:', data.date);
-        console.log('Preparation List day_name field:', data.day_name);
+        console.log('✅ Preparation List Data:', JSON.stringify(data, null, 2));
         setPreparationList(data);
       }
-    } catch (error) {
-      console.error('Error fetching report:', error);
-      showAlert('Error', 'Failed to load report');
+    } catch (error: any) {
+      console.error('❌ Error fetching report:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        message: error.message,
+        data: error.response?.data
+      });
+      
+      if (error.response?.status === 401) {
+        showAlert('Session Expired', 'Your session has expired. Please log in again.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              logout();
+              router.replace('/');
+            }
+          }
+        ]);
+      } else {
+        const errorMsg = error.response?.data?.detail || error.message || 'Failed to load report';
+        showAlert('Error', errorMsg);
+      }
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
       setRefreshing(false);
     }
