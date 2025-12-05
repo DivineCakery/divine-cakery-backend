@@ -23,10 +23,8 @@ export default function CheckoutScreen() {
   const { user, refreshUser } = useAuthStore();
   const [wallet, setWallet] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'upi'>('wallet');
-  // Set default orderType based on user's onsite_pickup_only setting
-  const [orderType, setOrderType] = useState<'pickup' | 'delivery'>(
-    user?.onsite_pickup_only ? 'pickup' : 'delivery'
-  );
+  // Default to 'delivery' - customer can manually change to 'pickup'
+  const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
