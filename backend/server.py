@@ -1409,33 +1409,31 @@ async def verify_payment(
 # Helper function to generate order number in format YYMMDDXXXX
 async def generate_order_number() -> str:
     """
-    Generates order number in format: YYMMDDXXXX using atomic counter
-    YY = Current year (2 digits)
-    MM = Current month (2 digits)
-    DD = Current date (2 digits)
-    XXXX = Sequential counter (4 digits) - atomic increment
+    Generates simple sequential order number starting from 101
+    No prefix, just incrementing numbers: 101, 102, 103, etc.
     """
-    now = datetime.utcnow()
-    year = now.strftime("%y")  # 2-digit year
-    month = now.strftime("%m")  # 2-digit month
-    day = now.strftime("%d")  # 2-digit day
-    
-    date_prefix = f"{year}{month}{day}"
-    
     # Use MongoDB's findOneAndUpdate with atomic increment for thread-safe counter
     counter_doc = await db.counters.find_one_and_update(
-        {"_id": f"order_{date_prefix}"},
+        {"_id": "order_counter"},
         {"$inc": {"sequence": 1}},
         upsert=True,
         return_document=ReturnDocument.AFTER  # Return the updated document
     )
     
-    # Get the sequence number
-    sequence = counter_doc.get("sequence", 1)
+    # Get the sequence number, default to 101 if this is the first order
+    sequence = counter_doc.get("sequence", 101)
     
-    # Format: YYMMDDXXXX
-    order_number = f"{date_prefix}{sequence:04d}"
-    return order_number
+    # Ensure minimum is 101
+    if sequence < 101:
+        # Set counter to 101 if it's somehow less
+        await db.counters.update_one(
+            {"_id": "order_counter"},
+            {"$set": {"sequence": 101}}
+        )
+        sequence = 101
+    
+    # Return simple number as string
+    return str(sequence)
 
 
 # Order Routes
