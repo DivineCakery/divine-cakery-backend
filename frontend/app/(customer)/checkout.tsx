@@ -247,7 +247,7 @@ export default function CheckoutScreen() {
               delivery_address: orderType === 'delivery' ? deliveryAddress : undefined,
               delivery_notes: notes || undefined,
               payment_method: 'razorpay',
-              onsite_pickup: orderType === 'pickup'
+              order_type: orderType
             }
           }
         });
