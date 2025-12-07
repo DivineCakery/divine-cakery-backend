@@ -600,16 +600,18 @@ async def get_products(
             {"categories": category}
         ]
     else:
-        # When showing "All" products (no category filter), exclude products from admin-only categories
-        # First, get all admin-only category names
-        admin_categories = await db.categories.find({"is_admin_only": True}).to_list(1000)
-        admin_category_names = [cat.get("name") for cat in admin_categories]
+        # When showing "All" products (no category filter), only show products that have at least one PUBLIC category
+        # First, get all public (non-admin) category names
+        public_categories = await db.categories.find({"is_admin_only": {"$ne": True}}).to_list(1000)
+        public_category_names = [cat.get("name") for cat in public_categories]
         
-        if admin_category_names:
-            # Exclude products that have any admin-only category
-            query["$and"] = [
-                {"category": {"$nin": admin_category_names}},  # Old single category field
-                {"categories": {"$nin": admin_category_names}}  # New categories array
+        if public_category_names:
+            # Show products that have at least one public category
+            # Products can have multiple categories (e.g., ["Premium", "Packing"])
+            # We want to show them if they have "Premium" even if they also have "Packing"
+            query["$or"] = [
+                {"category": {"$in": public_category_names}},  # Old single category field
+                {"categories": {"$in": public_category_names}}  # New categories array - has at least one public category
             ]
     
     if is_available is not None:
