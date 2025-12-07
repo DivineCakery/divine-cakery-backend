@@ -599,6 +599,19 @@ async def get_products(
             {"category": category},
             {"categories": category}
         ]
+    else:
+        # When showing "All" products (no category filter), exclude products from admin-only categories
+        # First, get all admin-only category names
+        admin_categories = await db.categories.find({"is_admin_only": True}).to_list(1000)
+        admin_category_names = [cat.get("name") for cat in admin_categories]
+        
+        if admin_category_names:
+            # Exclude products that have any admin-only category
+            query["$and"] = [
+                {"category": {"$nin": admin_category_names}},  # Old single category field
+                {"categories": {"$nin": admin_category_names}}  # New categories array
+            ]
+    
     if is_available is not None:
         query["is_available"] = is_available
     
