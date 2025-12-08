@@ -1538,6 +1538,30 @@ async def create_order(
     return Order(**order_dict)
 
 
+
+
+@api_router.delete("/admin/orders/cleanup")
+async def delete_old_orders(current_user: User = Depends(get_current_admin)):
+    """
+    Admin endpoint to delete orders older than 7 days.
+    WARNING: This permanently deletes data!
+    """
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    
+    # Count orders to be deleted
+    count_to_delete = await db.orders.count_documents({"created_at": {"$lt": seven_days_ago}})
+    
+    # Delete old orders
+    result = await db.orders.delete_many({"created_at": {"$lt": seven_days_ago}})
+    
+    logger.info(f"Deleted {result.deleted_count} orders older than 7 days")
+    
+    return {
+        "success": True,
+        "message": f"Deleted {result.deleted_count} orders older than 7 days",
+        "deleted_count": result.deleted_count
+    }
+
 @api_router.get("/orders")
 async def get_orders(
     delivery_date: Optional[str] = None,
