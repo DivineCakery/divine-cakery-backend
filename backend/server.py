@@ -1913,11 +1913,6 @@ async def reject_user(
     return {"message": "User rejected successfully", "user_id": user_id, "phone": user.get("phone")}
 
 
-@api_router.put("/admin/users/{user_id}", response_model=User)
-async def update_user_by_admin(
-    user_id: str,
-
-
 @api_router.put("/admin/users/{user_id}/toggle-active")
 async def toggle_user_active_status(
     user_id: str,
