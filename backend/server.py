@@ -1908,6 +1908,88 @@ async def reject_user(
 @api_router.put("/admin/users/{user_id}", response_model=User)
 async def update_user_by_admin(
     user_id: str,
+
+
+@api_router.put("/admin/users/{user_id}/toggle-active")
+async def toggle_user_active_status(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Toggle user active/inactive status"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    current_status = user.get("is_active", True)
+    new_status = not current_status
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_active": new_status}}
+    )
+    
+    status_text = "activated" if new_status else "deactivated"
+    logger.info(f"Admin {current_user.username} {status_text} user {user.get('username')} ({user_id})")
+    
+    return {
+        "message": f"User {status_text} successfully",
+        "user_id": user_id,
+        "username": user.get("username"),
+        "is_active": new_status
+    }
+
+
+@api_router.post("/admin/users/auto-inactivate")
+async def auto_inactivate_inactive_users(
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    Automatically mark customers as inactive if they haven't placed an order in 10+ days.
+    Only affects customer role users.
+    """
+    ten_days_ago = datetime.utcnow() - timedelta(days=10)
+    
+    # Get all active customers
+    active_customers = await db.users.find({
+        "role": "customer",
+        "is_active": True
+    }).to_list(1000)
+    
+    inactivated_count = 0
+    inactivated_users = []
+    
+    for customer in active_customers:
+        customer_id = customer.get("id")
+        
+        # Check if customer has any orders in last 10 days
+        recent_order = await db.orders.find_one({
+            "$or": [
+                {"user_id": customer_id},
+                {"customer_id": customer_id}
+            ],
+            "created_at": {"$gte": ten_days_ago}
+        })
+        
+        # If no recent orders, mark as inactive
+        if not recent_order:
+            await db.users.update_one(
+                {"id": customer_id},
+                {"$set": {"is_active": False}}
+            )
+            inactivated_count += 1
+            inactivated_users.append({
+                "username": customer.get("username"),
+                "id": customer_id
+            })
+            logger.info(f"Auto-inactivated user {customer.get('username')} - no orders in 10+ days")
+    
+    return {
+        "success": True,
+        "message": f"Auto-inactivated {inactivated_count} customers with no orders in 10+ days",
+        "inactivated_count": inactivated_count,
+        "inactivated_users": inactivated_users[:20]  # Show first 20 for brevity
+    }
+
     user_data: dict,
     current_user: User = Depends(get_current_admin)
 ):
