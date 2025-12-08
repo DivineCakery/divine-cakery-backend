@@ -280,6 +280,17 @@ export default function ManageUsersScreen() {
           </TouchableOpacity>
         )}
 
+        {!isAdmin && (
+          <TouchableOpacity
+            style={item.is_active ? styles.deactivateButton : styles.activateButton}
+            onPress={() => handleToggleActive(item.id, item.username, item.is_active ?? true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={item.is_active ? "close-circle" : "checkmark-circle"} size={18} color="#fff" />
+            <Text style={styles.toggleButtonText}>{item.is_active ? 'Deactivate' : 'Activate'}</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => router.push(`/(admin)/customer-form?id=${item.id}`)}
