@@ -1998,28 +1998,20 @@ async def auto_inactivate_inactive_users(
 @api_router.get("/wallet", response_model=Wallet)
 async def get_wallet(current_user: User = Depends(get_current_user)):
     """Get wallet balance for current user"""
-    user = await db.users.find_one({"id": current_user.id})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    wallet = await db.wallets.find_one({"user_id": current_user.id})
+    if not wallet:
+        # Create wallet if it doesn't exist
+        wallet_data = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user.id,
+            "balance": 0.0,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        await db.wallets.insert_one(wallet_data)
+        return Wallet(**wallet_data)
     
-    # Prevent changing role to admin (security)
-    if "role" in user_data:
-        user_data.pop("role")
-    
-    # If password is being changed, hash it
-    if "password" in user_data and user_data["password"]:
-        user_data["hashed_password"] = get_password_hash(user_data["password"])
-        user_data.pop("password")
-    
-    # If phone is being updated, normalize it
-    if "phone" in user_data and user_data["phone"]:
-        user_data["phone"] = normalize_phone_number(user_data["phone"])
-    
-    # Update user
-    await db.users.update_one({"id": user_id}, {"$set": user_data})
-    
-    updated_user = await db.users.find_one({"id": user_id})
-    return User(**updated_user)
+    return Wallet(**wallet)
 
 
 @api_router.post("/admin/users/{user_id}/add-wallet-balance")
