@@ -458,6 +458,14 @@ async def login(user_data: UserLogin):
     
     logger.info(f"Password verified for user: {user_data.username}")
     
+    # Check if account is active
+    if not user_dict.get("is_active", True):
+        logger.warning(f"Inactive account login attempt: {user_data.username}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been deactivated. Please contact admin for assistance.",
+        )
+    
     # Check if customer account is approved (admins don't need approval)
     if user_dict.get("role") == UserRole.CUSTOMER and not user_dict.get("is_approved", True):
         logger.warning(f"Customer account not approved: {user_data.username}")
