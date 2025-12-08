@@ -155,10 +155,11 @@ export default function CheckoutScreen() {
   };
 
   const handlePlaceOrder = async () => {
-    if (orderType === 'delivery' && !deliveryAddress.trim()) {
-      showAlert('Error', 'Please enter delivery address');
-      return;
-    }
+    // Address is optional for delivery orders
+    // if (orderType === 'delivery' && !deliveryAddress.trim()) {
+    //   showAlert('Error', 'Please enter delivery address');
+    //   return;
+    // }
 
     if (paymentMethod === 'wallet' && wallet.balance < totalAmount) {
       showAlert('Insufficient Balance', 'Please add money to wallet or choose UPI payment');
