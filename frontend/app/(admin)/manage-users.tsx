@@ -91,6 +91,34 @@ export default function ManageUsersScreen() {
     }
   };
 
+  const handleToggleActive = async (userId: string, username: string, currentStatus: boolean) => {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    const message = currentStatus 
+      ? `Deactivate "${username}"? They won't be able to log in.`
+      : `Activate "${username}"? They will be able to log in again.`;
+    
+    showAlert(
+      'Toggle User Status',
+      message,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: action.charAt(0).toUpperCase() + action.slice(1),
+          style: currentStatus ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              await apiService.toggleUserActiveStatus(userId);
+              await fetchUsers();
+              showAlert('Success', `User ${action}d successfully`);
+            } catch (error: any) {
+              showAlert('Error', error.response?.data?.detail || `Failed to ${action} user`);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleDelete = async (userId: string, username: string) => {
     showAlert(
       'Delete Customer',
