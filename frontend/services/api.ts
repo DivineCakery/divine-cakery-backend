@@ -141,6 +141,11 @@ class ApiService {
     return response.data;
   }
 
+  async toggleUserActiveStatus(userId: string) {
+    const response = await this.api.put(`/admin/users/${userId}/toggle-active`);
+    return response.data;
+  }
+
   // Category APIs
   async getCategories() {
     const response = await this.api.get('/categories');
