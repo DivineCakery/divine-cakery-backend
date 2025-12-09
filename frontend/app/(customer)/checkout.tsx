@@ -162,7 +162,7 @@ export default function CheckoutScreen() {
     // }
 
     if (paymentMethod === 'wallet' && wallet.balance < totalAmount) {
-      showAlert('Insufficient Balance', 'Please add money to wallet or choose UPI payment');
+      showAlert('Insufficient Balance', 'Please add money to wallet or choose Instant Payment');
       return;
     }
 
