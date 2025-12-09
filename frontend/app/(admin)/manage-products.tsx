@@ -36,7 +36,8 @@ export default function ManageProductsScreen() {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiService.getProducts();
+      // Pass includeAdmin=true to fetch ALL products including admin-only categories
+      const data = await apiService.getProducts(undefined, undefined, true);
       setProducts(data);
     } catch (error) {
       console.error('Error fetching products:', error);
