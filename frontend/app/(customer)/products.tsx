@@ -368,33 +368,14 @@ export default function ProductsScreen() {
     );
   }
 
-  const handleDebugTap = () => {
-    const newCount = debugTapCount + 1;
-    setDebugTapCount(newCount);
-    
-    if (newCount >= 5) {
-      setDebugTapCount(0);
-      router.push('/(customer)/debug-config');
-    }
-    
-    // Reset counter after 2 seconds of no taps
-    setTimeout(() => setDebugTapCount(0), 2000);
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerContent} onPress={handleDebugTap} activeOpacity={0.9}>
+        <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Divine Cakery</Text>
           <Text style={styles.headerSubtitle}>Wholesale Bakery Products</Text>
-        </TouchableOpacity>
+        </View>
         <View style={styles.headerButtons}>
-          <TouchableOpacity 
-            onPress={() => router.push('/(customer)/debug-config')} 
-            style={styles.debugButton}
-          >
-            <Ionicons name="information-circle-outline" size={24} color="#fff" />
-          </TouchableOpacity>
           <TouchableOpacity onPress={handleContactUs} style={styles.contactButton}>
             <MaterialCommunityIcons name="whatsapp" size={20} color="#25D366" />
             <Text style={styles.contactButtonText}>Contact Us</Text>
