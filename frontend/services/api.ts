@@ -81,10 +81,11 @@ class ApiService {
   }
 
   // Product APIs
-  async getProducts(category?: string, isAvailable?: boolean) {
+  async getProducts(category?: string, isAvailable?: boolean, includeAdmin: boolean = false) {
     const params: any = {};
     if (category) params.category = category;
     if (isAvailable !== undefined) params.is_available = isAvailable;
+    if (includeAdmin) params.include_admin = 'true';
     const response = await this.api.get('/products', { params });
     return response.data;
   }
