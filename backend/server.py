@@ -598,7 +598,8 @@ async def create_product(
 @api_router.get("/products", response_model=List[Product])
 async def get_products(
     category: Optional[str] = None,
-    is_available: Optional[bool] = None
+    is_available: Optional[bool] = None,
+    include_admin: Optional[bool] = False  # New parameter to include admin-only products
 ):
     query = {}
     if category:
@@ -608,19 +609,22 @@ async def get_products(
             {"categories": category}
         ]
     else:
-        # When showing "All" products (no category filter), only show products that have at least one PUBLIC category
-        # First, get all public (non-admin) category names
-        public_categories = await db.categories.find({"is_admin_only": {"$ne": True}}).to_list(1000)
-        public_category_names = [cat.get("name") for cat in public_categories]
-        
-        if public_category_names:
-            # Show products that have at least one public category
-            # Products can have multiple categories (e.g., ["Premium", "Packing"])
-            # We want to show them if they have "Premium" even if they also have "Packing"
-            query["$or"] = [
-                {"category": {"$in": public_category_names}},  # Old single category field
-                {"categories": {"$in": public_category_names}}  # New categories array - has at least one public category
-            ]
+        # When showing "All" products AND include_admin is False (customer view)
+        # Only show products that have at least one PUBLIC category
+        if not include_admin:
+            # Get all public (non-admin) category names
+            public_categories = await db.categories.find({"is_admin_only": {"$ne": True}}).to_list(1000)
+            public_category_names = [cat.get("name") for cat in public_categories]
+            
+            if public_category_names:
+                # Show products that have at least one public category
+                # Products can have multiple categories (e.g., ["Premium", "Packing"])
+                # We want to show them if they have "Premium" even if they also have "Packing"
+                query["$or"] = [
+                    {"category": {"$in": public_category_names}},  # Old single category field
+                    {"categories": {"$in": public_category_names}}  # New categories array - has at least one public category
+                ]
+        # If include_admin is True (admin view), no category filter - show all products
     
     if is_available is not None:
         query["is_available"] = is_available
