@@ -498,7 +498,7 @@ export default function CheckoutScreen() {
               color={paymentMethod === 'upi' ? '#8B4513' : '#999'}
             />
             <View style={styles.paymentInfo}>
-              <Text style={styles.paymentLabel}>UPI Payment</Text>
+              <Text style={styles.paymentLabel}>Instant Payment</Text>
               <Text style={styles.paymentSubtext}>Google Pay, PhonePe, Paytm, etc.</Text>
             </View>
           </View>
