@@ -36,11 +36,21 @@ export default function ManageProductsScreen() {
 
   const fetchProducts = async () => {
     try {
+      console.log('📦 Fetching products with includeAdmin=true...');
       // Pass includeAdmin=true to fetch ALL products including admin-only categories
       const data = await apiService.getProducts(undefined, undefined, true);
+      console.log(`✅ Received ${data.length} products from API`);
+      
+      // Debug: count Fixed Orders products
+      const fixedOrdersCount = data.filter((p: any) => 
+        (p.categories && p.categories.includes('Fixed Orders')) || 
+        p.category === 'Fixed Orders'
+      ).length;
+      console.log(`📋 Products with "Fixed Orders" category: ${fixedOrdersCount}`);
+      
       setProducts(data);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('❌ Error fetching products:', error);
       showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
