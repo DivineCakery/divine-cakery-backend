@@ -38,22 +38,10 @@ export default function ManageProductsScreen() {
     try {
       // Pass includeAdmin=true to fetch ALL products including admin-only categories
       const data = await apiService.getProducts(undefined, undefined, true);
-      
-      // Debug: count Fixed Orders products
-      const fixedOrdersCount = data.filter((p: any) => 
-        (p.categories && p.categories.includes('Fixed Orders')) || 
-        p.category === 'Fixed Orders'
-      ).length;
-      
-      // Show debug info directly on screen for production testing
-      showAlert(
-        'Debug Info', 
-        `Total products from API: ${data.length}\n\nProducts with "Fixed Orders": ${fixedOrdersCount}\n\nThis is for debugging - will be removed soon.`
-      );
-      
       setProducts(data);
     } catch (error) {
-      showAlert('Error', `Failed to load products: ${error}`);
+      console.error('Error fetching products:', error);
+      showAlert('Error', 'Failed to load products');
     } finally {
       setLoading(false);
       setRefreshing(false);
