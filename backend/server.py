@@ -1139,9 +1139,16 @@ async def create_payment_order(
         
         logger.info(f"Creating payment link with data: amount={payment_link_data['amount']}, callback={payment_link_data['callback_url']}")
         
-        payment_link = razorpay_client.payment_link.create(payment_link_data)
-        
-        logger.info(f"Payment link created successfully: {payment_link.get('id')}")
+        try:
+            # Call Razorpay API with timeout handling
+            payment_link = razorpay_client.payment_link.create(payment_link_data)
+            logger.info(f"Payment link created successfully: {payment_link.get('id')}")
+        except Exception as razorpay_error:
+            logger.error(f"Razorpay API error: {type(razorpay_error).__name__} - {str(razorpay_error)}")
+            raise HTTPException(
+                status_code=503, 
+                detail=f"Payment gateway temporarily unavailable. Please try again in a moment. Error: {str(razorpay_error)}"
+            )
         
         # Create transaction record
         transaction_dict = {
