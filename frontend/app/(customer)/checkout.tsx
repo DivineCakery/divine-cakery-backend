@@ -556,6 +556,7 @@ export default function CheckoutScreen() {
           </View>
         </TouchableOpacity>
         </View>
+        </>
       )}
 
       <View style={styles.footer}>
