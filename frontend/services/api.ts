@@ -80,6 +80,23 @@ class ApiService {
     return response.data;
   }
 
+  // Password Reset APIs
+  async requestPasswordReset(identifier: string) {
+    const response = await this.api.post('/auth/request-password-reset', { identifier });
+    return response.data;
+  }
+
+  async verifyOTP(identifier: string, otp: string) {
+    const response = await this.api.post('/auth/verify-otp', { identifier, otp });
+    return response.data;
+  }
+
+  async resetPassword(reset_token: string, new_password: string) {
+    const response = await this.api.post('/auth/reset-password', { reset_token, new_password });
+    return response.data;
+  }
+
+
   // Product APIs
   async getProducts(category?: string, isAvailable?: boolean, includeAdmin: boolean = false) {
     const params: any = {};
