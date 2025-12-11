@@ -103,8 +103,7 @@ class BackendTester:
                 
                 # Approve the customer (admin action) - use admin token
                 admin_headers = {"Authorization": f"Bearer {self.admin_token}"}
-                approve_response = self.session.put(f"{BASE_URL}/admin/users/{self.test_user_id}", 
-                                                  json={"is_approved": True}, 
+                approve_response = self.session.put(f"{BASE_URL}/admin/users/{self.test_user_id}/approve", 
                                                   headers=admin_headers)
                 
                 if approve_response.status_code == 200:
