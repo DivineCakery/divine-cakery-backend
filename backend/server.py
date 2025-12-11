@@ -1276,6 +1276,12 @@ async def payment_webhook(request: Request):
                     # Insert order
                     await db.orders.insert_one(order_dict)
                     
+                    # Mark transaction as having created an order
+                    await db.transactions.update_one(
+                        {"id": transaction["id"]},
+                        {"$set": {"order_created": True, "order_id": order_id}}
+                    )
+                    
                     logger.info(f"✅ Order created successfully after payment: order_id={order_id}, order_number={order_number}, customer_id={order_data['customer_id']}")
                 else:
                     logger.error("Order data not found in transaction notes")
