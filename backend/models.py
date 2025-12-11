@@ -315,6 +315,20 @@ class DurationType(str, Enum):
 
 class StandingOrderStatus(str, Enum):
     ACTIVE = "active"
+
+
+# Password Reset Models
+class PasswordResetRequest(BaseModel):
+    identifier: str  # Can be username or phone number
+
+class PasswordResetVerifyOTP(BaseModel):
+    identifier: str  # username or phone
+    otp: str
+
+class PasswordResetComplete(BaseModel):
+    reset_token: str
+    new_password: str
+
     CANCELLED = "cancelled"
 
 
