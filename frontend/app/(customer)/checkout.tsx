@@ -500,14 +500,24 @@ export default function CheckoutScreen() {
       )}
 
       {user?.user_type !== 'order_agent' && (
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === 'wallet' && styles.paymentOptionActive,
-            ]}
-            onPress={() => setPaymentMethod('wallet')}
-          >
+        <>
+          {paymentMethod === 'upi' && (
+            <View style={styles.paymentTip}>
+              <Ionicons name="information-circle" size={20} color="#FF9800" />
+              <Text style={styles.paymentTipText}>
+                💡 Tip: Keep the payment window open. If you need to check OTP, take a screenshot or note it down before switching apps.
+              </Text>
+            </View>
+          )}
+          
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={[
+                styles.paymentOption,
+                paymentMethod === 'wallet' && styles.paymentOptionActive,
+              ]}
+              onPress={() => setPaymentMethod('wallet')}
+            >
           <View style={styles.paymentOptionContent}>
             <Ionicons
               name={paymentMethod === 'wallet' ? 'radio-button-on' : 'radio-button-off'}
