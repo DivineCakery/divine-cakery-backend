@@ -101,14 +101,16 @@ class BackendTester:
                 user_data = response.json()
                 self.test_user_id = user_data["id"]
                 
-                # Approve the customer (admin action)
-                approve_response = self.session.put(f"{BASE_URL}/admin/users/{self.test_user_id}", json={
-                    "is_approved": True
-                })
+                # Approve the customer (admin action) - use admin token
+                admin_headers = {"Authorization": f"Bearer {self.admin_token}"}
+                approve_response = self.session.put(f"{BASE_URL}/admin/users/{self.test_user_id}", 
+                                                  json={"is_approved": True}, 
+                                                  headers=admin_headers)
                 
                 if approve_response.status_code == 200:
-                    # Login as test customer
-                    login_response = self.session.post(f"{BASE_URL}/auth/login", json={
+                    # Login as test customer (create new session for customer)
+                    customer_session = requests.Session()
+                    login_response = customer_session.post(f"{BASE_URL}/auth/login", json={
                         "username": test_username,
                         "password": "testpass123"
                     })
@@ -118,6 +120,12 @@ class BackendTester:
                         self.test_user_token = login_data["access_token"]
                         self.log_test("Test Customer Creation", True, f"Created and authenticated test customer: {test_username}")
                         return True
+                    else:
+                        self.log_test("Test Customer Creation", False, f"Failed to login as customer: {login_response.status_code} - {login_response.text}")
+                        return False
+                else:
+                    self.log_test("Test Customer Creation", False, f"Failed to approve customer: {approve_response.status_code} - {approve_response.text}")
+                    return False
                 
             self.log_test("Test Customer Creation", False, f"Failed to create test customer: {response.status_code} - {response.text}")
             return False
