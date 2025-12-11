@@ -315,6 +315,7 @@ class DurationType(str, Enum):
 
 class StandingOrderStatus(str, Enum):
     ACTIVE = "active"
+    CANCELLED = "cancelled"
 
 
 # Password Reset Models
@@ -328,8 +329,6 @@ class PasswordResetVerifyOTP(BaseModel):
 class PasswordResetComplete(BaseModel):
     reset_token: str
     new_password: str
-
-    CANCELLED = "cancelled"
 
 
 class StandingOrderItem(BaseModel):
