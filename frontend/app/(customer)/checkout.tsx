@@ -832,6 +832,23 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginLeft: 39,
   },
+  paymentTip: {
+    backgroundColor: '#FFF3E0',
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    marginHorizontal: 15,
+    marginBottom: 10,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
+  },
+  paymentTipText: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 13,
+    color: '#E65100',
+    lineHeight: 18,
+  },
   footer: {
     padding: 15,
     paddingBottom: 100,
