@@ -1,34 +1,43 @@
 #!/usr/bin/env python3
 """
-Backend Testing Suite for Divine Cakery Payment Webhook
-Tests the critical payment webhook fix to ensure order payments are correctly differentiated from wallet top-ups.
+Backend Testing Suite for Razorpay Payment Flow - Cart Persistence During OTP Verification
+
+This test suite verifies:
+1. New GET /api/transactions/{transaction_id} endpoint
+2. Webhook properly sets order_created flag when creating orders
+3. Complete payment flow from transaction creation to order confirmation
+
+Test Scenarios:
+- Transaction status endpoint functionality
+- Webhook order creation flag setting
+- Complete payment flow integration
+- Authentication and authorization checks
 """
 
-import requests
+import asyncio
 import json
+import requests
 import uuid
 from datetime import datetime, timedelta
-import time
+from typing import Dict, Any, Optional
+import sys
 import os
-from typing import Dict, Any, List
 
 # Configuration
-BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://shopbugfix.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
-
-# Admin credentials
+BASE_URL = "https://shopbugfix.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
 class BackendTester:
     def __init__(self):
+        self.session = requests.Session()
         self.admin_token = None
-        self.test_user_id = None
         self.test_user_token = None
+        self.test_user_id = None
         self.test_results = []
         
-    def log_result(self, test_name: str, success: bool, message: str, details: Dict = None):
-        """Log test result"""
+    def log_test(self, test_name: str, success: bool, message: str, details: Dict = None):
+        """Log test results"""
         result = {
             "test": test_name,
             "success": success,
@@ -37,536 +46,536 @@ class BackendTester:
             "timestamp": datetime.now().isoformat()
         }
         self.test_results.append(result)
+        
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name} - {message}")
+        print(f"{status}: {test_name}")
+        print(f"   {message}")
         if details:
             print(f"   Details: {details}")
-    
+        print()
+
     def authenticate_admin(self) -> bool:
-        """Authenticate as admin"""
+        """Authenticate as admin user"""
         try:
-            response = requests.post(f"{API_BASE}/auth/login", json={
+            response = self.session.post(f"{BASE_URL}/auth/login", json={
                 "username": ADMIN_USERNAME,
                 "password": ADMIN_PASSWORD
             })
             
             if response.status_code == 200:
-                self.admin_token = response.json()["access_token"]
-                self.log_result("Admin Authentication", True, "Successfully authenticated as admin")
+                data = response.json()
+                self.admin_token = data["access_token"]
+                self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
+                self.log_test("Admin Authentication", True, "Successfully authenticated as admin")
                 return True
             else:
-                self.log_result("Admin Authentication", False, f"Failed with status {response.status_code}: {response.text}")
+                self.log_test("Admin Authentication", False, f"Failed to authenticate: {response.status_code} - {response.text}")
                 return False
+                
         except Exception as e:
-            self.log_result("Admin Authentication", False, f"Exception: {str(e)}")
+            self.log_test("Admin Authentication", False, f"Exception during admin auth: {str(e)}")
             return False
-    
-    def create_test_user(self) -> bool:
-        """Create a test user for testing"""
+
+    def create_test_customer(self) -> bool:
+        """Create a test customer for testing"""
         try:
-            test_username = f"testuser_{int(time.time())}"
-            user_data = {
+            # Generate unique test data
+            timestamp = int(datetime.now().timestamp())
+            test_username = f"testcustomer_{timestamp}"
+            test_email = f"test_{timestamp}@example.com"
+            test_phone = f"+919876543{timestamp % 1000:03d}"
+            
+            customer_data = {
                 "username": test_username,
+                "email": test_email,
+                "phone": test_phone,
                 "password": "testpass123",
-                "email": f"{test_username}@test.com",
-                "phone": "+919876543210",
                 "business_name": "Test Business",
                 "address": "Test Address, Test City",
                 "can_topup_wallet": True
             }
             
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.post(f"{API_BASE}/admin/users", json=user_data, headers=headers)
+            response = self.session.post(f"{BASE_URL}/auth/register", json=customer_data)
             
             if response.status_code == 200:
-                user = response.json()
-                self.test_user_id = user["id"]
+                user_data = response.json()
+                self.test_user_id = user_data["id"]
                 
-                # Login as test user to get token
-                login_response = requests.post(f"{API_BASE}/auth/login", json={
-                    "username": test_username,
-                    "password": "testpass123"
+                # Approve the customer (admin action)
+                approve_response = self.session.put(f"{BASE_URL}/admin/users/{self.test_user_id}", json={
+                    "is_approved": True
                 })
                 
-                if login_response.status_code == 200:
-                    self.test_user_token = login_response.json()["access_token"]
-                    self.log_result("Test User Creation", True, f"Created test user: {test_username}")
-                    return True
-                else:
-                    self.log_result("Test User Creation", False, f"Failed to login as test user: {login_response.text}")
-                    return False
-            else:
-                self.log_result("Test User Creation", False, f"Failed with status {response.status_code}: {response.text}")
-                return False
-        except Exception as e:
-            self.log_result("Test User Creation", False, f"Exception: {str(e)}")
+                if approve_response.status_code == 200:
+                    # Login as test customer
+                    login_response = self.session.post(f"{BASE_URL}/auth/login", json={
+                        "username": test_username,
+                        "password": "testpass123"
+                    })
+                    
+                    if login_response.status_code == 200:
+                        login_data = login_response.json()
+                        self.test_user_token = login_data["access_token"]
+                        self.log_test("Test Customer Creation", True, f"Created and authenticated test customer: {test_username}")
+                        return True
+                
+            self.log_test("Test Customer Creation", False, f"Failed to create test customer: {response.status_code} - {response.text}")
             return False
-    
-    def get_wallet_balance(self, user_token: str) -> float:
-        """Get current wallet balance for a user"""
-        try:
-            headers = {"Authorization": f"Bearer {user_token}"}
-            response = requests.get(f"{API_BASE}/wallet", headers=headers)
             
-            if response.status_code == 200:
-                return response.json()["balance"]
-            else:
-                return 0.0
-        except Exception:
-            return 0.0
-    
-    def get_orders_count(self, user_id: str) -> int:
-        """Get count of orders for a user"""
+        except Exception as e:
+            self.log_test("Test Customer Creation", False, f"Exception during customer creation: {str(e)}")
+            return False
+
+    def test_transaction_status_endpoint_structure(self) -> bool:
+        """Test Scenario 1: New Transaction Status Endpoint Structure"""
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.get(f"{API_BASE}/orders", headers=headers)
-            
-            if response.status_code == 200:
-                orders = response.json()
-                user_orders = [order for order in orders if order.get("user_id") == user_id]
-                return len(user_orders)
-            else:
-                return 0
-        except Exception:
-            return 0
-    
-    def create_payment_order(self, amount: float, transaction_type: str, notes: Dict = None) -> Dict:
-        """Create a payment order"""
-        try:
+            # First create a test transaction (wallet topup)
             headers = {"Authorization": f"Bearer {self.test_user_token}"}
-            # Add unique identifier to notes to avoid duplicate reference_id issues
-            unique_notes = notes or {}
-            unique_notes["test_id"] = str(uuid.uuid4())[:8]
             
-            payment_data = {
-                "amount": amount,
-                "transaction_type": transaction_type,
-                "notes": unique_notes
+            transaction_data = {
+                "amount": 100.0,
+                "transaction_type": "wallet_topup",
+                "notes": {"test": "transaction_status_test"}
             }
             
-            response = requests.post(f"{API_BASE}/payments/create-order", json=payment_data, headers=headers)
+            response = self.session.post(f"{BASE_URL}/payments/create-order", 
+                                       json=transaction_data, headers=headers)
             
-            if response.status_code == 200:
-                return response.json()
+            if response.status_code != 200:
+                self.log_test("Transaction Status Endpoint - Create Transaction", False, 
+                            f"Failed to create test transaction: {response.status_code} - {response.text}")
+                return False
+            
+            transaction_response = response.json()
+            transaction_id = transaction_response.get("transaction_id")
+            
+            if not transaction_id:
+                self.log_test("Transaction Status Endpoint - Transaction ID", False, 
+                            "No transaction_id in response")
+                return False
+            
+            # Test GET /api/transactions/{transaction_id}
+            status_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                             headers=headers)
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                
+                # Verify required fields
+                required_fields = ["id", "status", "transaction_type", "amount", "created_at", "order_created"]
+                missing_fields = [field for field in required_fields if field not in status_data]
+                
+                if not missing_fields:
+                    self.log_test("Transaction Status Endpoint - Structure", True, 
+                                "All required fields present in response", 
+                                {"fields": list(status_data.keys()), "transaction_id": transaction_id})
+                    return True
+                else:
+                    self.log_test("Transaction Status Endpoint - Structure", False, 
+                                f"Missing required fields: {missing_fields}", 
+                                {"response": status_data})
+                    return False
             else:
-                raise Exception(f"Failed to create payment order: {response.status_code} - {response.text}")
+                self.log_test("Transaction Status Endpoint - Structure", False, 
+                            f"Failed to get transaction status: {status_response.status_code} - {status_response.text}")
+                return False
+                
         except Exception as e:
-            raise Exception(f"Exception creating payment order: {str(e)}")
-    
-    def simulate_webhook_callback(self, payment_link_id: str, transaction_id: str) -> bool:
-        """Simulate Razorpay webhook callback"""
+            self.log_test("Transaction Status Endpoint - Structure", False, f"Exception: {str(e)}")
+            return False
+
+    def test_transaction_status_authentication(self) -> bool:
+        """Test authentication requirements for transaction status endpoint"""
         try:
+            # Create a transaction first
+            headers = {"Authorization": f"Bearer {self.test_user_token}"}
+            
+            transaction_data = {
+                "amount": 50.0,
+                "transaction_type": "wallet_topup",
+                "notes": {"test": "auth_test"}
+            }
+            
+            response = self.session.post(f"{BASE_URL}/payments/create-order", 
+                                       json=transaction_data, headers=headers)
+            
+            if response.status_code != 200:
+                self.log_test("Transaction Status Auth - Setup", False, "Failed to create test transaction")
+                return False
+            
+            transaction_id = response.json().get("transaction_id")
+            
+            # Test 1: No auth token (should return 401)
+            no_auth_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}")
+            
+            if no_auth_response.status_code != 401:
+                self.log_test("Transaction Status Auth - No Token", False, 
+                            f"Expected 401, got {no_auth_response.status_code}")
+                return False
+            
+            # Test 2: Valid auth token (should return 200)
+            valid_auth_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                                 headers=headers)
+            
+            if valid_auth_response.status_code != 200:
+                self.log_test("Transaction Status Auth - Valid Token", False, 
+                            f"Expected 200, got {valid_auth_response.status_code}")
+                return False
+            
+            # Test 3: Invalid transaction ID (should return 404)
+            invalid_id_response = self.session.get(f"{BASE_URL}/transactions/invalid-id", 
+                                                 headers=headers)
+            
+            if invalid_id_response.status_code != 404:
+                self.log_test("Transaction Status Auth - Invalid ID", False, 
+                            f"Expected 404, got {invalid_id_response.status_code}")
+                return False
+            
+            self.log_test("Transaction Status Authentication", True, 
+                        "All authentication scenarios working correctly")
+            return True
+            
+        except Exception as e:
+            self.log_test("Transaction Status Authentication", False, f"Exception: {str(e)}")
+            return False
+
+    def test_webhook_order_creation_flag(self) -> bool:
+        """Test Scenario 2: Webhook Order Creation Flag"""
+        try:
+            # Create an order payment transaction
+            headers = {"Authorization": f"Bearer {self.test_user_token}"}
+            
+            # Prepare order data
+            order_data = {
+                "customer_id": self.test_user_id,
+                "items": [
+                    {
+                        "product_id": "test-product-1",
+                        "product_name": "Test Product",
+                        "quantity": 2,
+                        "unit_price": 50.0,
+                        "total_price": 100.0
+                    }
+                ],
+                "total_amount": 100.0,
+                "delivery_date": (datetime.now() + timedelta(days=1)).isoformat(),
+                "delivery_address": "Test Delivery Address"
+            }
+            
+            transaction_data = {
+                "amount": 100.0,
+                "transaction_type": "order_payment",
+                "notes": {
+                    "order_data": order_data,
+                    "test": "webhook_test"
+                }
+            }
+            
+            # Create payment transaction
+            response = self.session.post(f"{BASE_URL}/payments/create-order", 
+                                       json=transaction_data, headers=headers)
+            
+            if response.status_code != 200:
+                self.log_test("Webhook Order Flag - Create Transaction", False, 
+                            f"Failed to create order payment transaction: {response.status_code} - {response.text}")
+                return False
+            
+            transaction_response = response.json()
+            transaction_id = transaction_response.get("transaction_id")
+            payment_link_id = transaction_response.get("payment_link_id")
+            
+            # Check initial transaction status (should have order_created=false)
+            status_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                             headers=headers)
+            
+            if status_response.status_code == 200:
+                initial_status = status_response.json()
+                if initial_status.get("order_created") != False:
+                    self.log_test("Webhook Order Flag - Initial State", False, 
+                                f"Expected order_created=false initially, got {initial_status.get('order_created')}")
+                    return False
+            
+            # Simulate webhook payload for payment_link.paid event
             webhook_payload = {
                 "event": "payment_link.paid",
                 "payload": {
                     "payment_link": {
                         "entity": {
                             "id": payment_link_id,
-                            "reference_id": transaction_id,
-                            "amount": 10000  # 100.00 in paise
+                            "reference_id": f"txn_{self.test_user_id[:8]}_{int(datetime.now().timestamp())}",
+                            "amount": 10000,  # Amount in paise
+                            "status": "paid"
                         }
                     }
                 }
             }
             
-            response = requests.post(f"{API_BASE}/payments/webhook", json=webhook_payload)
+            # Send webhook
+            webhook_response = self.session.post(f"{BASE_URL}/payments/webhook", 
+                                               json=webhook_payload)
             
-            if response.status_code == 200:
-                return True
-            else:
-                print(f"Webhook failed: {response.status_code} - {response.text}")
-                return False
-        except Exception as e:
-            print(f"Exception in webhook: {str(e)}")
-            return False
-    
-    def test_order_payment_flow(self) -> bool:
-        """Test 1: Order Payment Flow - Should create order, not update wallet"""
-        try:
-            print("\n🧪 Testing Order Payment Flow...")
-            
-            # Get initial state
-            initial_wallet = self.get_wallet_balance(self.test_user_token)
-            initial_orders = self.get_orders_count(self.test_user_id)
-            
-            # Create order data
-            delivery_date = (datetime.now() + timedelta(days=1)).isoformat()
-            order_data = {
-                "customer_id": self.test_user_id,
-                "items": [
-                    {
-                        "product_id": "test_product_1",
-                        "product_name": "Test Cake",
-                        "quantity": 2,
-                        "price": 50.0,
-                        "subtotal": 100.0
-                    }
-                ],
-                "total_amount": 100.0,
-                "delivery_date": delivery_date,
-                "delivery_address": "Test Delivery Address",
-                "delivery_notes": "Test delivery notes",
-                "payment_method": "razorpay",
-                "onsite_pickup": False
-            }
-            
-            # Create payment order with order_payment type
-            payment_response = self.create_payment_order(
-                amount=100.0,
-                transaction_type="order_payment",
-                notes={"order_data": order_data}
-            )
-            
-            payment_link_id = payment_response["payment_link_id"]
-            transaction_id = payment_response["transaction_id"]
-            
-            # Simulate successful webhook
-            webhook_success = self.simulate_webhook_callback(payment_link_id, transaction_id)
-            
-            if not webhook_success:
-                self.log_result("Order Payment Flow", False, "Webhook simulation failed")
+            if webhook_response.status_code not in [200, 201]:
+                self.log_test("Webhook Order Flag - Webhook Call", False, 
+                            f"Webhook failed: {webhook_response.status_code} - {webhook_response.text}")
                 return False
             
-            # Wait a moment for processing
-            time.sleep(2)
+            # Check transaction status after webhook (should have order_created=true)
+            final_status_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                                   headers=headers)
             
-            # Check results
-            final_wallet = self.get_wallet_balance(self.test_user_token)
-            final_orders = self.get_orders_count(self.test_user_id)
-            
-            # Verify wallet was NOT updated
-            wallet_unchanged = abs(final_wallet - initial_wallet) < 0.01
-            
-            # Verify order was created
-            order_created = final_orders > initial_orders
-            
-            if wallet_unchanged and order_created:
-                self.log_result("Order Payment Flow", True, 
-                    "✅ Order payment correctly created order without updating wallet",
-                    {
-                        "wallet_before": initial_wallet,
-                        "wallet_after": final_wallet,
-                        "orders_before": initial_orders,
-                        "orders_after": final_orders,
-                        "payment_link_id": payment_link_id
-                    })
-                return True
-            else:
-                self.log_result("Order Payment Flow", False,
-                    f"❌ Incorrect behavior - Wallet unchanged: {wallet_unchanged}, Order created: {order_created}",
-                    {
-                        "wallet_before": initial_wallet,
-                        "wallet_after": final_wallet,
-                        "orders_before": initial_orders,
-                        "orders_after": final_orders
-                    })
-                return False
+            if final_status_response.status_code == 200:
+                final_status = final_status_response.json()
                 
-        except Exception as e:
-            self.log_result("Order Payment Flow", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_wallet_topup_flow(self) -> bool:
-        """Test 2: Wallet Top-up Flow - Should update wallet, not create order"""
-        try:
-            print("\n🧪 Testing Wallet Top-up Flow...")
-            
-            # Get initial state
-            initial_wallet = self.get_wallet_balance(self.test_user_token)
-            initial_orders = self.get_orders_count(self.test_user_id)
-            
-            # Create payment order with wallet_topup type
-            payment_response = self.create_payment_order(
-                amount=50.0,
-                transaction_type="wallet_topup",
-                notes={}
-            )
-            
-            payment_link_id = payment_response["payment_link_id"]
-            transaction_id = payment_response["transaction_id"]
-            
-            # Simulate successful webhook
-            webhook_success = self.simulate_webhook_callback(payment_link_id, transaction_id)
-            
-            if not webhook_success:
-                self.log_result("Wallet Top-up Flow", False, "Webhook simulation failed")
-                return False
-            
-            # Wait a moment for processing
-            time.sleep(2)
-            
-            # Check results
-            final_wallet = self.get_wallet_balance(self.test_user_token)
-            final_orders = self.get_orders_count(self.test_user_id)
-            
-            # Verify wallet was updated
-            wallet_increased = (final_wallet - initial_wallet) >= 49.0  # Allow small floating point differences
-            
-            # Verify no order was created
-            no_order_created = final_orders == initial_orders
-            
-            if wallet_increased and no_order_created:
-                self.log_result("Wallet Top-up Flow", True,
-                    "✅ Wallet top-up correctly updated wallet without creating order",
-                    {
-                        "wallet_before": initial_wallet,
-                        "wallet_after": final_wallet,
-                        "wallet_increase": final_wallet - initial_wallet,
-                        "orders_before": initial_orders,
-                        "orders_after": final_orders,
-                        "payment_link_id": payment_link_id
-                    })
-                return True
-            else:
-                self.log_result("Wallet Top-up Flow", False,
-                    f"❌ Incorrect behavior - Wallet increased: {wallet_increased}, No order created: {no_order_created}",
-                    {
-                        "wallet_before": initial_wallet,
-                        "wallet_after": final_wallet,
-                        "wallet_increase": final_wallet - initial_wallet,
-                        "orders_before": initial_orders,
-                        "orders_after": final_orders
-                    })
-                return False
-                
-        except Exception as e:
-            self.log_result("Wallet Top-up Flow", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_transaction_differentiation(self) -> bool:
-        """Test 3: Transaction Differentiation - Multiple transactions should be handled correctly"""
-        try:
-            print("\n🧪 Testing Transaction Differentiation...")
-            
-            # Get initial state
-            initial_wallet = self.get_wallet_balance(self.test_user_token)
-            initial_orders = self.get_orders_count(self.test_user_id)
-            
-            # Create both types of transactions
-            transactions = []
-            
-            # 1. Wallet top-up
-            topup_response = self.create_payment_order(
-                amount=25.0,
-                transaction_type="wallet_topup",
-                notes={}
-            )
-            transactions.append(("wallet_topup", topup_response))
-            
-            # 2. Order payment
-            delivery_date = (datetime.now() + timedelta(days=1)).isoformat()
-            order_data = {
-                "customer_id": self.test_user_id,
-                "items": [
-                    {
-                        "product_id": "test_product_2",
-                        "product_name": "Test Pastry",
-                        "quantity": 1,
-                        "price": 75.0,
-                        "subtotal": 75.0
-                    }
-                ],
-                "total_amount": 75.0,
-                "delivery_date": delivery_date,
-                "delivery_address": "Test Address 2",
-                "payment_method": "razorpay",
-                "onsite_pickup": False
-            }
-            
-            order_response = self.create_payment_order(
-                amount=75.0,
-                transaction_type="order_payment",
-                notes={"order_data": order_data}
-            )
-            transactions.append(("order_payment", order_response))
-            
-            # Process both webhooks
-            for transaction_type, response in transactions:
-                webhook_success = self.simulate_webhook_callback(
-                    response["payment_link_id"],
-                    response["transaction_id"]
-                )
-                if not webhook_success:
-                    self.log_result("Transaction Differentiation", False, 
-                        f"Webhook simulation failed for {transaction_type}")
+                if final_status.get("order_created") == True and final_status.get("status") == "success":
+                    self.log_test("Webhook Order Creation Flag", True, 
+                                "Webhook correctly sets order_created=true for order payments", 
+                                {"transaction_id": transaction_id, "final_status": final_status})
+                    return True
+                else:
+                    self.log_test("Webhook Order Creation Flag", False, 
+                                f"Expected order_created=true and status=success, got order_created={final_status.get('order_created')}, status={final_status.get('status')}")
                     return False
-                time.sleep(1)  # Small delay between webhooks
-            
-            # Wait for processing
-            time.sleep(3)
-            
-            # Check results
-            final_wallet = self.get_wallet_balance(self.test_user_token)
-            final_orders = self.get_orders_count(self.test_user_id)
-            
-            # Expected: wallet increased by 25.0, orders increased by 1
-            expected_wallet_increase = 25.0
-            expected_order_increase = 1
-            
-            actual_wallet_increase = final_wallet - initial_wallet
-            actual_order_increase = final_orders - initial_orders
-            
-            wallet_correct = abs(actual_wallet_increase - expected_wallet_increase) < 1.0
-            orders_correct = actual_order_increase == expected_order_increase
-            
-            if wallet_correct and orders_correct:
-                self.log_result("Transaction Differentiation", True,
-                    "✅ Both transaction types processed correctly",
-                    {
-                        "wallet_increase_expected": expected_wallet_increase,
-                        "wallet_increase_actual": actual_wallet_increase,
-                        "orders_increase_expected": expected_order_increase,
-                        "orders_increase_actual": actual_order_increase,
-                        "transactions_processed": len(transactions)
-                    })
-                return True
             else:
-                self.log_result("Transaction Differentiation", False,
-                    f"❌ Incorrect processing - Wallet correct: {wallet_correct}, Orders correct: {orders_correct}",
-                    {
-                        "wallet_increase_expected": expected_wallet_increase,
-                        "wallet_increase_actual": actual_wallet_increase,
-                        "orders_increase_expected": expected_order_increase,
-                        "orders_increase_actual": actual_order_increase
-                    })
+                self.log_test("Webhook Order Creation Flag", False, 
+                            f"Failed to get final transaction status: {final_status_response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log_result("Transaction Differentiation", False, f"Exception: {str(e)}")
+            self.log_test("Webhook Order Creation Flag", False, f"Exception: {str(e)}")
             return False
-    
-    def test_order_data_completeness(self) -> bool:
-        """Test 4: Order Data Completeness - Verify all order fields are properly saved"""
+
+    def test_wallet_topup_no_order_flag(self) -> bool:
+        """Test that wallet topup transactions do NOT set order_created flag"""
         try:
-            print("\n🧪 Testing Order Data Completeness...")
+            headers = {"Authorization": f"Bearer {self.test_user_token}"}
             
-            # Create comprehensive order data
-            delivery_date = (datetime.now() + timedelta(days=2)).isoformat()
-            order_data = {
-                "customer_id": self.test_user_id,
-                "items": [
-                    {
-                        "product_id": "test_product_3",
-                        "product_name": "Test Birthday Cake",
-                        "quantity": 1,
-                        "price": 150.0,
-                        "subtotal": 150.0
-                    },
-                    {
-                        "product_id": "test_product_4", 
-                        "product_name": "Test Cupcakes",
-                        "quantity": 6,
-                        "price": 25.0,
-                        "subtotal": 150.0
-                    }
-                ],
-                "total_amount": 300.0,
-                "delivery_date": delivery_date,
-                "delivery_address": "123 Test Street, Test City, 12345",
-                "delivery_notes": "Please ring doorbell twice. Handle with care.",
-                "payment_method": "razorpay",
-                "onsite_pickup": False
+            # Create wallet topup transaction
+            transaction_data = {
+                "amount": 75.0,
+                "transaction_type": "wallet_topup",
+                "notes": {"test": "wallet_topup_test"}
             }
             
-            # Create payment order
-            payment_response = self.create_payment_order(
-                amount=300.0,
-                transaction_type="order_payment",
-                notes={"order_data": order_data}
-            )
-            
-            # Simulate webhook
-            webhook_success = self.simulate_webhook_callback(
-                payment_response["payment_link_id"],
-                payment_response["transaction_id"]
-            )
-            
-            if not webhook_success:
-                self.log_result("Order Data Completeness", False, "Webhook simulation failed")
-                return False
-            
-            # Wait for processing
-            time.sleep(3)
-            
-            # Get all orders and find the new one
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.get(f"{API_BASE}/orders", headers=headers)
+            response = self.session.post(f"{BASE_URL}/payments/create-order", 
+                                       json=transaction_data, headers=headers)
             
             if response.status_code != 200:
-                self.log_result("Order Data Completeness", False, "Failed to fetch orders")
+                self.log_test("Wallet Topup No Order Flag - Create Transaction", False, 
+                            f"Failed to create wallet topup transaction: {response.status_code}")
                 return False
             
-            orders = response.json()
-            user_orders = [order for order in orders if order.get("user_id") == self.test_user_id]
+            transaction_response = response.json()
+            transaction_id = transaction_response.get("transaction_id")
+            payment_link_id = transaction_response.get("payment_link_id")
             
-            if not user_orders:
-                self.log_result("Order Data Completeness", False, "No orders found for test user")
-                return False
-            
-            # Get the most recent order (should be our test order)
-            latest_order = max(user_orders, key=lambda x: x.get("created_at", ""))
-            
-            # Verify order fields
-            checks = {
-                "customer_id_correct": latest_order.get("user_id") == self.test_user_id,
-                "total_amount_correct": abs(latest_order.get("total_amount", 0) - 300.0) < 0.01,
-                "payment_status_paid": latest_order.get("payment_status") == "paid",
-                "order_status_pending": latest_order.get("order_status") == "pending",
-                "items_count_correct": len(latest_order.get("items", [])) == 2,
-                "delivery_address_saved": bool(latest_order.get("delivery_address")),
-                "onsite_pickup_correct": latest_order.get("onsite_pickup") == False,
-                "has_order_number": bool(latest_order.get("order_number"))
+            # Simulate webhook for wallet topup
+            webhook_payload = {
+                "event": "payment_link.paid",
+                "payload": {
+                    "payment_link": {
+                        "entity": {
+                            "id": payment_link_id,
+                            "reference_id": f"txn_{self.test_user_id[:8]}_{int(datetime.now().timestamp())}",
+                            "amount": 7500,  # Amount in paise
+                            "status": "paid"
+                        }
+                    }
+                }
             }
             
-            # Check delivery date conversion
-            delivery_date_saved = latest_order.get("delivery_date")
-            delivery_date_correct = bool(delivery_date_saved)  # Just check it exists
-            checks["delivery_date_saved"] = delivery_date_correct
+            # Send webhook
+            webhook_response = self.session.post(f"{BASE_URL}/payments/webhook", 
+                                               json=webhook_payload)
             
-            all_checks_passed = all(checks.values())
+            if webhook_response.status_code not in [200, 201]:
+                self.log_test("Wallet Topup No Order Flag - Webhook", False, 
+                            f"Webhook failed: {webhook_response.status_code}")
+                return False
             
-            if all_checks_passed:
-                self.log_result("Order Data Completeness", True,
-                    "✅ All order data fields properly saved from transaction notes",
-                    {
-                        "order_id": latest_order.get("id"),
-                        "order_number": latest_order.get("order_number"),
-                        "checks_passed": checks,
-                        "items_saved": len(latest_order.get("items", [])),
-                        "delivery_address": latest_order.get("delivery_address")
-                    })
-                return True
+            # Check final status
+            status_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                             headers=headers)
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                
+                if status_data.get("order_created") == False and status_data.get("status") == "success":
+                    self.log_test("Wallet Topup No Order Flag", True, 
+                                "Wallet topup correctly does NOT set order_created flag", 
+                                {"transaction_id": transaction_id, "status": status_data})
+                    return True
+                else:
+                    self.log_test("Wallet Topup No Order Flag", False, 
+                                f"Expected order_created=false, got {status_data.get('order_created')}")
+                    return False
             else:
-                failed_checks = [k for k, v in checks.items() if not v]
-                self.log_result("Order Data Completeness", False,
-                    f"❌ Some order data fields missing or incorrect: {failed_checks}",
-                    {
-                        "checks_results": checks,
-                        "failed_checks": failed_checks,
-                        "order_data": latest_order
-                    })
+                self.log_test("Wallet Topup No Order Flag", False, 
+                            f"Failed to get transaction status: {status_response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log_result("Order Data Completeness", False, f"Exception: {str(e)}")
+            self.log_test("Wallet Topup No Order Flag", False, f"Exception: {str(e)}")
             return False
-    
-    def cleanup_test_user(self):
-        """Clean up test user"""
+
+    def test_complete_payment_flow_integration(self) -> bool:
+        """Test Scenario 3: Complete Payment Flow Integration"""
+        try:
+            headers = {"Authorization": f"Bearer {self.test_user_token}"}
+            
+            # Step 1: Create order payment transaction
+            order_data = {
+                "customer_id": self.test_user_id,
+                "items": [
+                    {
+                        "product_id": "integration-test-product",
+                        "product_name": "Integration Test Product",
+                        "quantity": 1,
+                        "unit_price": 150.0,
+                        "total_price": 150.0
+                    }
+                ],
+                "total_amount": 150.0,
+                "delivery_date": (datetime.now() + timedelta(days=2)).isoformat(),
+                "delivery_address": "Integration Test Address"
+            }
+            
+            transaction_data = {
+                "amount": 150.0,
+                "transaction_type": "order_payment",
+                "notes": {
+                    "order_data": order_data,
+                    "test": "integration_test"
+                }
+            }
+            
+            create_response = self.session.post(f"{BASE_URL}/payments/create-order", 
+                                              json=transaction_data, headers=headers)
+            
+            if create_response.status_code != 200:
+                self.log_test("Complete Flow Integration - Create Payment", False, 
+                            f"Failed to create payment: {create_response.status_code}")
+                return False
+            
+            payment_data = create_response.json()
+            transaction_id = payment_data.get("transaction_id")
+            payment_link_id = payment_data.get("payment_link_id")
+            
+            # Step 2: Verify initial transaction status
+            initial_status_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                                     headers=headers)
+            
+            if initial_status_response.status_code != 200:
+                self.log_test("Complete Flow Integration - Initial Status", False, 
+                            f"Failed to get initial status: {initial_status_response.status_code}")
+                return False
+            
+            initial_status = initial_status_response.json()
+            if initial_status.get("status") != "pending" or initial_status.get("order_created") != False:
+                self.log_test("Complete Flow Integration - Initial Status Check", False, 
+                            f"Unexpected initial status: {initial_status}")
+                return False
+            
+            # Step 3: Simulate webhook callback
+            webhook_payload = {
+                "event": "payment_link.paid",
+                "payload": {
+                    "payment_link": {
+                        "entity": {
+                            "id": payment_link_id,
+                            "reference_id": f"txn_{self.test_user_id[:8]}_{int(datetime.now().timestamp())}",
+                            "amount": 15000,  # Amount in paise
+                            "status": "paid"
+                        }
+                    }
+                }
+            }
+            
+            webhook_response = self.session.post(f"{BASE_URL}/payments/webhook", 
+                                               json=webhook_payload)
+            
+            if webhook_response.status_code not in [200, 201]:
+                self.log_test("Complete Flow Integration - Webhook", False, 
+                            f"Webhook failed: {webhook_response.status_code}")
+                return False
+            
+            # Step 4: Verify final transaction status
+            final_status_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}", 
+                                                   headers=headers)
+            
+            if final_status_response.status_code != 200:
+                self.log_test("Complete Flow Integration - Final Status", False, 
+                            f"Failed to get final status: {final_status_response.status_code}")
+                return False
+            
+            final_status = final_status_response.json()
+            
+            # Step 5: Verify order was created in database
+            orders_response = self.session.get(f"{BASE_URL}/orders", headers=headers)
+            
+            if orders_response.status_code != 200:
+                self.log_test("Complete Flow Integration - Orders Check", False, 
+                            f"Failed to get orders: {orders_response.status_code}")
+                return False
+            
+            orders = orders_response.json()
+            
+            # Find the order created by this transaction
+            created_order = None
+            for order in orders:
+                if order.get("total_amount") == 150.0 and "integration-test-product" in str(order.get("items", [])):
+                    created_order = order
+                    break
+            
+            # Verify all conditions
+            success_conditions = [
+                (final_status.get("status") == "success", "Transaction status is success"),
+                (final_status.get("order_created") == True, "Transaction has order_created=true"),
+                (created_order is not None, "Order was created in database"),
+                (created_order and created_order.get("user_id") == self.test_user_id, "Order belongs to correct user") if created_order else (False, "Order not found")
+            ]
+            
+            all_passed = all(condition[0] for condition in success_conditions)
+            
+            if all_passed:
+                self.log_test("Complete Payment Flow Integration", True, 
+                            "Complete payment flow working correctly", 
+                            {
+                                "transaction_id": transaction_id,
+                                "final_status": final_status,
+                                "order_created": created_order is not None,
+                                "order_id": created_order.get("id") if created_order else None
+                            })
+                return True
+            else:
+                failed_conditions = [condition[1] for condition in success_conditions if not condition[0]]
+                self.log_test("Complete Payment Flow Integration", False, 
+                            f"Failed conditions: {failed_conditions}", 
+                            {"final_status": final_status, "orders_count": len(orders)})
+                return False
+                
+        except Exception as e:
+            self.log_test("Complete Payment Flow Integration", False, f"Exception: {str(e)}")
+            return False
+
+    def cleanup_test_data(self):
+        """Clean up test data"""
         try:
             if self.test_user_id and self.admin_token:
+                # Delete test user
                 headers = {"Authorization": f"Bearer {self.admin_token}"}
-                response = requests.delete(f"{API_BASE}/admin/users/{self.test_user_id}", headers=headers)
-                if response.status_code == 200:
-                    print(f"✅ Cleaned up test user: {self.test_user_id}")
+                delete_response = self.session.delete(f"{BASE_URL}/admin/users/{self.test_user_id}", 
+                                                    headers=headers)
+                
+                if delete_response.status_code in [200, 204, 404]:
+                    self.log_test("Cleanup", True, "Test user cleaned up successfully")
                 else:
-                    print(f"⚠️ Failed to cleanup test user: {response.status_code}")
+                    self.log_test("Cleanup", False, f"Failed to cleanup test user: {delete_response.status_code}")
         except Exception as e:
-            print(f"⚠️ Exception during cleanup: {str(e)}")
-    
+            self.log_test("Cleanup", False, f"Exception during cleanup: {str(e)}")
+
     def run_all_tests(self):
-        """Run all payment webhook tests"""
-        print("🚀 Starting Payment Webhook Testing Suite")
+        """Run all test scenarios"""
+        print("🚀 Starting Razorpay Payment Flow Backend Testing")
         print("=" * 60)
         
         # Setup
@@ -574,61 +583,62 @@ class BackendTester:
             print("❌ Cannot proceed without admin authentication")
             return False
         
-        if not self.create_test_user():
-            print("❌ Cannot proceed without test user")
+        if not self.create_test_customer():
+            print("❌ Cannot proceed without test customer")
             return False
         
-        # Run tests
-        test_results = []
+        # Test scenarios
+        test_methods = [
+            self.test_transaction_status_endpoint_structure,
+            self.test_transaction_status_authentication,
+            self.test_webhook_order_creation_flag,
+            self.test_wallet_topup_no_order_flag,
+            self.test_complete_payment_flow_integration
+        ]
         
-        test_results.append(self.test_order_payment_flow())
-        test_results.append(self.test_wallet_topup_flow())
-        test_results.append(self.test_transaction_differentiation())
-        test_results.append(self.test_order_data_completeness())
+        passed_tests = 0
+        total_tests = len(test_methods)
+        
+        for test_method in test_methods:
+            try:
+                if test_method():
+                    passed_tests += 1
+            except Exception as e:
+                print(f"❌ EXCEPTION in {test_method.__name__}: {str(e)}")
         
         # Cleanup
-        self.cleanup_test_user()
+        self.cleanup_test_data()
         
         # Summary
-        print("\n" + "=" * 60)
-        print("📊 PAYMENT WEBHOOK TEST RESULTS SUMMARY")
         print("=" * 60)
+        print(f"🎯 TEST SUMMARY: {passed_tests}/{total_tests} tests passed")
         
-        passed = sum(test_results)
-        total = len(test_results)
-        
-        for result in self.test_results:
-            status = "✅ PASS" if result["success"] else "❌ FAIL"
-            print(f"{status}: {result['test']}")
-            if not result["success"]:
-                print(f"   Error: {result['message']}")
-        
-        print(f"\n🎯 Overall Result: {passed}/{total} tests passed")
-        
-        if passed == total:
-            print("🎉 ALL TESTS PASSED! Payment webhook is working correctly.")
-            print("✅ Order payments create orders without updating wallet")
-            print("✅ Wallet top-ups update wallet without creating orders")
-            print("✅ Transaction types are correctly differentiated")
-            print("✅ Order data is completely saved from transaction notes")
+        if passed_tests == total_tests:
+            print("🎉 ALL TESTS PASSED! Razorpay payment flow fix is working correctly.")
+            return True
         else:
-            print("❌ SOME TESTS FAILED! Payment webhook needs attention.")
-            failed_tests = [r["test"] for r in self.test_results if not r["success"]]
-            print(f"Failed tests: {', '.join(failed_tests)}")
-        
-        return passed == total
+            print(f"⚠️  {total_tests - passed_tests} tests failed. Review the issues above.")
+            return False
 
 def main():
     """Main test execution"""
     tester = BackendTester()
     success = tester.run_all_tests()
     
-    if success:
-        print("\n🎉 Payment webhook testing completed successfully!")
-        exit(0)
-    else:
-        print("\n❌ Payment webhook testing failed!")
-        exit(1)
+    # Print detailed results
+    print("\n" + "=" * 60)
+    print("📋 DETAILED TEST RESULTS:")
+    print("=" * 60)
+    
+    for result in tester.test_results:
+        status = "✅" if result["success"] else "❌"
+        print(f"{status} {result['test']}")
+        print(f"   {result['message']}")
+        if result.get("details"):
+            print(f"   Details: {result['details']}")
+        print()
+    
+    return 0 if success else 1
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
