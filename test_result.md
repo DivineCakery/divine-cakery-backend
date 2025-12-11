@@ -410,7 +410,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Razorpay payment flow - Cart persistence during OTP verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
