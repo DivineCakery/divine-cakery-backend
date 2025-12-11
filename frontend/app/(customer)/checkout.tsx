@@ -257,6 +257,9 @@ export default function CheckoutScreen() {
           throw new Error('Failed to create payment link');
         }
         
+        const transactionId = paymentData.transaction_id;
+        console.log('Payment transaction created:', transactionId);
+        
         // Open Razorpay payment link in browser
         const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url, {
           dismissButtonStyle: 'close',
@@ -265,18 +268,54 @@ export default function CheckoutScreen() {
         });
         
         // Browser has closed or been dismissed (user returned from payment screen)
+        // Now poll the transaction status to check if payment was successful
+        console.log('Payment browser closed, checking transaction status...');
+        
+        // Poll for payment confirmation (max 10 attempts, 2 seconds apart = 20 seconds total)
+        let paymentConfirmed = false;
+        let pollAttempts = 0;
+        const maxAttempts = 10;
+        
+        while (pollAttempts < maxAttempts && !paymentConfirmed) {
+          try {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+            
+            const txStatus = await apiService.getTransactionStatus(transactionId);
+            console.log(`Poll attempt ${pollAttempts + 1}: Transaction status:`, txStatus.status);
+            
+            if (txStatus.status === 'success' && txStatus.order_created) {
+              paymentConfirmed = true;
+              console.log('✅ Payment confirmed and order created!');
+              
+              // Clear cart only after successful payment confirmation
+              clearCart();
+              await refreshUser();
+              
+              setPlacing(false);
+              
+              showAlert(
+                'Order Placed Successfully!', 
+                'Your payment was successful. You can view your order in "My Orders".', 
+                [
+                  { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') }
+                ]
+              );
+              return; // Exit the function after successful payment
+            }
+          } catch (error) {
+            console.error('Error polling transaction status:', error);
+          }
+          
+          pollAttempts++;
+        }
+        
+        // If we reach here, payment status is uncertain
         setPlacing(false);
-        
-        // DO NOT clear cart here - keep items in case payment is incomplete
-        // Cart will be cleared only if webhook confirms successful payment
-        // User can retry payment or come back later
-        
         await refreshUser();
-
-        // Show message with options
+        
         showAlert(
-          'Payment Window Closed', 
-          'If you completed the payment, your order will appear in "My Orders" within a few seconds.\n\nIf payment was incomplete, you can try again from the checkout page.', 
+          'Payment Status Pending', 
+          'We are still processing your payment. Please check "My Orders" in a few moments to confirm your order.\n\nIf payment was incomplete, you can try again from the checkout page.', 
           [
             { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
             { text: 'Stay on Checkout', style: 'cancel' }
