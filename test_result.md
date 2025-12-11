@@ -465,6 +465,21 @@ frontend:
           agent: "main"
           comment: "FIX APPLIED: Updated WebBrowser.openBrowserAsync() call to properly handle browser dismissal. Changes: 1) Store result of openBrowserAsync 2) Stop loading (setPlacing(false)) IMMEDIATELY when browser closes 3) Added WebBrowser options: dismissButtonStyle='close', showTitle=true, toolbarColor for better UX 4) Moved setPlacing(false) to execute right after browser closes, before cart clearing and alerts. This ensures the loading spinner stops as soon as the user closes the Razorpay payment browser, preventing the infinite loading issue."
 
+  - task: "Razorpay payment flow - Cart persistence during OTP verification"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/app/(customer)/checkout.tsx, /app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "CRITICAL BUG: When user initiates Razorpay payment and minimizes the app (e.g., to check OTP message), returning to the app shows the checkout page has been reset and the cart is empty. This prevents order completion and blocks users from completing payments."
+        - working: "NA"
+          agent: "main"
+          comment: "COMPREHENSIVE FIX IMPLEMENTED: Resolved the cart clearing issue during Razorpay OTP verification by implementing a payment status polling mechanism. Changes: 1) Backend: Added new endpoint GET /api/transactions/{transaction_id} to check specific transaction status 2) Backend: Updated webhook to set order_created flag when order is successfully created 3) Frontend: After payment browser closes, poll transaction status (10 attempts, 2 seconds apart = 20 seconds) 4) Frontend: Clear cart ONLY when transaction status is 'success' AND order_created is true 5) Frontend: Show appropriate messages based on payment status (success, pending, or uncertain). IMPLEMENTATION DETAILS: Cart now persists during the entire payment process. After user returns from Razorpay, the app automatically checks the backend to verify if payment was successful. If confirmed successful, cart is cleared and user is shown success message. If uncertain, cart remains so user can retry payment. This handles the scenario where user minimizes app for OTP or temporarily loses connection. Ready for backend testing."
+
 agent_communication:
     - agent: "main"
       message: "🔧 PRODUCT DETAIL PAGE FIX: Resolved critical issue where product detail pages failed to load. ROOT CAUSE: app.json had hardcoded backend URL pointing to old Render production server (https://divine-cakery-backend.onrender.com) which was no longer accessible. This URL was taking precedence over the .env file configuration. FIX: Updated app.json extra.EXPO_PUBLIC_BACKEND_URL to match the correct local environment URL (https://shopbugfix.preview.emergentagent.com). Product listing worked because it was fetching from the correct URL via the .env fallback, but product detail page was using the hardcoded app.json URL. Restarted Expo frontend to apply changes. Product detail pages should now load correctly."
