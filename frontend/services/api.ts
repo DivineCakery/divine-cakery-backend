@@ -236,6 +236,11 @@ class ApiService {
     return response.data;
   }
 
+  async getTransactionStatus(transactionId: string) {
+    const response = await this.api.get(`/transactions/${transactionId}`);
+    return response.data;
+  }
+
   // Admin APIs
   async getAllUsers() {
     const response = await this.api.get('/admin/users');
