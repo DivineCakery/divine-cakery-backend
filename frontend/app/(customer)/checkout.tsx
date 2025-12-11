@@ -269,7 +269,8 @@ export default function CheckoutScreen() {
         
         // Browser has closed or been dismissed (user returned from payment screen)
         // Now poll the transaction status to check if payment was successful
-        console.log('Payment browser closed, checking transaction status...');
+        console.log('Payment browser closed with type:', result.type);
+        console.log('Checking transaction status...');
         
         // Poll for payment confirmation (max 10 attempts, 2 seconds apart = 20 seconds total)
         let paymentConfirmed = false;
