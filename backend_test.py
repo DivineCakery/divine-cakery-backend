@@ -213,7 +213,9 @@ class BackendTester:
             transaction_id = response.json().get("transaction_id")
             
             # Test 1: No auth token (should return 401)
-            no_auth_response = self.session.get(f"{BASE_URL}/transactions/{transaction_id}")
+            # Create a new session without auth headers
+            no_auth_session = requests.Session()
+            no_auth_response = no_auth_session.get(f"{BASE_URL}/transactions/{transaction_id}")
             
             if no_auth_response.status_code != 401:
                 self.log_test("Transaction Status Auth - No Token", False, 
