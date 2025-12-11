@@ -313,12 +313,14 @@ export default function CheckoutScreen() {
         setPlacing(false);
         await refreshUser();
         
+        // Check if the browser was dismissed manually (user closed it) or if payment is still processing
         showAlert(
-          'Payment Status Pending', 
-          'We are still processing your payment. Please check "My Orders" in a few moments to confirm your order.\n\nIf payment was incomplete, you can try again from the checkout page.', 
+          'Payment Window Closed', 
+          'The payment window was closed before completion.\n\n• If you completed the payment, check "My Orders" to verify.\n• If you need to enter OTP, please try payment again.\n• Your cart items are saved - you can retry anytime.', 
           [
+            { text: 'Retry Payment', onPress: () => placeOrder() },
             { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
-            { text: 'Stay on Checkout', style: 'cancel' }
+            { text: 'Stay Here', style: 'cancel' }
           ]
         );
       } else {
