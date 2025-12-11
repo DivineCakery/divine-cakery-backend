@@ -1085,7 +1085,9 @@ async def create_payment_order(
         # Create Payment Link in Razorpay
         short_user_id = str(current_user.id)[:8]
         timestamp = int(datetime.utcnow().timestamp())
-        reference_id = f"txn_{short_user_id}_{timestamp}"[:40]
+        # Add microseconds to make reference_id more unique for rapid testing
+        microseconds = datetime.utcnow().microsecond
+        reference_id = f"txn_{short_user_id}_{timestamp}_{microseconds}"[:40]
         
         # Build customer data - only include fields that have values
         customer_data = {}
