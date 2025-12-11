@@ -257,7 +257,7 @@ export default function CheckoutScreen() {
           throw new Error('Failed to create payment link');
         }
         
-        // Open Razorpay payment link in browser with dismissButtonStyle
+        // Open Razorpay payment link in browser
         const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url, {
           dismissButtonStyle: 'close',
           showTitle: true,
@@ -265,21 +265,21 @@ export default function CheckoutScreen() {
         });
         
         // Browser has closed or been dismissed (user returned from payment screen)
-        // Stop loading immediately when browser is closed
         setPlacing(false);
         
-        // Clear cart regardless of payment status
-        // Order will only be created by webhook if payment was successful
-        clearCart();
+        // DO NOT clear cart here - keep items in case payment is incomplete
+        // Cart will be cleared only if webhook confirms successful payment
+        // User can retry payment or come back later
+        
         await refreshUser();
 
-        // Show message - order will be created automatically by webhook if payment succeeded
+        // Show message with options
         showAlert(
-          'Payment Screen Closed', 
-          'If you completed the payment, your order will appear in "My Orders" within a few seconds. Otherwise, no order will be placed.', 
+          'Payment Window Closed', 
+          'If you completed the payment, your order will appear in "My Orders" within a few seconds.\n\nIf payment was incomplete, you can try again from the checkout page.', 
           [
             { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
-            { text: 'OK', style: 'cancel' }
+            { text: 'Stay on Checkout', style: 'cancel' }
           ]
         );
       } else {
