@@ -489,6 +489,190 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+
+# Password Reset Routes
+@api_router.post("/auth/request-password-reset")
+async def request_password_reset(request: PasswordResetRequest):
+    """
+    Step 1: Request password reset
+    - User provides username or phone number
+    - System generates 6-digit OTP
+    - Returns WhatsApp link with pre-filled message
+    """
+    try:
+        # Find user by username or phone
+        user = await db.users.find_one({
+            "$or": [
+                {"username": request.identifier},
+                {"phone": request.identifier}
+            ]
+        })
+        
+        if not user:
+            # Don't reveal if user exists (security best practice)
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Generate 6-digit OTP
+        import random
+        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        
+        # Store OTP in database with expiry
+        otp_id = str(uuid.uuid4())
+        otp_dict = {
+            "id": otp_id,
+            "user_id": user["id"],
+            "otp": otp,
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(minutes=10),  # 10 minute expiry
+            "used": False
+        }
+        
+        await db.password_reset_otps.insert_one(otp_dict)
+        
+        # Format WhatsApp message
+        message = f"""Divine Cakery - Password Reset
+Your OTP: {otp}
+Valid for 10 minutes.
+Do not share this code."""
+        
+        # Get user's phone number
+        phone = user.get("phone", "")
+        if phone:
+            # Normalize phone number (remove spaces, dashes, etc.)
+            phone_clean = re.sub(r'[^\d+]', '', phone)
+            if not phone_clean.startswith('+'):
+                phone_clean = '+91' + phone_clean  # Assume India if no country code
+        else:
+            raise HTTPException(status_code=400, detail="User has no phone number registered")
+        
+        # Create WhatsApp link
+        whatsapp_url = f"https://wa.me/{phone_clean}?text={message}"
+        
+        logger.info(f"Password reset OTP generated for user: {user['username']}, OTP ID: {otp_id}")
+        
+        return {
+            "message": "OTP generated successfully",
+            "whatsapp_url": whatsapp_url,
+            "phone": phone,
+            "otp_id": otp_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in request_password_reset: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to generate OTP")
+
+
+@api_router.post("/auth/verify-otp")
+async def verify_otp(request: PasswordResetVerifyOTP):
+    """
+    Step 2: Verify OTP
+    - User provides identifier and OTP
+    - System verifies OTP is correct and not expired
+    - Returns reset token valid for 15 minutes
+    """
+    try:
+        # Find user
+        user = await db.users.find_one({
+            "$or": [
+                {"username": request.identifier},
+                {"phone": request.identifier}
+            ]
+        })
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Find valid OTP for this user
+        otp_record = await db.password_reset_otps.find_one({
+            "user_id": user["id"],
+            "otp": request.otp,
+            "used": False,
+            "expires_at": {"$gt": datetime.utcnow()}
+        })
+        
+        if not otp_record:
+            raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        
+        # Mark OTP as used
+        await db.password_reset_otps.update_one(
+            {"id": otp_record["id"]},
+            {"$set": {"used": True}}
+        )
+        
+        # Generate reset token (valid for 15 minutes)
+        reset_token = str(uuid.uuid4())
+        reset_token_dict = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "reset_token": reset_token,
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(minutes=15),
+            "used": False
+        }
+        
+        await db.password_reset_tokens.insert_one(reset_token_dict)
+        
+        logger.info(f"OTP verified for user: {user['username']}, reset token generated")
+        
+        return {
+            "message": "OTP verified successfully",
+            "reset_token": reset_token
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in verify_otp: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to verify OTP")
+
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: PasswordResetComplete):
+    """
+    Step 3: Reset password
+    - User provides reset token and new password
+    - System updates password
+    """
+    try:
+        # Find valid reset token
+        token_record = await db.password_reset_tokens.find_one({
+            "reset_token": request.reset_token,
+            "used": False,
+            "expires_at": {"$gt": datetime.utcnow()}
+        })
+        
+        if not token_record:
+            raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+        
+        # Mark token as used
+        await db.password_reset_tokens.update_one(
+            {"id": token_record["id"]},
+            {"$set": {"used": True}}
+        )
+        
+        # Hash new password
+        hashed_password = pwd_context.hash(request.new_password)
+        
+        # Update user password
+        await db.users.update_one(
+            {"id": token_record["user_id"]},
+            {"$set": {"hashed_password": hashed_password}}
+        )
+        
+        user = await db.users.find_one({"id": token_record["user_id"]})
+        logger.info(f"Password reset successful for user: {user['username']}")
+        
+        return {"message": "Password reset successful"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in reset_password: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to reset password")
+
+
 # Category Routes
 @api_router.get("/categories", response_model=List[Category])
 async def get_all_categories(current_user: User = Depends(get_current_user_optional)):
