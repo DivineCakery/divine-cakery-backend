@@ -1,90 +1,210 @@
 <analysis>
-The trajectory details an extensive debugging process for The Divine Cakery application, a full-stack monorepo (Expo/FastAPI). The core task was to fix a critical Network Error on the product detail page in the mobile app, which was caused by a 30-second API timeout.
 
-The initial investigation was a wild goose chase, focusing on incorrect backend URL configurations in  versus  files, leading to multiple failed Expo Application Services (EAS) builds (versions 43 through 48) and significant confusion between development and production environments.
+original_problem_statement:
+The initial task was to resolve a Network Error on the product detail page, which was traced to slow API responses from fetching large, uncompressed images. After fixing this, the user made numerous follow-up requests and reported several bugs:
+1.  Images were not visible after the initial fix.
+2.  Some product images were incorrect or missing.
+3.  Implement automatic delivery date calculation (orders before 4 AM IST are for the same day, otherwise next day).
+4.  Favorites page was not loading and favorites could not be updated.
+5.  Admin reports/preparation list page was not loading.
+6.  The default order option in checkout should be 'delivery'.
+7.  Orders placed as 'delivery' were showing as 'pickup' in the admin panel.
+8.  Customer order numbers were too long and should be reset to a simple sequence starting from 101.
+9.  Products in 'admin-only' categories should not be visible to customers in the All products view.
+10. A new production build was requested for the Google Play Store.
+11. Some users were still experiencing old issues (long order numbers, wrong order type), which was an app versioning problem.
+12. An old debug page/icon needed to be removed.
+13. The checkout payment button text 'UPI payment' should be changed to 'Instant Payment'.
+14. A new build was requested again to include all recent fixes.
+15. A  was occurring during payment initiation.
+16. A temporary debug pop-up on the admin products page needed to be removed.
+17. A critical bug where minimizing the app during Razorpay OTP verification resets the checkout process and empties the cart.
 
-A turning point occurred when the engineer added detailed timing logs to the backend. This revealed the true root cause: the database query to fetch a single product from MongoDB Atlas was taking over 30 seconds. The bottleneck was identified as transferring large (3MB+), uncompressed base64 images from the database to the Render service for every request.
+**User's preferred language**: English
 
-The final, correct solution involved a significant architectural change: instead of compressing images on-the-fly when a product is requested, images are now compressed once upon upload/update and stored in their smaller, optimized state in the database.
+**what currently exists?**
+The application is a full-stack Expo/FastAPI monorepo for a bakery. The backend has been significantly refactored to handle image compression, dynamic delivery date calculation, simplified order numbering, and user status management. The frontend has been updated to fix numerous bugs related to performance, state management, and API integration. Most of the user's requests have been implemented, but the mobile app requires a new build to receive all the fixes. The last task to fix the payment flow interruption is in progress.
 
-The work concluded mid-migration. A secure API endpoint () was created to compress all existing images. The user was guided through a complex process of using their browser's developer console to execute a JavaScript snippet that calls this endpoint. The last message confirms the user successfully triggered the migration, which is now running on the Render backend. The user communicates in English, so all future responses should be in English.
+**Last working item**:
+- Last item agent was working: The agent was debugging a critical user experience issue where the checkout process is aborted if the user minimizes the app to retrieve an OTP during a Razorpay payment. The agent identified that  was being called prematurely and the use of  was not preserving the payment state when the app is backgrounded. A partial fix was applied by commenting out the premature  call in .
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? frontend testing agent
+- User Testing Done: N
+
+**All Pending/In progress Issue list**:
+- Issue 1: Razorpay payment flow breaks on app minimization (P0)
+- Issue 2: Mismatched or missing product images (P1)
+
+Issues Detail:
+- Issue 1:
+  - Description: When a user initiates a Razorpay payment and minimizes the app (e.g., to check an OTP message), returning to the app shows the checkout page has been reset and the cart is empty. This prevents order completion.
+  - Attempted fixes: The agent identified that  was called prematurely when the  component closed. The agent commented out this line as a first step.
+  - Next debug checklist:
+    - The fix is incomplete. The cart should only be cleared after a successful payment confirmation, which is handled by the  endpoint.
+    - Investigate if the  can be modified to persist the cart state until the webhook confirms the order.
+    - Modify  to remove the  call from the  function's error/finally block.
+    - Ensure the backend webhook correctly identifies the order and user to associate the payment with, as the cart state will now persist on the client side through a failed/aborted payment attempt.
+  - Why fix this issue and what will be achieved with the fix? This is a critical bug that blocks users from completing payments, leading to lost sales and a very poor user experience. Fixing it will ensure a robust and reliable payment process.
+  - Status: IN PROGRESS
+  - Is recurring issue? N
+  - Should Test frontend/backend/both after fix? frontend
+  - Blocked on other issue: None
+
+- Issue 2:
+  - Description: The user reported that after the image compression migration, some products show the wrong image, and 53 products have no image at all.
+  - Attempted fixes: The agent identified that this was due to a mismatch between product names and image filenames during an initial bulk upload. This issue was acknowledged but deprioritized by the user in favor of other feature requests and bug fixes.
+  - Next debug checklist:
+    - Discuss with the user the best approach: a manual mapping tool in the admin panel, or a script to re-process uploads.
+    - Plan and implement a UI in the admin 'Manage Products' page to allow uploading/changing an image for a specific product.
+    - This will involve creating a new backend endpoint (e.g., ).
+  - Why fix this issue and what will be achieved with the fix? A complete and accurate product catalog is essential for a wholesale ordering app. This will improve user trust and reduce order errors.
+  - Status: NOT STARTED
+  - Is recurring issue? N
+  - Should Test frontend/backend/both after fix? both
+  - Blocked on other issue: None
+
+**In progress Task List**:
+- Task 1: Complete the fix for the Razorpay payment flow.
+  - Where to resume: The agent has commented out the premature  call in . The next step is to ensure the cart is cleared only after a successful payment webhook confirmation. This may involve checking the state management logic in  and the backend webhook logic in .
+  - What will be achieved with this? A stable payment process that can handle the app being sent to the background.
+  - Status: IN PROGRESS
+  - Should Test frontend/backend/both after fix? frontend
+  - Blocked on something: None
+
+**Upcoming and Future Tasks**
+- Upcoming Tasks:
+  - (P0) Create a new Android build (version 1.0.11, build code 56 or higher) and provide the AAB file for upload to the Google Play Store. This is critical as many fixes are not available to mobile users.
+  - (P1) Implement a UI for admins to manually upload or change images for individual products to fix the missing/incorrect image issue.
+  - (P2) Add an in-app notification that prompts users with outdated app versions to update from the Play Store, to resolve inconsistencies between user experiences.
+
+**Completed work in this session**
+- List of all completed tasks with file and method name:
+  - **Image Rendering Fix:** Fixed missing Data URI prefix in  and ran a migration via a new API endpoint () to correct all images in the production database.
+  - **Delivery Date Automation:** Implemented logic in  ( function and  endpoint) to set delivery dates based on a 4 AM IST cutoff.
+  - **Favorites Page Performance Fix:** Resolved  and timeout errors by optimizing the backend  endpoint in  to exclude large image data. Multiple frontend fixes in  were also implemented to handle component re-renders.
+  - **Admin Reports Performance Fix:** Optimized the  endpoint in  to exclude image data, fixing page load timeouts.
+  - **Order Type Default:** Changed the default selection in  to 'delivery'.
+  - **Order Type Mismatch Fix:** Corrected the payload in  to use the  field instead of  for Razorpay payments.
+  - **Sequential Order Numbering:** Reworked order number generation in  to use a MongoDB counter, starting from 101.
+  - **Admin Category Filtering:** Updated 's  endpoint to hide products belonging exclusively to admin-only categories from the customer-facing All view.
+  - **Admin Product Visibility Fix:** Added an  parameter to the  endpoint and updated the admin  page to use it, ensuring admins can see all products.
+  - **User Activation Feature:**
+    - Backend: Added endpoints in  for admins to toggle a user's  status (, ) and to automatically deactivate dormant users (). Updated  to block inactive users.
+    - Frontend: Added a UI toggle button in the  page.
+  - **Order Deletion/Filtering:** Implemented a 7-day filter on the main  endpoint and created a  endpoint in  to permanently delete old orders.
+  - **Address Field Optional:** Removed the mandatory validation for the address field in .
+  - **UI Text Change:** Renamed 'UPI Payment' to 'Instant Payment' in .
+  - **Debug Code Removal:** Deleted  and removed the associated hidden button from . Also removed a temporary debug pop-up from .
+  - **Payment Error Handling:** Added improved error logging to the Razorpay integration in .
+- Recently completed:
+  - User Activation Feature (Backend + Frontend) (DONE)
+  - Admin Product Visibility Fix ( parameter) (DONE)
+  - Order Deletion/Filtering Feature (Backend) (DONE)
+  - Debug Code & UI Popups Removed (DONE)
+
+**Earlier issues found/mentioned but not fixed**
+   - Issue 1: 53 products are missing images, and some have incorrect images.
+     - Debug checklist: This was due to mismatches during an initial data load. An admin tool is needed to allow manual correction. A new endpoint and frontend UI are required.
+     - Why to solve this issue and what will be achieved with this? To ensure a complete and accurate product catalog for customers.
+     - Should Test frontend/backend/both after fix: both
+     - Is recurring issue? N
+
+**Known issue recurrence from previous fork**
+  - Issue recurrence in previous fork: None from the initial handover, but a new pattern emerged in this session.
+  - Recurrence count: 3
+  - Description: Multiple pages (, ) were slow or timing out. The root cause was consistently the same: backend list endpoints were returning full, large base64 product images, leading to massive response payloads and slow performance.
+  - Status: RESOLVED (by modifying each endpoint to exclude images). The next agent should be aware of this pattern when creating new list-based endpoints.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+- Full-Stack Monorepo: Expo (React Native) frontend, FastAPI (Python) backend.
+- Database: MongoDB Atlas (production) and local MongoDB (development). A key point of confusion during the session was the agent testing against the local DB while the user was on production.
+- Image Processing:  library for base64 image compression.
+- Deployment: Backend on Render.com, Frontend builds via EAS.
+- Authentication: JWT-based, managed with Zustand on the frontend.
+- API Performance Tuning: A recurring theme was optimizing list endpoints by excluding large  fields.
+- Frontend State Management: Zustand (, ).
+- React Native Component Lifecycle: Deep debugging of  and  was required to solve re-render loops ( errors).
+- Mobile App State: The issue with the payment flow being interrupted highlights challenges with managing state when the app is backgrounded.
+
+**key DB schema**
+  - : {name, description, image_base64, categories: [String], ...}
+  - : {order_number, customer_id, items, total_amount, order_type: delivery | pickup, delivery_date, ...}
+  - : {username, role, is_active: Boolean, favorite_products: [String], ...}
+  - : {name, is_admin_only: Boolean}
+  - : {_id: order_number, sequence_value: Number} (New collection)
+
+**changes in tech stack**
+- No fundamental changes to the tech stack.
+
+**All files of reference**
+- : The core of all business logic. Heavily modified to add new features and fix performance issues.
+- : Center of multiple bug fixes and feature requests related to ordering.
+- : Was the subject of an extensive and difficult debugging session.
+- : Modified to allow admins to see all products.
+- : Modified to add the user activation toggle.
+- : Modified to adjust timeouts and add new API client methods.
+- : The Zustand store, which is relevant for the pending cart/payment issue.
+
+**Areas that need refactoring**:
+- The repeated issue of slow list endpoints suggests a pattern should be enforced. A custom Pydantic  model that omits  by default could prevent future occurrences of this bug.
+- The complex / logic in several components (, ) indicates that data fetching logic could be abstracted into custom hooks to simplify components and reduce bugs.
+
+**key api endpoints**
+- : (One-time use) Fixes image data in the DB.
+- : Deletes orders older than 7 days.
+- : Deactivates users with no orders in 10+ days.
+- : Manually activate a user.
+- : Manually deactivate a user.
+- : Now accepts an  parameter.
+- : Now excludes image data for performance.
+- : Now excludes image data for performance.
+- : Endpoint that was failing with .
+
+**Critical Info for New Agent**
+- **App Versioning is Critical:** The user has a live app on the Play Store. Many issues reported by the user were due to them (or their customers) using an old build that did not contain recent fixes. The web preview updates instantly, but the mobile app requires a **new EAS build** for users to see changes. Do not assume a code push fixes the issue for mobile users.
+- **Production vs. Local Database:** The agent wasted significant time testing against the local development database while the user was interacting with the production MongoDB Atlas database on Render. Always clarify which environment is being tested. The local DB has stale/different data.
+- **Performance Pattern:** Be extremely cautious with endpoints that return lists of objects (products, favorites, etc.). By default, you should **exclude the  field** to prevent performance bottlenecks and timeouts, which manifest as  or timeout errors on the frontend.
+- **Do not create new builds without permission.** The user explicitly requested this.
+
+**documents created in this job**
+- 
+- 
+
+**Last 10 User Messages and any pending user messages**
+1.  **User (853):** Remove 'Debug info' pop-up from admin products page. (COMPLETED)
+2.  **User (864):** Critical Bug: When paying with Razorpay, minimizing the app for OTP and returning resets the checkout page and clears the cart. (IN PROGRESS)
+3.  **User (809):** Change 'UPI payment' button to 'Instant Payment'. (COMPLETED)
+4.  **User (821):** Go ahead with a new build including the 'include admin parameter' fix. (STARTED, BUT INTERRUPTED)
+5.  **User (834):** Getting a  when clicking the payment button. (INVESTIGATED, PARTIALLY ADDRESSED)
+6.  **User (804):** Some customers still have old order number formats and wrong order types. (DIAGNOSED as app version issue)
+7.  **User (769):** Remove debug page and icon from customer login. (COMPLETED)
+8.  **User (745):** Can you confirm if auto-commit is scheduled for Render? (INVESTIGATED and CONFIRMED)
+9.  **User (743):** The debug pop-up is not appearing on the manage products page. (DIAGNOSED as app version issue)
+10. **User (734):** How do I see console logs on the Play Store app? (CLARIFIED, led to popup implementation)
+
+**Project Health Check:**
+- Broken: The Razorpay payment flow is critically broken when the app is minimized.
+- Mocked: None.
+
+**3rd Party Integrations**
+- Razorpay (Payments) — requires User API Key. Was the source of a .
+- Pillow (Image Processing) - Python library, integrated.
+
+**Testing status**
+- Testing agent used after significant changes: NO
+- Troubleshoot agent used after agent stuck in loop: YES, multiple times. It was crucial for identifying the root causes of the favorites page bug.
+- Test files created: None. Agent used ad-hoc scripts (, ) for testing.
+- Known regressions: None.
+
+**Credentials to test flow:**
+Admin and customer credentials are required for testing. The agent has been able to find test user data from the database when needed. The user has also been able to log in and provide tokens/screenshots.
+
+**What agent forgot to execute**
+- The build for version 56 was initiated but was interrupted by the user reporting a new critical bug (). This build needs to be completed and delivered.
+- The complete fix for the Razorpay/OTP issue is pending. The agent only applied a partial fix (commenting out ) but did not implement the logic to clear the cart after a successful webhook confirmation.
+
 </analysis>
-
-<product_requirements>
-The Divine Cakery is a wholesale bakery management application for administrators and customers.
-
-**Implemented Core Features:**
--   **User Roles:** The system supports distinct roles like 'customer', 'agent', and 'owner'.
--   **Product Management:** Customers can browse products, and admins can create and manage them.
--   **Ordering System:** Customers can add items to a cart, place orders, and manage payments.
--   **Payment Integration:** Utilizes Razorpay for direct order payments and a customer wallet system.
--   **Automated Workflows:** A Razorpay webhook automatically processes payments and updates orders/wallets.
-
-**Problem Solved in Trajectory:**
-The most critical issue was a Network Error preventing customers from viewing product detail pages on the production mobile app. This was diagnosed as a 30+ second API response time caused by fetching large, uncompressed base64 images from the database on every request.
-
-**Implementation to Fix the Problem:**
-The backend was refactored to compress product images upon creation or update, storing the optimized, smaller images in MongoDB. This significantly reduces the data transfer size and query time. A one-time data migration process was initiated via a protected API endpoint to compress all existing product images in the database.
-</product_requirements>
-
-<key_technical_concepts>
-- **Full-Stack Monorepo:** Expo (React Native) frontend, FastAPI (Python) backend.
-- **Database:** MongoDB Atlas. Performance issues were tied to storing large base64 strings.
-- **Image Processing:** Python's  library was added to compress base64 images, drastically reducing their size (e.g., 3MB to 60KB).
-- **Deployment:** Backend is auto-deployed to Render.com from a GitHub repository. Frontend builds are managed by EAS.
-- **Authentication:** JWT-based. A valid token was required to trigger the admin-only migration endpoint.
-- **API Performance Tuning:** The root cause was diagnosed by moving from configuration debugging to performance profiling (timing logs).
-</key_technical_concepts>
-
-<code_architecture>
-The application is a monorepo with  and  directories.
-
-
-
--   **backend/server.py**
-    -   **Importance:** This is the core backend application file. It was the center of the performance fix.
-    -   **Summary of changes:**
-        -   A  function was added using  and .
-        -   The  and  endpoints were modified to call this compression function *before* saving a product to the database.
-        -   The  endpoint was modified to *remove* the on-the-fly image compression, as it now fetches pre-compressed images.
-        -   Detailed  logs were added to diagnose the performance bottleneck.
-        -   A new admin-only API endpoint, , was created to trigger the one-time data migration to compress all existing images in the database.
-
--   **backend/requirements.txt**
-    -   **Importance:** Defines Python dependencies for the Render environment.
-    -   **Summary of changes:**  was added to support image compression. Its initial absence caused a deployment failure.
-
--   **backend/migrate_compress_images.py & backend/compress_batch.py**
-    -   **Importance:** These were initial attempts to create a data migration script.
-    -   **Summary of changes:** These scripts were created but ultimately abandoned because running them from the local environment resulted in network timeouts when connecting to the production MongoDB Atlas. They are now deprecated in favor of the API endpoint.
-
--   **frontend/services/api.ts**
-    -   **Importance:** Centralizes all frontend API calls using .
-    -   **Summary of changes:** The  for axios instances was temporarily increased from 30s to 60s as a stop-gap measure while investigating the slow API. The logic for determining  was changed multiple times, toggling priority between  and , which caused significant confusion between development and production builds.
-
--   **frontend/app/(customer)/debug-config.tsx & products.tsx**
-    -   **Importance:** These files were temporarily modified to add debugging tools.
-    -   **Summary of changes:** A new screen () was created to display environment variables. A hidden button was added to the  header to navigate to this debug screen. This was part of the effort to diagnose the configuration issues before the real performance bottleneck was found.
-</code_architecture>
-
-<pending_tasks>
-- **Confirm Migration Success:** Verify that the image compression migration, which was running at the end of the session, completed successfully.
-- **Remove Debug Code:** Once the fix is confirmed, remove the temporary debug screen () and the associated trigger button from .
-- **Negative Wallet Features:** Implement discussed features for admins to make negative wallet adjustments and block customers with negative balances.
-- **Create iOS Application:** Begin work on the planned iOS version of the app.
-- **Build and Release Final Version:** Create a new production build for the Play Store (e.g., Version 50) that includes the performance fix.
-</pending_tasks>
-
-<current_work>
-The immediate focus is the completion of a critical data migration task. A Network Error on the product detail page was traced back to a 30+ second API response time, caused by the backend fetching large, uncompressed base64 images from the MongoDB Atlas database.
-
-A comprehensive fix was implemented:
-1.  **Code Change:** The backend code in  was refactored to compress images *before* they are saved to the database (, ). The  endpoint no longer performs compression, as it now expects to fetch already-optimized images. This change was deployed to Render.
-2.  **Data Migration:** To fix existing products, an admin-only API endpoint () was created to run a script on Render that iterates through all products in the database and compresses their images.
-
-The previous session concluded while guiding the user to trigger this migration. Due to browser security and token expiration issues, this involved a multi-step process where the user had to use their browser's developer console to execute a JavaScript snippet. The final screenshot from the user showed , confirming that the API call to start the migration was successfully sent and the process is currently running on the Render backend. The system is now awaiting the completion of this asynchronous task.
-</current_work>
-
-<optional_next_step>
-Confirm with the user if the migration Promise in their browser console has resolved and what the final output was. Then, test the product details page to verify the load time is now under 2 seconds.
-</optional_next_step>

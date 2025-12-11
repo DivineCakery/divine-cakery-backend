@@ -233,7 +233,7 @@ frontend:
           comment: "CRITICAL BUG: Product detail pages fail to load for customers. Main product listing works correctly, but clicking on any product shows 'Failed to load product details' error. User confirmed issue persists after reinstalling mobile app and clearing browser cache."
         - working: true
           agent: "main"
-          comment: "ROOT CAUSE IDENTIFIED AND FIXED: The issue was in app.json file. The extra.EXPO_PUBLIC_BACKEND_URL was hardcoded to the old production Render URL (https://divine-cakery-backend.onrender.com) which is no longer accessible. This URL takes precedence over the .env file in the API service configuration (Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL is checked first). FIX: Updated app.json line 57 to use the correct environment URL (https://bakery-optimizer.preview.emergentagent.com) matching the .env configuration. Restarted Expo frontend to apply changes. Product listing worked because it was likely cached or using a different code path, but product detail pages were directly calling the hardcoded URL."
+          comment: "ROOT CAUSE IDENTIFIED AND FIXED: The issue was in app.json file. The extra.EXPO_PUBLIC_BACKEND_URL was hardcoded to the old production Render URL (https://divine-cakery-backend.onrender.com) which is no longer accessible. This URL takes precedence over the .env file in the API service configuration (Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL is checked first). FIX: Updated app.json line 57 to use the correct environment URL (https://shopbugfix.preview.emergentagent.com) matching the .env configuration. Restarted Expo frontend to apply changes. Product listing worked because it was likely cached or using a different code path, but product detail pages were directly calling the hardcoded URL."
 
   - task: "Display 7-day revenue breakdown on dashboard"
     implemented: true
@@ -359,7 +359,7 @@ frontend:
           comment: "COMPREHENSIVE FIX: Created unified web-compatible alert utility at /app/frontend/utils/alerts.ts that detects Platform.OS === 'web' and uses window.alert/window.confirm for web browsers, while using React Native's Alert.alert for native apps. Replaced ALL 129 instances of Alert.alert across the entire app (customer pages: profile, orders, cart, products, favorites, checkout, wallet; admin pages: dashboard, reports, manage-stock, manage-products, product-form, manage-orders, manage-users, customer-form, delivery-notes, manage-discounts, delivery-settings, pending-approvals, manage-categories; auth pages: login, register). All buttons now responsive on web and mobile."
         - working: true
           agent: "main"
-          comment: "✅ VERIFIED: App loads correctly at https://bakery-optimizer.preview.emergentagent.com. Registration page displays properly. All alert/confirmation buttons throughout the app are now web-compatible and will work in mobile web browsers as well as native apps."
+          comment: "✅ VERIFIED: App loads correctly at https://shopbugfix.preview.emergentagent.com. Registration page displays properly. All alert/confirmation buttons throughout the app are now web-compatible and will work in mobile web browsers as well as native apps."
 
   - task: "Reports page - Preparation sheet date display"
     implemented: true
@@ -467,7 +467,7 @@ frontend:
 
 agent_communication:
     - agent: "main"
-      message: "🔧 PRODUCT DETAIL PAGE FIX: Resolved critical issue where product detail pages failed to load. ROOT CAUSE: app.json had hardcoded backend URL pointing to old Render production server (https://divine-cakery-backend.onrender.com) which was no longer accessible. This URL was taking precedence over the .env file configuration. FIX: Updated app.json extra.EXPO_PUBLIC_BACKEND_URL to match the correct local environment URL (https://bakery-optimizer.preview.emergentagent.com). Product listing worked because it was fetching from the correct URL via the .env fallback, but product detail page was using the hardcoded app.json URL. Restarted Expo frontend to apply changes. Product detail pages should now load correctly."
+      message: "🔧 PRODUCT DETAIL PAGE FIX: Resolved critical issue where product detail pages failed to load. ROOT CAUSE: app.json had hardcoded backend URL pointing to old Render production server (https://divine-cakery-backend.onrender.com) which was no longer accessible. This URL was taking precedence over the .env file configuration. FIX: Updated app.json extra.EXPO_PUBLIC_BACKEND_URL to match the correct local environment URL (https://shopbugfix.preview.emergentagent.com). Product listing worked because it was fetching from the correct URL via the .env fallback, but product detail page was using the hardcoded app.json URL. Restarted Expo frontend to apply changes. Product detail pages should now load correctly."
     - agent: "main"
       message: "🔧 CHECKOUT LOADING FIX: Resolved the infinite loading spinner issue after Razorpay payment. Problem was that setPlacing(false) was placed after cart clearing and refreshUser, causing delay. Now stops loading immediately when WebBrowser closes. Also added better browser options (close button, title bar, branded toolbar color) for improved UX."
     - agent: "main"
