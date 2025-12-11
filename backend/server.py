@@ -1690,6 +1690,34 @@ async def get_transactions(current_user: User = Depends(get_current_user)):
     return [Transaction(**txn) for txn in transactions]
 
 
+@api_router.get("/transactions/{transaction_id}")
+async def get_transaction_status(
+    transaction_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get status of a specific transaction
+    Used to check if payment was completed after user returns from Razorpay
+    """
+    transaction = await db.transactions.find_one({
+        "id": transaction_id,
+        "user_id": current_user.id
+    })
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    return {
+        "id": transaction["id"],
+        "status": transaction["status"],
+        "transaction_type": transaction["transaction_type"],
+        "amount": transaction["amount"],
+        "created_at": transaction["created_at"],
+        "order_created": transaction.get("order_created", False)
+    }
+
+
+
 # Admin Routes
 @api_router.get("/admin/users", response_model=List[User])
 async def get_all_users(current_user: User = Depends(get_current_admin)):
