@@ -1326,15 +1326,47 @@ async def create_payment_order(
         
         logger.info(f"Creating payment link with data: amount={payment_link_data['amount']}, callback={payment_link_data['callback_url']}")
         
-        try:
-            # Call Razorpay API with timeout handling
-            payment_link = razorpay_client.payment_link.create(payment_link_data)
-            logger.info(f"Payment link created successfully: {payment_link.get('id')}")
-        except Exception as razorpay_error:
-            logger.error(f"Razorpay API error: {type(razorpay_error).__name__} - {str(razorpay_error)}")
+        # Retry logic for handling transient connection errors
+        max_retries = 3
+        retry_delay = 1  # seconds
+        payment_link = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Call Razorpay API with timeout handling
+                payment_link = razorpay_client.payment_link.create(payment_link_data)
+                logger.info(f"Payment link created successfully: {payment_link.get('id')}")
+                break  # Success, exit retry loop
+            except Exception as razorpay_error:
+                error_type = type(razorpay_error).__name__
+                error_msg = str(razorpay_error)
+                
+                # Check if it's a connection-related error that we should retry
+                is_connection_error = (
+                    'ConnectionResetError' in error_type or
+                    'ConnectionResetError' in error_msg or
+                    'Connection reset' in error_msg or
+                    'Connection aborted' in error_msg
+                )
+                
+                if is_connection_error and attempt < max_retries - 1:
+                    # Transient connection error, retry
+                    logger.warning(f"Attempt {attempt + 1}/{max_retries}: Connection error, retrying in {retry_delay}s... Error: {error_msg}")
+                    import time
+                    time.sleep(retry_delay)
+                    continue
+                else:
+                    # Non-retryable error or final attempt failed
+                    logger.error(f"Razorpay API error after {attempt + 1} attempts: {error_type} - {error_msg}")
+                    raise HTTPException(
+                        status_code=503, 
+                        detail=f"Payment gateway temporarily unavailable. Please try again in a moment."
+                    )
+        
+        if not payment_link:
             raise HTTPException(
-                status_code=503, 
-                detail=f"Payment gateway temporarily unavailable. Please try again in a moment. Error: {str(razorpay_error)}"
+                status_code=503,
+                detail="Failed to create payment link after multiple attempts. Please try again."
             )
         
         # Create transaction record
