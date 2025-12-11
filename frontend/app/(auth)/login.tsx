@@ -220,6 +220,15 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
+  forgotPasswordButton: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    color: '#8B4513',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
   registerButton: {
     marginTop: 15,
     alignItems: 'center',
