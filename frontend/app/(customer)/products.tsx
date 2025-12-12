@@ -387,6 +387,8 @@ export default function ProductsScreen() {
         </View>
       </View>
 
+      <UpdateBanner />
+
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
