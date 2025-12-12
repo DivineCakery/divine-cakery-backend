@@ -96,6 +96,13 @@ class ApiService {
     return response.data;
   }
 
+  // App Version API
+  async getLatestAppVersion() {
+    const response = await this.api.get('/app-version/latest');
+    return response.data;
+  }
+
+
 
   // Product APIs
   async getProducts(category?: string, isAvailable?: boolean, includeAdmin: boolean = false) {
