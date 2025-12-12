@@ -674,6 +674,25 @@ async def reset_password(request: PasswordResetComplete):
         raise HTTPException(status_code=500, detail="Failed to reset password")
 
 
+
+# App Version Route
+@api_router.get("/app-version/latest", response_model=AppVersionInfo)
+async def get_latest_app_version():
+    """
+    Get latest app version information for update prompts.
+    No authentication required - public endpoint.
+    Returns the current production version details.
+    """
+    # IMPORTANT: Update these values whenever you release a new build
+    return AppVersionInfo(
+        latest_version="1.0.12",
+        latest_version_code=59,
+        release_date="2025-12-11",  # Today's release date
+        update_message="Update available! This version includes payment flow improvements and password reset feature.",
+        minimum_supported_version=None  # Not enforcing minimum version yet
+    )
+
+
 # Category Routes
 @api_router.get("/categories", response_model=List[Category])
 async def get_all_categories(current_user: User = Depends(get_current_user_optional)):
