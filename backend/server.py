@@ -35,7 +35,8 @@ from models import (
     Category, CategoryCreate, CategoryUpdate,
     StandingOrder, StandingOrderCreate, StandingOrderUpdate, StandingOrderStatus,
     RecurrenceType, DurationType, StandingOrderItem,
-    PasswordResetRequest, PasswordResetVerifyOTP, PasswordResetComplete
+    PasswordResetRequest, PasswordResetVerifyOTP, PasswordResetComplete,
+    AppVersionInfo
 )
 
 
