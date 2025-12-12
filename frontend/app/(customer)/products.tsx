@@ -19,6 +19,7 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useCartStore, useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
+import UpdateBanner from '../../components/UpdateBanner';
 
 export default function ProductsScreen() {
   const [products, setProducts] = useState([]);
