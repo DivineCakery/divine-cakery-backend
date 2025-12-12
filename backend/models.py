@@ -331,6 +331,16 @@ class PasswordResetComplete(BaseModel):
     new_password: str
 
 
+# App Version Model
+class AppVersionInfo(BaseModel):
+    latest_version: str
+    latest_version_code: int
+    release_date: str  # ISO format date
+    update_message: Optional[str] = "A new version is available with improvements and bug fixes."
+    minimum_supported_version: Optional[str] = None  # For future force updates
+
+
+
 class StandingOrderItem(BaseModel):
     product_id: str
     product_name: str
