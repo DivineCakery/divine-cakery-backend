@@ -692,10 +692,10 @@ async def get_latest_app_version():
     """
     # IMPORTANT: Update these values whenever you release a new build
     return AppVersionInfo(
-        latest_version="1.0.12",
-        latest_version_code=59,
-        release_date="2025-12-11",  # Today's release date
-        update_message="Update available! This version includes payment flow improvements and password reset feature.",
+        latest_version="1.0.13",
+        latest_version_code=60,
+        release_date="2025-12-15",  # Today's release date
+        update_message="Critical update! Fixes for order creation, delivery dates, payment flow, favorites, and more.",
         minimum_supported_version=None  # Not enforcing minimum version yet
     )
 
