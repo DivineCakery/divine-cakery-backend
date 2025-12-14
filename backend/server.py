@@ -1498,18 +1498,20 @@ async def payment_webhook(request: Request):
                     order_dict = {
                         "id": order_id,
                         "order_number": order_number,
-                        "user_id": order_data["customer_id"],
+                        "customer_id": order_data.get("customer_id"),  # Primary field
+                        "user_id": order_data.get("customer_id"),  # Backward compatibility
                         "items": order_data["items"],
                         "total_amount": order_data["total_amount"],
                         "delivery_date": datetime.fromisoformat(order_data["delivery_date"].replace('Z', '+00:00')) if isinstance(order_data["delivery_date"], str) else order_data["delivery_date"],
                         "delivery_address": order_data.get("delivery_address"),
                         "delivery_notes": order_data.get("delivery_notes"),
+                        "notes": order_data.get("notes"),
+                        "order_type": order_data.get("order_type", "delivery"),  # Use order_type instead of onsite_pickup
                         "payment_method": order_data.get("payment_method", "razorpay"),
                         "payment_status": "paid",
                         "order_status": OrderStatus.PENDING,
                         "created_at": datetime.utcnow(),
-                        "updated_at": datetime.utcnow(),
-                        "onsite_pickup": order_data.get("onsite_pickup", False)
+                        "updated_at": datetime.utcnow()
                     }
                     
                     # Insert order
