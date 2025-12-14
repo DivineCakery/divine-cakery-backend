@@ -136,6 +136,7 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
+    categories: Optional[List[str]] = None  # MISSING FIELD - Added for multi-category support
     mrp: Optional[float] = None
     price: Optional[float] = None
     packet_size: Optional[str] = None
