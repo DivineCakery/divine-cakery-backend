@@ -786,7 +786,7 @@ export default function ManageOrdersScreen() {
         >
           <View style={styles.orderEditModalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalTitle}>Edit Order #{editingOrder?.id}</Text>
+              <Text style={styles.modalTitle}>Edit Order #{editingOrder?.order_number || editingOrder?.id}</Text>
               <Text style={styles.modalSubtitle}>Modify items, quantities, or delivery date</Text>
 
               {/* Delivery Date */}
