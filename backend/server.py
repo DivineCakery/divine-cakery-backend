@@ -187,6 +187,8 @@ def calculate_delivery_date() -> datetime:
     - Order at 11 PM on 2.12.25 → Delivery: 3.12.25 (next day)
     - Order at 3:30 AM on 3.12.25 → Delivery: 3.12.25 (same day)
     - Order at 5 AM on 3.12.25 → Delivery: 4.12.25 (next day)
+    
+    Returns UTC datetime at midnight for the calculated delivery date
     """
     import pytz
     
@@ -205,12 +207,17 @@ def calculate_delivery_date() -> datetime:
         # At or after 4 AM IST - deliver next day
         delivery_date = (now_ist + timedelta(days=1)).date()
     
-    # Convert to datetime at midnight (for storage)
-    delivery_datetime = datetime.combine(delivery_date, datetime.min.time())
+    # Convert to datetime at midnight IST, then to UTC for storage
+    # This ensures the date is stored correctly regardless of server timezone
+    delivery_datetime_ist = ist.localize(datetime.combine(delivery_date, datetime.min.time()))
+    delivery_datetime_utc = delivery_datetime_ist.astimezone(pytz.UTC)
     
-    logger.info(f"Order time IST: {now_ist.strftime('%Y-%m-%d %H:%M:%S')} → Delivery date: {delivery_datetime.strftime('%Y-%m-%d')}")
+    # Return as naive UTC datetime (MongoDB stores as UTC)
+    delivery_datetime_naive_utc = delivery_datetime_utc.replace(tzinfo=None)
     
-    return delivery_datetime
+    logger.info(f"Order time IST: {now_ist.strftime('%Y-%m-%d %H:%M:%S')} (Hour: {current_hour_ist}) → Delivery date: {delivery_date} → Stored as UTC: {delivery_datetime_naive_utc}")
+    
+    return delivery_datetime_naive_utc
 
 
 # Email Helper Function
