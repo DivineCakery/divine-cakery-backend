@@ -394,7 +394,7 @@ export default function ManageOrdersScreen() {
       index % 2 === 0 ? styles.orderCardEven : styles.orderCardOdd
     ]}>
       <View style={styles.orderHeader}>
-        <Text style={styles.orderNumber}>Order #{item.id}</Text>
+        <Text style={styles.orderNumber}>Order #{item.order_number || item.id}</Text>
         <Text style={styles.orderAmount}>₹{item.total_amount.toFixed(2)}</Text>
       </View>
 
