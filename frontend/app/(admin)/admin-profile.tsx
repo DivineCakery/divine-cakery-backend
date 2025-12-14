@@ -58,7 +58,7 @@ export default function AdminProfileScreen() {
       <View style={styles.footer}>
         <MaterialCommunityIcons name="cupcake" size={40} color="#8B4513" />
         <Text style={styles.footerTitle}>Divine Cakery</Text>
-        <Text style={styles.footerText}>Admin Panel v1.0.0</Text>
+        <Text style={styles.footerText}>Admin Panel v1.0.12</Text>
       </View>
     </ScrollView>
   );
