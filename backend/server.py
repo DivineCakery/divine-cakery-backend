@@ -1762,11 +1762,14 @@ async def create_order(
         "is_standing_order": True
     })
     
-    # Create order with new format order number
-    order_id = await generate_order_number()
+    # Create order with both UUID id and sequential order_number
+    order_id = str(uuid.uuid4())
+    order_number = await generate_order_number()
     order_dict = {
         "id": order_id,
-        "user_id": current_user.id,
+        "order_number": order_number,
+        "customer_id": current_user.id,  # Use customer_id for consistency
+        "user_id": current_user.id,  # Keep user_id for backward compatibility
         "items": [item.dict() for item in order_data.items],
         "subtotal": order_data.subtotal,
         "delivery_charge": order_data.delivery_charge,
