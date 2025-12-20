@@ -811,7 +811,8 @@ async def create_product(
 async def get_products(
     category: Optional[str] = None,
     is_available: Optional[bool] = None,
-    include_admin: Optional[bool] = False  # New parameter to include admin-only products
+    include_admin: Optional[bool] = False,  # New parameter to include admin-only products
+    current_user: User = Depends(get_current_user_optional)  # Optional auth for whitelist filtering
 ):
     query = {}
     if category:
@@ -844,6 +845,18 @@ async def get_products(
     try:
         # Exclude image_base64 from list view to reduce response size
         products = await db.products.find(query, {"image_base64": 0}).to_list(1000)
+        
+        # Apply whitelist filter for authenticated non-admin users
+        if current_user and current_user.role != UserRole.ADMIN:
+            # Fetch user's allowed_product_ids from database (fresh data)
+            user_data = await db.users.find_one({"id": current_user.id})
+            allowed_product_ids = user_data.get("allowed_product_ids") if user_data else None
+            
+            # If user has whitelist set, filter products
+            if allowed_product_ids and len(allowed_product_ids) > 0:
+                logger.info(f"Applying whitelist filter for user {current_user.username}: {len(allowed_product_ids)} allowed products")
+                products = [p for p in products if p.get("id") in allowed_product_ids]
+                logger.info(f"After whitelist filter: {len(products)} products")
         
         # Process products with error handling
         processed_products = []
