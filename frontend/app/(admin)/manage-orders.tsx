@@ -527,7 +527,7 @@ export default function ManageOrdersScreen() {
             <Text style={styles.actionButtonText}>Processing</Text>
           </View>
         )}
-        {item.order_status === 'delivered' && (
+        {(item.order_status || item.status) === 'delivered' && (
           <View style={[styles.actionButton, styles.statusButton, styles.deliveredButton]}>
             <Ionicons name="checkmark-done" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Delivered</Text>
