@@ -2461,6 +2461,72 @@ async def bulk_delete_users_by_admin(
     }
 
 
+# Product Whitelist Management Endpoints
+class AllowedProductsUpdate(BaseModel):
+    product_ids: List[str]
+
+
+@api_router.get("/admin/users/{user_id}/allowed-products")
+async def get_user_allowed_products(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    Get the list of product IDs that a user is allowed to see/order.
+    If allowed_product_ids is None or empty, user can see all products.
+    """
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    allowed_product_ids = user.get("allowed_product_ids", []) or []
+    
+    return {
+        "user_id": user_id,
+        "username": user.get("username"),
+        "allowed_product_ids": allowed_product_ids,
+        "has_restrictions": len(allowed_product_ids) > 0
+    }
+
+
+@api_router.put("/admin/users/{user_id}/allowed-products")
+async def update_user_allowed_products(
+    user_id: str,
+    data: AllowedProductsUpdate,
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    Update the list of product IDs that a user is allowed to see/order.
+    Pass an empty array to remove all restrictions (user sees all products).
+    """
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent modifying admin users
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Cannot set product restrictions for admin users")
+    
+    # Update user's allowed_product_ids
+    # If empty array is passed, set to None to indicate "all products allowed"
+    allowed_ids = data.product_ids if data.product_ids else None
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"allowed_product_ids": allowed_ids}}
+    )
+    
+    logger.info(f"Admin {current_user.username} updated allowed products for user {user['username']}: {len(data.product_ids)} products")
+    
+    return {
+        "message": "Allowed products updated successfully",
+        "user_id": user_id,
+        "username": user.get("username"),
+        "allowed_product_ids": allowed_ids or [],
+        "has_restrictions": allowed_ids is not None and len(allowed_ids) > 0
+    }
+
+
 @api_router.get("/admin/stats")
 async def get_admin_stats(current_user: User = Depends(get_current_admin)):
     total_users = await db.users.count_documents({"role": UserRole.CUSTOMER})
