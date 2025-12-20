@@ -533,7 +533,7 @@ export default function ManageOrdersScreen() {
             <Text style={styles.actionButtonText}>Delivered</Text>
           </View>
         )}
-        {item.order_status === 'cancelled' && (
+        {(item.order_status || item.status) === 'cancelled' && (
           <View style={[styles.actionButton, styles.statusButton, styles.cancelledButton]}>
             <Ionicons name="ban" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Cancelled</Text>
