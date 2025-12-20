@@ -436,6 +436,17 @@ class ApiService {
     const response = await this.api.get(`/admin/stock/reset-history?limit=${limit}`);
     return response.data;
   }
+
+  // Product Whitelist Management
+  async getUserAllowedProducts(userId: string) {
+    const response = await this.api.get(`/admin/users/${userId}/allowed-products`);
+    return response.data;
+  }
+
+  async updateUserAllowedProducts(userId: string, productIds: string[]) {
+    const response = await this.api.put(`/admin/users/${userId}/allowed-products`, { product_ids: productIds });
+    return response.data;
+  }
 }
 
 export default new ApiService();
