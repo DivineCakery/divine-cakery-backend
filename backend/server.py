@@ -36,7 +36,7 @@ from models import (
     StandingOrder, StandingOrderCreate, StandingOrderUpdate, StandingOrderStatus,
     RecurrenceType, DurationType, StandingOrderItem,
     PasswordResetRequest, PasswordResetVerifyOTP, PasswordResetComplete,
-    AppVersionInfo
+    AppVersionInfo, AllowedProductsUpdate
 )
 
 
