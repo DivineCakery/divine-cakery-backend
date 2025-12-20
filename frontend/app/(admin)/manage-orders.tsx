@@ -515,7 +515,7 @@ export default function ManageOrdersScreen() {
             </TouchableOpacity>
           </>
         )}
-        {item.order_status === 'confirmed' && (
+        {(item.order_status || item.status) === 'confirmed' && (
           <View style={[styles.actionButton, styles.statusButton, styles.confirmedButton]}>
             <Ionicons name="checkmark-circle" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Confirmed</Text>
