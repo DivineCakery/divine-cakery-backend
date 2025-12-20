@@ -30,6 +30,8 @@ export default function ManageUsersScreen() {
   const [linkedAgents, setLinkedAgents] = useState<any>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'customer'>('all');
+  const [showProductsModal, setShowProductsModal] = useState(false);
+  const [selectedUserForProducts, setSelectedUserForProducts] = useState<{id: string, username: string} | null>(null);
 
   useEffect(() => {
     fetchUsers();
