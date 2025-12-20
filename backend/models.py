@@ -397,3 +397,8 @@ class StockResetEvent(BaseModel):
 class StockResetEventCreate(BaseModel):
     notes: Optional[str] = None
 
+
+# Product Whitelist Model
+class AllowedProductsUpdate(BaseModel):
+    product_ids: List[str]
+
