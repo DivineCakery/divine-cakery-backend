@@ -305,12 +305,18 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     user = User(**user_dict)
     return user
 
-async def get_current_user_optional(token: str = Depends(oauth2_scheme)) -> User | None:
+async def get_current_user_optional(request: Request) -> User | None:
     """
     Optional authentication - returns User if authenticated, None if not
     Used for endpoints that should behave differently for authenticated vs unauthenticated users
     """
     try:
+        # Get token from Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+        
+        token = auth_header.split(" ")[1]
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
