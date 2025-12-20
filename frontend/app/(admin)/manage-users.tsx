@@ -14,6 +14,7 @@ import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
+import ManageUserProductsModal from '../../components/ManageUserProductsModal';
 
 export default function ManageUsersScreen() {
   const router = useRouter();
