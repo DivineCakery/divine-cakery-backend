@@ -72,6 +72,7 @@ class UserBase(BaseModel):
     admin_access_level: Optional[AdminAccessLevel] = AdminAccessLevel.FULL
     user_type: str = "owner"  # "owner" or "order_agent"
     linked_owner_id: Optional[str] = None  # For order agents, reference to owner user ID
+    allowed_product_ids: Optional[List[str]] = None  # Product whitelist - None/empty means all products allowed
 
 
 class UserCreate(BaseModel):
