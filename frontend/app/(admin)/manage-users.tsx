@@ -276,6 +276,17 @@ export default function ManageUsersScreen() {
 
         {!isAdmin && (
           <TouchableOpacity
+            style={styles.productsButton}
+            onPress={() => handleManageProducts(item.id, item.username)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="cube" size={18} color="#fff" />
+            <Text style={styles.productsButtonText}>Products</Text>
+          </TouchableOpacity>
+        )}
+
+        {!isAdmin && (
+          <TouchableOpacity
             style={styles.walletButton}
             onPress={() => {
               console.log('Add Balance clicked for:', item.username);
