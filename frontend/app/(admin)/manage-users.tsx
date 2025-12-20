@@ -541,6 +541,23 @@ export default function ManageUsersScreen() {
       </Modal>
 
       {/* Order agent modal removed */}
+
+      {/* Manage Products Modal */}
+      {selectedUserForProducts && (
+        <ManageUserProductsModal
+          visible={showProductsModal}
+          onClose={() => {
+            setShowProductsModal(false);
+            setSelectedUserForProducts(null);
+          }}
+          userId={selectedUserForProducts.id}
+          username={selectedUserForProducts.username}
+          onSaved={() => {
+            // Optionally refresh users list
+            fetchUsers();
+          }}
+        />
+      )}
     </View>
   );
 }
