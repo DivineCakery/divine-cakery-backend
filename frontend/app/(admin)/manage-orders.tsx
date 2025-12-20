@@ -521,7 +521,7 @@ export default function ManageOrdersScreen() {
             <Text style={styles.actionButtonText}>Confirmed</Text>
           </View>
         )}
-        {item.order_status === 'processing' && (
+        {(item.order_status || item.status) === 'processing' && (
           <View style={[styles.actionButton, styles.statusButton, styles.processingButton]}>
             <Ionicons name="sync" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Processing</Text>
