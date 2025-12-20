@@ -2462,10 +2462,6 @@ async def bulk_delete_users_by_admin(
 
 
 # Product Whitelist Management Endpoints
-class AllowedProductsUpdate(BaseModel):
-    product_ids: List[str]
-
-
 @api_router.get("/admin/users/{user_id}/allowed-products")
 async def get_user_allowed_products(
     user_id: str,
