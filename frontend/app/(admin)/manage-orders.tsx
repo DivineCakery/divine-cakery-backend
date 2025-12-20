@@ -491,13 +491,13 @@ export default function ManageOrdersScreen() {
       </View>
 
       <View style={styles.statusContainer}>
-        <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.order_status] }]}>
-          <Text style={styles.statusText}>{item.order_status.toUpperCase()}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.order_status || item.status || 'pending'] || '#999' }]}>
+          <Text style={styles.statusText}>{(item.order_status || item.status || 'pending').toUpperCase()}</Text>
         </View>
       </View>
 
       <View style={styles.actionButtons}>
-        {item.order_status === 'pending' && (
+        {(item.order_status || item.status) === 'pending' && (
           <>
             <TouchableOpacity
               style={[styles.actionButton, styles.statusButton, styles.pendingButton]}
