@@ -118,12 +118,12 @@ export default function OrdersScreen() {
           <View
             style={[
               styles.statusBadge,
-              { backgroundColor: STATUS_COLORS[item.order_status] },
+              { backgroundColor: STATUS_COLORS[item.order_status || item.status || 'pending'] || '#999' },
             ]}
           >
-            <Text style={styles.statusText}>{item.order_status.toUpperCase()}</Text>
+            <Text style={styles.statusText}>{(item.order_status || item.status || 'pending').toUpperCase()}</Text>
           </View>
-          <Text style={styles.orderAmount}>₹{item.total_amount.toFixed(2)}</Text>
+          <Text style={styles.orderAmount}>₹{(item.total_amount || 0).toFixed(2)}</Text>
         </View>
 
         {isExpanded && (
@@ -131,11 +131,11 @@ export default function OrdersScreen() {
             <View style={styles.divider} />
             
             <Text style={styles.detailsTitle}>Items:</Text>
-            {item.items.map((orderItem: any, index: number) => (
+            {(item.items || []).map((orderItem: any, index: number) => (
               <View key={`${item.id}-item-${index}`} style={styles.orderItem}>
-                <Text style={styles.itemName}>• {orderItem.product_name}</Text>
+                <Text style={styles.itemName}>• {orderItem.product_name || 'Unknown'}</Text>
                 <Text style={styles.itemDetails}>
-                  {orderItem.quantity} x ₹{orderItem.price.toFixed(2)} = ₹{orderItem.subtotal.toFixed(2)}
+                  {orderItem.quantity || 0} x ₹{(orderItem.price || 0).toFixed(2)} = ₹{(orderItem.subtotal || 0).toFixed(2)}
                 </Text>
               </View>
             ))}
