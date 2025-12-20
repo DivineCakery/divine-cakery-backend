@@ -313,20 +313,26 @@ async def get_current_user_optional(request: Request) -> User | None:
     try:
         # Get token from Authorization header
         auth_header = request.headers.get("Authorization")
+        logger.info(f"get_current_user_optional: auth_header present: {auth_header is not None}")
         if not auth_header or not auth_header.startswith("Bearer "):
+            logger.info("get_current_user_optional: No valid auth header, returning None")
             return None
         
         token = auth_header.split(" ")[1]
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            logger.info("get_current_user_optional: No username in token")
             return None
         
         user_dict = await db.users.find_one({"username": username})
         if user_dict is None:
+            logger.info(f"get_current_user_optional: User {username} not found in DB")
             return None
+        logger.info(f"get_current_user_optional: Found user {username}, role: {user_dict.get('role')}")
         return User(**user_dict)
-    except Exception:
+    except Exception as e:
+        logger.error(f"get_current_user_optional error: {str(e)}")
         return None
 
 
