@@ -199,6 +199,11 @@ export default function ManageUsersScreen() {
 
   // Order agent functionality removed
 
+  const handleManageProducts = (userId: string, username: string) => {
+    setSelectedUserForProducts({ id: userId, username });
+    setShowProductsModal(true);
+  };
+
   const renderUser = ({ item }: any) => {
     const isAdmin = item.role === 'admin';
     const isOrderAgent = item.user_type === 'order_agent';
