@@ -106,6 +106,29 @@ export default function StandingOrdersScreen() {
     fetchData();
   };
 
+  const handleRegenerateAll = async () => {
+    showAlert(
+      'Regenerate All Orders',
+      'This will generate orders for the next 10 days for ALL active standing orders. Continue?',
+      async () => {
+        setRegeneratingAll(true);
+        try {
+          const result = await apiService.regenerateAllStandingOrders(10);
+          showAlert(
+            'Success',
+            `Processed ${result.processed_standing_orders} standing orders.\nGenerated ${result.total_orders_generated} new orders.`
+          );
+          fetchData(); // Refresh the list
+        } catch (error: any) {
+          console.error('Error regenerating orders:', error);
+          showAlert('Error', error.response?.data?.detail || 'Failed to regenerate orders');
+        } finally {
+          setRegeneratingAll(false);
+        }
+      }
+    );
+  };
+
   const handleLogout = () => {
     showAlert(
       'Logout',
