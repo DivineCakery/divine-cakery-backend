@@ -85,7 +85,7 @@ export default function StandingOrdersScreen() {
       const [ordersData, customersData, productsData] = await Promise.all([
         apiService.getStandingOrders(status),
         apiService.getAllUsers(),
-        apiService.getProducts(),
+        apiService.getProducts(undefined, undefined, true),  // includeAdmin=true to show all products
       ]);
 
       setStandingOrders(ordersData);
