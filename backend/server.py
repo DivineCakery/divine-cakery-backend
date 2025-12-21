@@ -700,17 +700,100 @@ async def get_latest_app_version():
     """
     Get latest app version information for update prompts.
     No authentication required - public endpoint.
-    Returns the current production version details.
+    Returns the current production version details from database.
     """
-    # IMPORTANT: Update these values whenever you release a new build to Play Store
+    # Fetch version settings from database
+    settings = await db.settings.find_one({"key": "app_version_settings"})
+    
+    if settings:
+        return AppVersionInfo(
+            latest_version=settings.get("latest_version", "1.0.16"),
+            latest_version_code=settings.get("latest_version_code", 96),
+            release_date=settings.get("release_date", "2025-12-21"),
+            update_message=settings.get("update_message", "A new version is available with improvements and bug fixes."),
+            minimum_supported_version=settings.get("minimum_supported_version"),
+            minimum_supported_version_code=settings.get("minimum_supported_version_code")
+        )
+    
+    # Default values if no settings in database
     return AppVersionInfo(
         latest_version="1.0.16",
         latest_version_code=96,
         release_date="2025-12-21",
-        update_message="New features: Pay Later option, Product Whitelisting, Manual quantity input. Please update for the best experience!",
-        minimum_supported_version="1.0.16",  # FORCE UPDATE: Users below this version MUST update
-        minimum_supported_version_code=96    # Version code for force update check
+        update_message="A new version is available with improvements and bug fixes.",
+        minimum_supported_version=None,
+        minimum_supported_version_code=None
     )
+
+
+@api_router.get("/admin/settings/app-version")
+async def get_app_version_settings(current_user: User = Depends(get_current_admin)):
+    """Get app version settings for admin configuration"""
+    settings = await db.settings.find_one({"key": "app_version_settings"})
+    
+    if settings:
+        return {
+            "latest_version": settings.get("latest_version", "1.0.16"),
+            "latest_version_code": settings.get("latest_version_code", 96),
+            "release_date": settings.get("release_date", "2025-12-21"),
+            "update_message": settings.get("update_message", ""),
+            "minimum_supported_version": settings.get("minimum_supported_version", ""),
+            "minimum_supported_version_code": settings.get("minimum_supported_version_code", 0),
+            "force_update_enabled": settings.get("minimum_supported_version_code", 0) > 0
+        }
+    
+    return {
+        "latest_version": "1.0.16",
+        "latest_version_code": 96,
+        "release_date": "2025-12-21",
+        "update_message": "",
+        "minimum_supported_version": "",
+        "minimum_supported_version_code": 0,
+        "force_update_enabled": False
+    }
+
+
+@api_router.put("/admin/settings/app-version")
+async def update_app_version_settings(
+    latest_version: str,
+    latest_version_code: int,
+    release_date: str,
+    update_message: str = "",
+    force_update_enabled: bool = False,
+    minimum_supported_version: str = "",
+    minimum_supported_version_code: int = 0,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update app version settings - admin only"""
+    
+    # If force update is disabled, clear minimum version requirements
+    if not force_update_enabled:
+        minimum_supported_version = None
+        minimum_supported_version_code = None
+    
+    await db.settings.update_one(
+        {"key": "app_version_settings"},
+        {"$set": {
+            "latest_version": latest_version,
+            "latest_version_code": latest_version_code,
+            "release_date": release_date,
+            "update_message": update_message,
+            "minimum_supported_version": minimum_supported_version,
+            "minimum_supported_version_code": minimum_supported_version_code
+        }},
+        upsert=True
+    )
+    
+    logger.info(f"Admin {current_user.username} updated app version settings: v{latest_version} (code {latest_version_code}), force_update={force_update_enabled}")
+    
+    return {
+        "message": "App version settings updated successfully",
+        "latest_version": latest_version,
+        "latest_version_code": latest_version_code,
+        "force_update_enabled": force_update_enabled,
+        "minimum_supported_version": minimum_supported_version,
+        "minimum_supported_version_code": minimum_supported_version_code
+    }
 
 
 # Category Routes
