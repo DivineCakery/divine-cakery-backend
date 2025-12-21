@@ -73,6 +73,8 @@ class UserBase(BaseModel):
     user_type: str = "owner"  # "owner" or "order_agent"
     linked_owner_id: Optional[str] = None  # For order agents, reference to owner user ID
     allowed_product_ids: Optional[List[str]] = None  # Product whitelist - None/empty means all products allowed
+    pay_later_enabled: bool = False  # Admin enables this per user
+    pay_later_max_limit: float = 0  # Maximum order value for Pay Later
 
 
 class UserCreate(BaseModel):
