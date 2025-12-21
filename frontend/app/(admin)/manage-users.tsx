@@ -209,6 +209,48 @@ export default function ManageUsersScreen() {
     setShowProductsModal(true);
   };
 
+  const handleOpenPayLaterModal = async (userId: string, username: string) => {
+    setSelectedUserForPayLater({ id: userId, username });
+    setShowPayLaterModal(true);
+    
+    // Fetch current pay later settings
+    try {
+      const settings = await apiService.getUserPayLaterSettings(userId);
+      setPayLaterEnabled(settings.pay_later_enabled || false);
+      setPayLaterMaxLimit(settings.pay_later_max_limit?.toString() || '0');
+    } catch (error) {
+      console.error('Error fetching pay later settings:', error);
+      setPayLaterEnabled(false);
+      setPayLaterMaxLimit('0');
+    }
+  };
+
+  const handleSavePayLater = async () => {
+    if (!selectedUserForPayLater) return;
+    
+    const limit = parseFloat(payLaterMaxLimit) || 0;
+    
+    if (payLaterEnabled && limit <= 0) {
+      showAlert('Error', 'Please enter a valid maximum order limit greater than 0');
+      return;
+    }
+    
+    setSavingPayLater(true);
+    try {
+      await apiService.updateUserPayLaterSettings(selectedUserForPayLater.id, payLaterEnabled, limit);
+      showAlert('Success', payLaterEnabled 
+        ? `Pay Later enabled for ${selectedUserForPayLater.username} with limit ₹${limit}` 
+        : `Pay Later disabled for ${selectedUserForPayLater.username}`);
+      setShowPayLaterModal(false);
+      fetchUsers(); // Refresh to show updated status
+    } catch (error: any) {
+      console.error('Error saving pay later settings:', error);
+      showAlert('Error', error.response?.data?.detail || 'Failed to save settings');
+    } finally {
+      setSavingPayLater(false);
+    }
+  };
+
   const renderUser = ({ item }: any) => {
     const isAdmin = item.role === 'admin';
     const isOrderAgent = item.user_type === 'order_agent';
