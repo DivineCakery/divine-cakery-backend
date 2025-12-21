@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { useFocusEffect, useRouter } from 'expo-router';
