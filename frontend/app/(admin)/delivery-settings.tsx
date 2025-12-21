@@ -546,6 +546,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  // Version Settings Styles
+  versionCard: {
+    borderWidth: 2,
+    borderColor: '#8B4513',
+  },
+  versionInput: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 16,
+    color: '#333',
+  },
+  forceUpdateContainer: {
+    backgroundColor: '#FFF8E1',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  forceUpdateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  forceUpdateTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  forceUpdateTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  forceUpdateSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  minVersionContainer: {
+    backgroundColor: '#FFEBEE',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 15,
+    gap: 10,
+  },
+  warningBannerText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#E65100',
+  },
+  minVersionLabel: {
+    color: '#C62828',
+  },
+  minVersionInput: {
+    borderColor: '#EF5350',
+    backgroundColor: '#fff',
+  },
   infoCard: {
     backgroundColor: '#E3F2FD',
     borderRadius: 15,
