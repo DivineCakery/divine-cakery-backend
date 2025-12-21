@@ -873,6 +873,10 @@ const styles = StyleSheet.create({
   paymentOptionActive: {
     borderColor: '#8B4513',
   },
+  paymentOptionDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f5f5f5',
+  },
   paymentOptionContent: {
     flexDirection: 'row',
     alignItems: 'center',
