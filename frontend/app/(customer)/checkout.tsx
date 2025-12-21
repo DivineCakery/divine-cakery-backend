@@ -900,6 +900,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
+  paymentLabelDisabled: {
+    color: '#999',
+  },
+  paymentSubtextDisabled: {
+    color: '#ccc',
+  },
   insufficientText: {
     fontSize: 12,
     color: '#ff3b30',
