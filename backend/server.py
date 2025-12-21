@@ -1610,6 +1610,10 @@ async def payment_webhook(request: Request):
                     order_number = await generate_order_number()
                     order_id = str(uuid.uuid4())
                     
+                    # Calculate delivery date using backend logic (IST timezone)
+                    # This ensures consistent delivery date calculation regardless of customer's device timezone
+                    delivery_date = calculate_delivery_date()
+                    
                     # Create order document
                     order_dict = {
                         "id": order_id,
@@ -1618,7 +1622,7 @@ async def payment_webhook(request: Request):
                         "user_id": order_data.get("customer_id"),  # Backward compatibility
                         "items": order_data["items"],
                         "total_amount": order_data["total_amount"],
-                        "delivery_date": datetime.fromisoformat(order_data["delivery_date"].replace('Z', '+00:00')) if isinstance(order_data["delivery_date"], str) else order_data["delivery_date"],
+                        "delivery_date": delivery_date,  # Always use backend-calculated date
                         "delivery_address": order_data.get("delivery_address"),
                         "delivery_notes": order_data.get("delivery_notes"),
                         "notes": order_data.get("notes"),
