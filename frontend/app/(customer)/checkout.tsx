@@ -931,4 +931,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginRight: 10,
   },
+  paymentOptionDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f5f5f5',
+  },
+  paymentLabelDisabled: {
+    color: '#999',
+  },
+  paymentSubtextDisabled: {
+    color: '#ccc',
+  },
 });
