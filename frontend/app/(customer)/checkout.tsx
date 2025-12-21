@@ -22,7 +22,7 @@ export default function CheckoutScreen() {
   const { items, getTotalAmount, clearCart } = useCartStore();
   const { user, refreshUser } = useAuthStore();
   const [wallet, setWallet] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'upi'>('wallet');
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'upi' | 'pay_later'>('wallet');
   // Default to 'delivery' - customer can manually change to 'pickup'
   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('delivery');
   const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
@@ -31,6 +31,8 @@ export default function CheckoutScreen() {
   const [placing, setPlacing] = useState(false);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [discount, setDiscount] = useState<any>(null);
+  const [payLaterEnabled, setPayLaterEnabled] = useState(false);
+  const [payLaterMaxLimit, setPayLaterMaxLimit] = useState(0);
 
   const subtotal = getTotalAmount();
   const appliedDeliveryCharge = orderType === 'delivery' && !user?.delivery_charge_waived ? deliveryCharge : 0;
@@ -40,6 +42,10 @@ export default function CheckoutScreen() {
         : discount.discount.discount_value)
     : 0;
   const totalAmount = subtotal + appliedDeliveryCharge - discountAmount;
+  
+  // Check if Pay Later is available for this order
+  const canUsePayLater = payLaterEnabled && totalAmount <= payLaterMaxLimit;
+  const payLaterExceedsLimit = payLaterEnabled && totalAmount > payLaterMaxLimit;
 
   // Calculate delivery date based on order time
   // Orders before 4 AM: same day delivery
