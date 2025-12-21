@@ -271,3 +271,113 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
             raise HTTPException(status_code=404, detail="Standing order not found")
         
         return {"message": "Standing order deleted successfully"}
+    
+    
+    @api_router.post("/admin/standing-orders/regenerate-all")
+    async def regenerate_all_standing_orders(
+        days_ahead: int = 10,
+        current_user: User = Depends(get_current_admin)
+    ):
+        """
+        Regenerate orders for ALL active standing orders.
+        This should be called daily (via cron job or scheduler) to ensure
+        standing orders always have the next 10 days of orders generated.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Get all active standing orders
+        active_orders = await db.standing_orders.find({
+            "status": StandingOrderStatus.ACTIVE
+        }).to_list(1000)
+        
+        total_generated = 0
+        processed_count = 0
+        
+        for standing_order in active_orders:
+            try:
+                # Check if standing order has ended (for end_date type)
+                if standing_order.get("duration_type") == "end_date" and standing_order.get("end_date"):
+                    end_date = standing_order["end_date"]
+                    if hasattr(end_date, 'tzinfo') and end_date.tzinfo:
+                        end_date = end_date.replace(tzinfo=None)
+                    if end_date < datetime.utcnow():
+                        # Mark as completed
+                        await db.standing_orders.update_one(
+                            {"id": standing_order["id"]},
+                            {"$set": {"status": StandingOrderStatus.COMPLETED}}
+                        )
+                        logger.info(f"Standing order {standing_order['id']} marked as completed (end date passed)")
+                        continue
+                
+                generated = await generate_orders_for_standing_order(db, standing_order, days_ahead=days_ahead)
+                total_generated += len(generated)
+                processed_count += 1
+                
+                if generated:
+                    logger.info(f"Generated {len(generated)} orders for standing order {standing_order['id']}")
+            except Exception as e:
+                logger.error(f"Error regenerating standing order {standing_order['id']}: {str(e)}")
+        
+        return {
+            "message": f"Processed {processed_count} active standing orders, generated {total_generated} new orders",
+            "processed_standing_orders": processed_count,
+            "total_orders_generated": total_generated
+        }
+    
+    
+    @api_router.post("/cron/standing-orders/regenerate")
+    async def cron_regenerate_standing_orders(
+        request: Request,
+        days_ahead: int = 10
+    ):
+        """
+        Public endpoint for cron job to regenerate standing orders.
+        Protected by a simple secret key in header.
+        Call this daily to ensure standing orders always have future orders generated.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Simple protection - check for cron secret header
+        cron_secret = request.headers.get("X-Cron-Secret")
+        expected_secret = os.environ.get("CRON_SECRET", "divine-cakery-cron-2024")
+        
+        if cron_secret != expected_secret:
+            raise HTTPException(status_code=401, detail="Invalid cron secret")
+        
+        # Get all active standing orders
+        active_orders = await db.standing_orders.find({
+            "status": StandingOrderStatus.ACTIVE
+        }).to_list(1000)
+        
+        total_generated = 0
+        processed_count = 0
+        
+        for standing_order in active_orders:
+            try:
+                # Check if standing order has ended
+                if standing_order.get("duration_type") == "end_date" and standing_order.get("end_date"):
+                    end_date = standing_order["end_date"]
+                    if hasattr(end_date, 'tzinfo') and end_date.tzinfo:
+                        end_date = end_date.replace(tzinfo=None)
+                    if end_date < datetime.utcnow():
+                        await db.standing_orders.update_one(
+                            {"id": standing_order["id"]},
+                            {"$set": {"status": StandingOrderStatus.COMPLETED}}
+                        )
+                        continue
+                
+                generated = await generate_orders_for_standing_order(db, standing_order, days_ahead=days_ahead)
+                total_generated += len(generated)
+                processed_count += 1
+            except Exception as e:
+                logger.error(f"Error in cron regeneration for {standing_order['id']}: {str(e)}")
+        
+        logger.info(f"Cron: Regenerated {total_generated} orders for {processed_count} standing orders")
+        
+        return {
+            "success": True,
+            "processed": processed_count,
+            "generated": total_generated
+        }
