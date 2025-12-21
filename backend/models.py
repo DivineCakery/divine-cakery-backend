@@ -341,7 +341,8 @@ class AppVersionInfo(BaseModel):
     latest_version_code: int
     release_date: str  # ISO format date
     update_message: Optional[str] = "A new version is available with improvements and bug fixes."
-    minimum_supported_version: Optional[str] = None  # For future force updates
+    minimum_supported_version: Optional[str] = None  # For force updates (version string)
+    minimum_supported_version_code: Optional[int] = None  # For force updates (version code)
 
 
 
