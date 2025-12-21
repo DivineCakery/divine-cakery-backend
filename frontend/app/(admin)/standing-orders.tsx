@@ -488,6 +488,24 @@ export default function StandingOrdersScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Action Bar */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity
+          style={[styles.regenerateButton, regeneratingAll && styles.regenerateButtonDisabled]}
+          onPress={handleRegenerateAll}
+          disabled={regeneratingAll}
+        >
+          {regeneratingAll ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="refresh" size={18} color="#fff" />
+              <Text style={styles.regenerateButtonText}>Regenerate All (Next 10 Days)</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* Standing Orders List */}
       <FlatList
         data={standingOrders}
