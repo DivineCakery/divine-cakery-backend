@@ -1755,8 +1755,24 @@ async def create_order(
     order_data: OrderCreate,
     current_user: User = Depends(get_current_user)
 ):
+    # Check if payment method is pay_later
+    if order_data.payment_method == "pay_later":
+        # Verify user has pay_later enabled
+        user_data = await db.users.find_one({"id": current_user.id})
+        if not user_data or not user_data.get("pay_later_enabled", False):
+            raise HTTPException(status_code=400, detail="Pay Later is not enabled for your account")
+        
+        # Check if order amount exceeds limit
+        pay_later_max_limit = user_data.get("pay_later_max_limit", 0)
+        if order_data.total_amount > pay_later_max_limit:
+            raise HTTPException(
+                status_code=400, 
+                detail="Your order value exceeds limit. Please contact Divine Cakery"
+            )
+        
+        payment_status = "pending"  # Pay Later orders have pending payment
     # Check if payment method is wallet
-    if order_data.payment_method == "wallet":
+    elif order_data.payment_method == "wallet":
         # Order agents use their linked owner's wallet
         wallet_user_id = current_user.id
         if current_user.user_type == "order_agent" and current_user.linked_owner_id:
@@ -1811,11 +1827,12 @@ async def create_order(
         "total_amount": order_data.total_amount,
         "payment_method": order_data.payment_method,
         "payment_status": payment_status,
-        "order_status": OrderStatus.PENDING,
+        "order_status": OrderStatus.PENDING,  # Pay Later orders stay pending until admin confirms
         "order_type": order_data.order_type,
         "delivery_address": order_data.delivery_address or current_user.address,
         "delivery_date": delivery_date,
         "notes": order_data.notes,
+        "is_pay_later": order_data.payment_method == "pay_later",  # Flag for highlighting in admin
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow()
     }
