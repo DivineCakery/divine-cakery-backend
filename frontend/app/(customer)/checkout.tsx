@@ -118,6 +118,18 @@ export default function CheckoutScreen() {
     }
   };
 
+  const fetchPayLaterStatus = async () => {
+    try {
+      // Check if user has pay_later_enabled and pay_later_max_limit from their profile
+      if (user) {
+        setPayLaterEnabled(user.pay_later_enabled || false);
+        setPayLaterMaxLimit(user.pay_later_max_limit || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching pay later status:', error);
+    }
+  };
+
   const sendWhatsAppMessage = async (orderId: string) => {
     try {
       const message = getOrderConfirmationMessage(orderId, getDeliveryDate());
