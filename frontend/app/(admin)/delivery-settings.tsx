@@ -100,6 +100,51 @@ export default function DeliverySettingsScreen() {
     }
   };
 
+  const handleSaveVersionSettings = async () => {
+    if (!latestVersion.trim() || !latestVersionCode.trim()) {
+      showAlert('Error', 'Please enter latest version and version code');
+      return;
+    }
+
+    const versionCode = parseInt(latestVersionCode);
+    const minVerCode = parseInt(minVersionCode) || 0;
+
+    if (isNaN(versionCode) || versionCode <= 0) {
+      showAlert('Error', 'Please enter a valid version code (positive number)');
+      return;
+    }
+
+    if (forceUpdateEnabled) {
+      if (!minVersion.trim() || minVerCode <= 0) {
+        showAlert('Error', 'Please enter minimum version details when force update is enabled');
+        return;
+      }
+      if (minVerCode > versionCode) {
+        showAlert('Error', 'Minimum version code cannot be greater than latest version code');
+        return;
+      }
+    }
+
+    setSavingVersion(true);
+    try {
+      await apiService.updateAppVersionSettings({
+        latest_version: latestVersion,
+        latest_version_code: versionCode,
+        release_date: releaseDate || new Date().toISOString().split('T')[0],
+        update_message: updateMessage,
+        force_update_enabled: forceUpdateEnabled,
+        minimum_supported_version: forceUpdateEnabled ? minVersion : '',
+        minimum_supported_version_code: forceUpdateEnabled ? minVerCode : 0,
+      });
+      showAlert('Success', 'App version settings updated successfully');
+    } catch (error: any) {
+      console.error('Error updating version settings:', error);
+      showAlert('Error', error.response?.data?.detail || 'Failed to update version settings');
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -111,7 +156,7 @@ export default function DeliverySettingsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Delivery Settings</Text>
+        <Text style={styles.headerTitle}>Settings</Text>
       </View>
 
       <View style={styles.content}>
