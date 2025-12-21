@@ -334,6 +334,17 @@ export default function ManageUsersScreen() {
 
         {!isAdmin && (
           <TouchableOpacity
+            style={[styles.payLaterButton, item.pay_later_enabled && styles.payLaterButtonActive]}
+            onPress={() => handleOpenPayLaterModal(item.id, item.username)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="time" size={18} color="#fff" />
+            <Text style={styles.payLaterButtonText}>Pay Later</Text>
+          </TouchableOpacity>
+        )}
+
+        {!isAdmin && (
+          <TouchableOpacity
             style={styles.walletButton}
             onPress={() => {
               console.log('Add Balance clicked for:', item.username);
