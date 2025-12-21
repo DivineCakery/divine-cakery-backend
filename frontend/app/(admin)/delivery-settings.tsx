@@ -15,25 +15,33 @@ import apiService from '../../services/api';
 export default function DeliverySettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingMessages, setSavingMessages] = useState(false);
   const [deliveryCharge, setDeliveryCharge] = useState('');
+  const [paidOrderMessage, setPaidOrderMessage] = useState('');
+  const [payLaterMessage, setPayLaterMessage] = useState('');
 
   useEffect(() => {
-    fetchDeliveryCharge();
+    fetchSettings();
   }, []);
 
-  const fetchDeliveryCharge = async () => {
+  const fetchSettings = async () => {
     try {
-      const data = await apiService.getDeliveryChargeAdmin();
-      setDeliveryCharge(data.delivery_charge.toString());
+      const [deliveryData, messagesData] = await Promise.all([
+        apiService.getDeliveryChargeAdmin(),
+        apiService.getOrderConfirmationMessages()
+      ]);
+      setDeliveryCharge(deliveryData.delivery_charge.toString());
+      setPaidOrderMessage(messagesData.paid_order_message || '');
+      setPayLaterMessage(messagesData.pay_later_message || '');
     } catch (error) {
-      console.error('Error fetching delivery charge:', error);
-      showAlert('Error', 'Failed to load delivery charge');
+      console.error('Error fetching settings:', error);
+      showAlert('Error', 'Failed to load settings');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveDeliveryCharge = async () => {
     const charge = parseFloat(deliveryCharge);
     
     if (isNaN(charge) || charge < 0) {
@@ -53,6 +61,24 @@ export default function DeliverySettingsScreen() {
     }
   };
 
+  const handleSaveMessages = async () => {
+    if (!paidOrderMessage.trim() || !payLaterMessage.trim()) {
+      showAlert('Error', 'Please enter both confirmation messages');
+      return;
+    }
+
+    setSavingMessages(true);
+    try {
+      await apiService.updateOrderConfirmationMessages(paidOrderMessage, payLaterMessage);
+      showAlert('Success', 'Order confirmation messages updated successfully');
+    } catch (error: any) {
+      console.error('Error updating messages:', error);
+      showAlert('Error', error.response?.data?.detail || 'Failed to update messages');
+    } finally {
+      setSavingMessages(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -68,6 +94,7 @@ export default function DeliverySettingsScreen() {
       </View>
 
       <View style={styles.content}>
+        {/* Delivery Charge Card */}
         <View style={styles.card}>
           <View style={styles.iconContainer}>
             <Ionicons name="bicycle" size={50} color="#8B4513" />
@@ -98,7 +125,7 @@ export default function DeliverySettingsScreen() {
 
           <TouchableOpacity
             style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-            onPress={handleSave}
+            onPress={handleSaveDeliveryCharge}
             disabled={saving}
           >
             {saving ? (
@@ -106,7 +133,66 @@ export default function DeliverySettingsScreen() {
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                <Text style={styles.saveButtonText}>Save Changes</Text>
+                <Text style={styles.saveButtonText}>Save Delivery Charge</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Order Confirmation Messages Card */}
+        <View style={styles.card}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="chatbox-ellipses" size={50} color="#8B4513" />
+          </View>
+          
+          <Text style={styles.sectionTitle}>Order Confirmation Messages</Text>
+          <Text style={styles.sectionDescription}>
+            Customize the confirmation messages shown to customers after they place an order.
+          </Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Message for Paid Orders *</Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Thank you for your order! Your payment has been received..."
+              value={paidOrderMessage}
+              onChangeText={setPaidOrderMessage}
+              multiline
+              numberOfLines={3}
+              editable={!savingMessages}
+            />
+            <Text style={styles.hint}>
+              Shown when customer pays via Wallet or Instant Payment
+            </Text>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={[styles.label, styles.payLaterLabel]}>Message for Pay Later Orders *</Text>
+            <TextInput
+              style={[styles.textArea, styles.payLaterTextArea]}
+              placeholder="Thank you for your order! Please make the payment upon delivery..."
+              value={payLaterMessage}
+              onChangeText={setPayLaterMessage}
+              multiline
+              numberOfLines={3}
+              editable={!savingMessages}
+            />
+            <Text style={styles.hint}>
+              Shown when customer uses "Pay Later" option
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.saveButton, savingMessages && styles.saveButtonDisabled]}
+            onPress={handleSaveMessages}
+            disabled={savingMessages}
+          >
+            {savingMessages ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                <Text style={styles.saveButtonText}>Save Messages</Text>
               </>
             )}
           </TouchableOpacity>
@@ -132,13 +218,13 @@ export default function DeliverySettingsScreen() {
           <View style={styles.infoBullet}>
             <Ionicons name="ellipse" size={8} color="#666" />
             <Text style={styles.infoText}>
-              Pickup orders have no delivery charge (₹0)
+              "Pay Later" enabled customers can place orders without immediate payment
             </Text>
           </View>
           <View style={styles.infoBullet}>
             <Ionicons name="ellipse" size={8} color="#666" />
             <Text style={styles.infoText}>
-              The charge is shown separately in the order breakdown
+              Enable "Pay Later" for specific customers in the Manage Users section
             </Text>
           </View>
         </View>
@@ -207,6 +293,9 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
+  payLaterLabel: {
+    color: '#E65100',
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -227,6 +316,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#333',
     padding: 15,
+  },
+  textArea: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 14,
+    color: '#333',
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  payLaterTextArea: {
+    borderColor: '#FFCC80',
+    backgroundColor: '#FFF8E1',
   },
   hint: {
     fontSize: 12,
