@@ -343,7 +343,7 @@ export default function CheckoutScreen() {
           'Payment Window Closed', 
           'The payment window was closed before completion.\n\n• If you completed the payment, check "My Orders" to verify.\n• If you need to enter OTP, please try payment again.\n• Your cart items are saved - you can retry anytime.', 
           [
-            { text: 'Retry Payment', onPress: () => placeOrder() },
+            { text: 'Retry Payment', onPress: () => handlePlaceOrder() },
             { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
             { text: 'Stay Here', style: 'cancel' }
           ]
