@@ -616,6 +616,71 @@ export default function ManageUsersScreen() {
           }}
         />
       )}
+
+      {/* Pay Later Modal */}
+      <Modal
+        visible={showPayLaterModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowPayLaterModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.payLaterModalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Pay Later Settings</Text>
+              <TouchableOpacity onPress={() => setShowPayLaterModal(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            {selectedUserForPayLater && (
+              <View style={styles.payLaterModalContent}>
+                <Text style={styles.payLaterUserName}>
+                  {selectedUserForPayLater.username}
+                </Text>
+                
+                <View style={styles.payLaterToggleRow}>
+                  <Text style={styles.payLaterLabel}>Enable Pay Later</Text>
+                  <TouchableOpacity
+                    style={[styles.payLaterToggle, payLaterEnabled && styles.payLaterToggleActive]}
+                    onPress={() => setPayLaterEnabled(!payLaterEnabled)}
+                  >
+                    <View style={[styles.payLaterToggleCircle, payLaterEnabled && styles.payLaterToggleCircleActive]} />
+                  </TouchableOpacity>
+                </View>
+                
+                {payLaterEnabled && (
+                  <View style={styles.payLaterLimitContainer}>
+                    <Text style={styles.payLaterLabel}>Maximum Order Limit (₹)</Text>
+                    <TextInput
+                      style={styles.payLaterLimitInput}
+                      value={payLaterMaxLimit}
+                      onChangeText={setPayLaterMaxLimit}
+                      keyboardType="numeric"
+                      placeholder="Enter maximum order value"
+                    />
+                    <Text style={styles.payLaterHint}>
+                      Customer cannot place Pay Later orders exceeding this amount
+                    </Text>
+                  </View>
+                )}
+                
+                <TouchableOpacity
+                  style={[styles.payLaterSaveButton, savingPayLater && styles.payLaterSaveButtonDisabled]}
+                  onPress={handleSavePayLater}
+                  disabled={savingPayLater}
+                >
+                  {savingPayLater ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.payLaterSaveButtonText}>Save Settings</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
