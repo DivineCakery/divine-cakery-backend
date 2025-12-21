@@ -363,6 +363,28 @@ class ApiService {
     return response.data;
   }
 
+  // Order Confirmation Messages
+  async getOrderConfirmationMessages() {
+    const response = await this.api.get('/admin/settings/order-messages');
+    return response.data;
+  }
+
+  async updateOrderConfirmationMessages(paidOrderMessage: string, payLaterMessage: string) {
+    const response = await this.api.put(`/admin/settings/order-messages?paid_order_message=${encodeURIComponent(paidOrderMessage)}&pay_later_message=${encodeURIComponent(payLaterMessage)}`);
+    return response.data;
+  }
+
+  // Pay Later Settings
+  async getUserPayLaterSettings(userId: string) {
+    const response = await this.api.get(`/admin/users/${userId}/pay-later`);
+    return response.data;
+  }
+
+  async updateUserPayLaterSettings(userId: string, enabled: boolean, maxLimit: number) {
+    const response = await this.api.put(`/admin/users/${userId}/pay-later?pay_later_enabled=${enabled}&pay_later_max_limit=${maxLimit}`);
+    return response.data;
+  }
+
   // Discount Management
   async getAllDiscounts() {
     const response = await this.api.get('/admin/discounts');
