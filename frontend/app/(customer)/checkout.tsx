@@ -185,6 +185,11 @@ export default function CheckoutScreen() {
       return;
     }
 
+    if (paymentMethod === 'pay_later' && payLaterExceedsLimit) {
+      showAlert('Order Limit Exceeded', 'Your order value exceeds the pay later limit. Please contact Divine Cakery or choose another payment method.');
+      return;
+    }
+
     // Check for delivery notes
     try {
       const deliveryNotesData = await apiService.getCustomerDeliveryNotes();
