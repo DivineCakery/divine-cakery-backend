@@ -7,6 +7,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,9 +17,19 @@ export default function DeliverySettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingMessages, setSavingMessages] = useState(false);
+  const [savingVersion, setSavingVersion] = useState(false);
   const [deliveryCharge, setDeliveryCharge] = useState('');
   const [paidOrderMessage, setPaidOrderMessage] = useState('');
   const [payLaterMessage, setPayLaterMessage] = useState('');
+  
+  // App Version Settings
+  const [latestVersion, setLatestVersion] = useState('');
+  const [latestVersionCode, setLatestVersionCode] = useState('');
+  const [releaseDate, setReleaseDate] = useState('');
+  const [updateMessage, setUpdateMessage] = useState('');
+  const [forceUpdateEnabled, setForceUpdateEnabled] = useState(false);
+  const [minVersion, setMinVersion] = useState('');
+  const [minVersionCode, setMinVersionCode] = useState('');
 
   useEffect(() => {
     fetchSettings();
@@ -26,13 +37,23 @@ export default function DeliverySettingsScreen() {
 
   const fetchSettings = async () => {
     try {
-      const [deliveryData, messagesData] = await Promise.all([
+      const [deliveryData, messagesData, versionData] = await Promise.all([
         apiService.getDeliveryChargeAdmin(),
-        apiService.getOrderConfirmationMessages()
+        apiService.getOrderConfirmationMessages(),
+        apiService.getAppVersionSettings()
       ]);
       setDeliveryCharge(deliveryData.delivery_charge.toString());
       setPaidOrderMessage(messagesData.paid_order_message || '');
       setPayLaterMessage(messagesData.pay_later_message || '');
+      
+      // App Version Settings
+      setLatestVersion(versionData.latest_version || '');
+      setLatestVersionCode(versionData.latest_version_code?.toString() || '');
+      setReleaseDate(versionData.release_date || '');
+      setUpdateMessage(versionData.update_message || '');
+      setForceUpdateEnabled(versionData.force_update_enabled || false);
+      setMinVersion(versionData.minimum_supported_version || '');
+      setMinVersionCode(versionData.minimum_supported_version_code?.toString() || '0');
     } catch (error) {
       console.error('Error fetching settings:', error);
       showAlert('Error', 'Failed to load settings');
