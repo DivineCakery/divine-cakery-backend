@@ -391,11 +391,20 @@ export default function ManageOrdersScreen() {
   const renderOrder = ({ item, index }: any) => (
     <View style={[
       styles.orderCard,
-      index % 2 === 0 ? styles.orderCardEven : styles.orderCardOdd
+      index % 2 === 0 ? styles.orderCardEven : styles.orderCardOdd,
+      item.is_pay_later && styles.orderCardPayLater
     ]}>
       <View style={styles.orderHeader}>
-        <Text style={styles.orderNumber}>Order #{item.order_number || item.id}</Text>
-        <Text style={styles.orderAmount}>₹{item.total_amount.toFixed(2)}</Text>
+        <View style={styles.orderHeaderLeft}>
+          <Text style={styles.orderNumber}>Order #{item.order_number || item.id}</Text>
+          {item.is_pay_later && (
+            <View style={styles.payLaterBadge}>
+              <Ionicons name="time" size={12} color="#fff" />
+              <Text style={styles.payLaterBadgeText}>Pay Later</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.orderAmount}>₹{(item.total_amount || 0).toFixed(2)}</Text>
       </View>
 
       {/* Order Type Display */}
