@@ -344,13 +344,17 @@ export default function CheckoutScreen() {
           ]
         );
       } else {
-        // Wallet payment
+        // Wallet or Pay Later payment
         const response = await apiService.createOrder(orderData);
         
         clearCart();
         await refreshUser();
         
-        showAlert('Success', 'Order placed successfully! You will receive a confirmation soon.', [
+        const successMessage = paymentMethod === 'pay_later' 
+          ? 'Order placed successfully! You can pay upon delivery.' 
+          : 'Order placed successfully! You will receive a confirmation soon.';
+        
+        showAlert('Success', successMessage, [
           { text: 'OK', onPress: () => router.replace('/(customer)/orders') },
         ]);
         setPlacing(false);
