@@ -970,4 +970,89 @@ const styles = StyleSheet.create({
   filterButtonTextActive: {
     color: '#fff',
   },
+  // Pay Later Modal Styles
+  payLaterModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    minHeight: 300,
+  },
+  payLaterModalContent: {
+    paddingTop: 10,
+  },
+  payLaterUserName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  payLaterToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  payLaterLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  payLaterToggle: {
+    width: 60,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    padding: 3,
+  },
+  payLaterToggleActive: {
+    backgroundColor: '#E65100',
+  },
+  payLaterToggleCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#fff',
+  },
+  payLaterToggleCircleActive: {
+    alignSelf: 'flex-end',
+  },
+  payLaterLimitContainer: {
+    marginBottom: 20,
+  },
+  payLaterLimitInput: {
+    borderWidth: 1,
+    borderColor: '#E65100',
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 18,
+    marginTop: 10,
+    backgroundColor: '#FFF8E1',
+  },
+  payLaterHint: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 6,
+    fontStyle: 'italic',
+  },
+  payLaterSaveButton: {
+    backgroundColor: '#E65100',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  payLaterSaveButtonDisabled: {
+    opacity: 0.6,
+  },
+  payLaterSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
