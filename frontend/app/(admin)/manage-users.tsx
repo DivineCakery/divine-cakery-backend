@@ -32,6 +32,11 @@ export default function ManageUsersScreen() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'customer'>('all');
   const [showProductsModal, setShowProductsModal] = useState(false);
   const [selectedUserForProducts, setSelectedUserForProducts] = useState<{id: string, username: string} | null>(null);
+  const [showPayLaterModal, setShowPayLaterModal] = useState(false);
+  const [selectedUserForPayLater, setSelectedUserForPayLater] = useState<{id: string, username: string} | null>(null);
+  const [payLaterEnabled, setPayLaterEnabled] = useState(false);
+  const [payLaterMaxLimit, setPayLaterMaxLimit] = useState('');
+  const [savingPayLater, setSavingPayLater] = useState(false);
 
   useEffect(() => {
     fetchUsers();
