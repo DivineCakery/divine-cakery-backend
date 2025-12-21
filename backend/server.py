@@ -2904,6 +2904,97 @@ async def update_delivery_charge(
     return {"message": "Delivery charge updated", "delivery_charge": delivery_charge}
 
 
+# Order Confirmation Messages Settings
+@api_router.get("/admin/settings/order-messages")
+async def get_order_confirmation_messages(current_user: User = Depends(get_current_admin)):
+    """Get order confirmation messages for paid and pay later orders"""
+    settings = await db.settings.find_one({"key": "order_confirmation_messages"})
+    if not settings:
+        return {
+            "paid_order_message": "Thank you for your order! Your payment has been received and your order is being processed.",
+            "pay_later_message": "Thank you for your order! Please make the payment upon delivery."
+        }
+    return {
+        "paid_order_message": settings.get("paid_order_message", "Thank you for your order! Your payment has been received and your order is being processed."),
+        "pay_later_message": settings.get("pay_later_message", "Thank you for your order! Please make the payment upon delivery.")
+    }
+
+
+@api_router.put("/admin/settings/order-messages")
+async def update_order_confirmation_messages(
+    paid_order_message: str,
+    pay_later_message: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update order confirmation messages"""
+    await db.settings.update_one(
+        {"key": "order_confirmation_messages"},
+        {"$set": {
+            "paid_order_message": paid_order_message,
+            "pay_later_message": pay_later_message
+        }},
+        upsert=True
+    )
+    return {
+        "message": "Order confirmation messages updated",
+        "paid_order_message": paid_order_message,
+        "pay_later_message": pay_later_message
+    }
+
+
+# Pay Later Settings for Users
+@api_router.get("/admin/users/{user_id}/pay-later")
+async def get_user_pay_later_settings(
+    user_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get pay later settings for a user"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "user_id": user_id,
+        "username": user.get("username"),
+        "pay_later_enabled": user.get("pay_later_enabled", False),
+        "pay_later_max_limit": user.get("pay_later_max_limit", 0)
+    }
+
+
+@api_router.put("/admin/users/{user_id}/pay-later")
+async def update_user_pay_later_settings(
+    user_id: str,
+    pay_later_enabled: bool,
+    pay_later_max_limit: float = 0,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update pay later settings for a user"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent enabling for admin users
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Cannot enable pay later for admin users")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "pay_later_enabled": pay_later_enabled,
+            "pay_later_max_limit": pay_later_max_limit if pay_later_enabled else 0
+        }}
+    )
+    
+    logger.info(f"Admin {current_user.username} updated pay later settings for user {user['username']}: enabled={pay_later_enabled}, limit={pay_later_max_limit}")
+    
+    return {
+        "message": "Pay later settings updated",
+        "user_id": user_id,
+        "pay_later_enabled": pay_later_enabled,
+        "pay_later_max_limit": pay_later_max_limit if pay_later_enabled else 0
+    }
+
+
 # Discount Management Endpoints
 @api_router.get("/admin/discounts", response_model=List[Discount])
 async def get_all_discounts(current_user: User = Depends(get_current_admin)):
