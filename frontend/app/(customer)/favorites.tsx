@@ -244,7 +244,15 @@ export default function FavoritesScreen() {
                 >
                   <Ionicons name="remove" size={16} color="#8B4513" />
                 </TouchableOpacity>
-                <Text style={styles.quantityText}>{getQuantity(item.id)}</Text>
+                <TextInput
+                  style={styles.quantityInput}
+                  value={getQuantity(item.id).toString()}
+                  onChangeText={(value) => setQuantityDirectly(item.id, value)}
+                  onBlur={() => handleQuantityBlur(item.id)}
+                  keyboardType="number-pad"
+                  selectTextOnFocus={true}
+                  maxLength={4}
+                />
                 <TouchableOpacity
                   style={styles.quantityButton}
                   onPress={() => increaseQuantity(item.id)}
