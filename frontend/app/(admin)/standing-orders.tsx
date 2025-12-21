@@ -1054,6 +1054,31 @@ const styles = StyleSheet.create({
   filterTabTextActive: {
     color: '#fff',
   },
+  actionBar: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  regenerateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    gap: 8,
+  },
+  regenerateButtonDisabled: {
+    opacity: 0.6,
+  },
+  regenerateButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   listContent: {
     padding: 16,
     paddingBottom: 200,
