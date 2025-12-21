@@ -789,6 +789,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 5,
   },
+  payLaterButton: {
+    flex: 1,
+    backgroundColor: '#607D8B',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  payLaterButtonActive: {
+    backgroundColor: '#E65100',
+  },
+  payLaterButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
   walletButton: {
     flex: 1,
     backgroundColor: '#4CAF50',
