@@ -3,7 +3,8 @@ import uuid
 import os
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import HTTPException, Depends, Request
+from fastapi import HTTPException, Depends
+from starlette.requests import Request
 
 from models import (
     StandingOrder, StandingOrderCreate, StandingOrderUpdate, StandingOrderStatus,
