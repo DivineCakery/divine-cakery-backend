@@ -702,13 +702,14 @@ async def get_latest_app_version():
     No authentication required - public endpoint.
     Returns the current production version details.
     """
-    # IMPORTANT: Update these values whenever you release a new build
+    # IMPORTANT: Update these values whenever you release a new build to Play Store
     return AppVersionInfo(
-        latest_version="1.0.13",
-        latest_version_code=60,
-        release_date="2025-12-15",  # Today's release date
-        update_message="Critical update! Fixes for order creation, delivery dates, payment flow, favorites, and more.",
-        minimum_supported_version=None  # Not enforcing minimum version yet
+        latest_version="1.0.16",
+        latest_version_code=96,
+        release_date="2025-12-21",
+        update_message="New features: Pay Later option, Product Whitelisting, Manual quantity input. Please update for the best experience!",
+        minimum_supported_version="1.0.16",  # FORCE UPDATE: Users below this version MUST update
+        minimum_supported_version_code=96    # Version code for force update check
     )
 
 
