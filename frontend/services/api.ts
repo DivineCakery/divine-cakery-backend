@@ -102,6 +102,33 @@ class ApiService {
     return response.data;
   }
 
+  // Admin App Version Settings
+  async getAppVersionSettings() {
+    const response = await this.api.get('/admin/settings/app-version');
+    return response.data;
+  }
+
+  async updateAppVersionSettings(settings: {
+    latest_version: string;
+    latest_version_code: number;
+    release_date: string;
+    update_message: string;
+    force_update_enabled: boolean;
+    minimum_supported_version: string;
+    minimum_supported_version_code: number;
+  }) {
+    const params = new URLSearchParams({
+      latest_version: settings.latest_version,
+      latest_version_code: settings.latest_version_code.toString(),
+      release_date: settings.release_date,
+      update_message: settings.update_message,
+      force_update_enabled: settings.force_update_enabled.toString(),
+      minimum_supported_version: settings.minimum_supported_version,
+      minimum_supported_version_code: settings.minimum_supported_version_code.toString(),
+    });
+    const response = await this.api.put(`/admin/settings/app-version?${params.toString()}`);
+    return response.data;
+  }
 
 
   // Product APIs
