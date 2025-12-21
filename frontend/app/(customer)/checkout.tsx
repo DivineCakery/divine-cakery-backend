@@ -245,13 +245,8 @@ export default function CheckoutScreen() {
 
       if (paymentMethod === 'upi') {
         // UPI/Razorpay payment
-        // Calculate delivery date ISO string for backend
-        const now = new Date();
-        const currentHour = now.getHours();
-        const deliveryDate = new Date(now);
-        if (currentHour >= 4) {
-          deliveryDate.setDate(now.getDate() + 1);
-        }
+        // Note: delivery_date will be calculated by backend using IST timezone
+        // when the payment callback creates the order
         
         // Prepare payment order with transaction_type and order data in notes
         const paymentData = await apiService.createPaymentOrder({
@@ -268,7 +263,6 @@ export default function CheckoutScreen() {
                 subtotal: item.subtotal,
               })),
               total_amount: totalAmount,
-              delivery_date: deliveryDate.toISOString(),
               delivery_address: orderType === 'delivery' ? deliveryAddress : undefined,
               delivery_notes: notes || undefined,
               payment_method: 'razorpay',
