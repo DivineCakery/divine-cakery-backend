@@ -50,6 +50,7 @@ export default function StandingOrdersScreen() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [generatedOrders, setGeneratedOrders] = useState([]);
+  const [regeneratingAll, setRegeneratingAll] = useState(false);
 
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const intervalOptions = [
