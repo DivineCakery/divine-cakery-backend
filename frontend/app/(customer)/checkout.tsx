@@ -74,6 +74,7 @@ export default function CheckoutScreen() {
     fetchWallet();
     fetchDeliveryCharge();
     fetchCustomerDiscount();
+    fetchPayLaterStatus();
   }, []);
 
   // Refresh wallet balance when screen gains focus (real-time update)
