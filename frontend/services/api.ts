@@ -475,6 +475,11 @@ class ApiService {
     return response.data;
   }
 
+  async regenerateAllStandingOrders(daysAhead: number = 10) {
+    const response = await this.api.post(`/admin/standing-orders/regenerate-all?days_ahead=${daysAhead}`);
+    return response.data;
+  }
+
   // Stock Reset Methods
   async resetAllStock() {
     const response = await this.api.post('/admin/stock/reset-all');
