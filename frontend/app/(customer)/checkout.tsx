@@ -574,6 +574,48 @@ export default function CheckoutScreen() {
             </View>
           </View>
         </TouchableOpacity>
+
+        {/* Pay Later Option - Only show if enabled for user */}
+        {payLaterEnabled && (
+          <TouchableOpacity
+            style={[
+              styles.paymentOption,
+              paymentMethod === 'pay_later' && styles.paymentOptionActive,
+              payLaterExceedsLimit && styles.paymentOptionDisabled,
+            ]}
+            onPress={() => {
+              if (payLaterExceedsLimit) {
+                showAlert(
+                  'Order Limit Exceeded',
+                  'Your order value exceeds limit. Please contact Divine Cakery'
+                );
+              } else {
+                setPaymentMethod('pay_later');
+              }
+            }}
+          >
+            <View style={styles.paymentOptionContent}>
+              <Ionicons
+                name={paymentMethod === 'pay_later' ? 'radio-button-on' : 'radio-button-off'}
+                size={24}
+                color={paymentMethod === 'pay_later' ? '#E65100' : payLaterExceedsLimit ? '#ccc' : '#999'}
+              />
+              <View style={styles.paymentInfo}>
+                <Text style={[styles.paymentLabel, payLaterExceedsLimit && styles.paymentLabelDisabled]}>
+                  Pay Later
+                </Text>
+                <Text style={[styles.paymentSubtext, payLaterExceedsLimit && styles.paymentSubtextDisabled]}>
+                  {payLaterExceedsLimit 
+                    ? 'Order exceeds limit - Contact Divine Cakery' 
+                    : 'Pay upon delivery'}
+                </Text>
+              </View>
+              {payLaterExceedsLimit && (
+                <Ionicons name="alert-circle" size={20} color="#ff9800" />
+              )}
+            </View>
+          </TouchableOpacity>
+        )}
         </View>
         </>
       )}
