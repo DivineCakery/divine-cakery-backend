@@ -138,6 +138,24 @@ export default function FavoritesScreen() {
     }));
   };
 
+  const setQuantityDirectly = (productId: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    if (numValue >= 0) {
+      setQuantities(prev => ({
+        ...prev,
+        [productId]: numValue
+      }));
+    }
+  };
+
+  const handleQuantityBlur = (productId: string) => {
+    // Ensure minimum of 1 when user finishes editing
+    setQuantities(prev => ({
+      ...prev,
+      [productId]: Math.max(1, prev[productId] || 1)
+    }));
+  };
+
   const handleRemoveFromFavorites = async (productId: string) => {
     try {
       await apiService.removeFromFavorites(productId);
