@@ -264,6 +264,125 @@ export default function DeliverySettingsScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* App Version Settings Card */}
+        <View style={[styles.card, styles.versionCard]}>
+          <View style={styles.iconContainer}>
+            <Ionicons name="phone-portrait" size={50} color="#8B4513" />
+          </View>
+          
+          <Text style={styles.sectionTitle}>App Version Settings</Text>
+          <Text style={styles.sectionDescription}>
+            Configure the current app version on Play Store and force update requirements.
+          </Text>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Latest Version (e.g., 1.0.16) *</Text>
+            <TextInput
+              style={styles.versionInput}
+              placeholder="1.0.16"
+              value={latestVersion}
+              onChangeText={setLatestVersion}
+              editable={!savingVersion}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Latest Version Code (e.g., 96) *</Text>
+            <TextInput
+              style={styles.versionInput}
+              placeholder="96"
+              value={latestVersionCode}
+              onChangeText={setLatestVersionCode}
+              keyboardType="number-pad"
+              editable={!savingVersion}
+            />
+            <Text style={styles.hint}>
+              This is the build number from app.json (versionCode)
+            </Text>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Update Message (optional)</Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="New features and improvements..."
+              value={updateMessage}
+              onChangeText={setUpdateMessage}
+              multiline
+              numberOfLines={2}
+              editable={!savingVersion}
+            />
+          </View>
+
+          {/* Force Update Toggle */}
+          <View style={styles.forceUpdateContainer}>
+            <View style={styles.forceUpdateHeader}>
+              <Ionicons name="shield-checkmark" size={24} color={forceUpdateEnabled ? '#E65100' : '#999'} />
+              <View style={styles.forceUpdateTextContainer}>
+                <Text style={styles.forceUpdateTitle}>Force Update</Text>
+                <Text style={styles.forceUpdateSubtitle}>
+                  {forceUpdateEnabled ? 'Users MUST update to continue' : 'Users can skip update'}
+                </Text>
+              </View>
+              <Switch
+                value={forceUpdateEnabled}
+                onValueChange={setForceUpdateEnabled}
+                trackColor={{ false: '#ccc', true: '#FFCC80' }}
+                thumbColor={forceUpdateEnabled ? '#E65100' : '#f4f3f4'}
+              />
+            </View>
+          </View>
+
+          {forceUpdateEnabled && (
+            <View style={styles.minVersionContainer}>
+              <View style={styles.warningBanner}>
+                <Ionicons name="warning" size={20} color="#E65100" />
+                <Text style={styles.warningBannerText}>
+                  Users with versions below minimum will be blocked from using the app
+                </Text>
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.minVersionLabel]}>Minimum Version *</Text>
+                <TextInput
+                  style={[styles.versionInput, styles.minVersionInput]}
+                  placeholder="1.0.16"
+                  value={minVersion}
+                  onChangeText={setMinVersion}
+                  editable={!savingVersion}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={[styles.label, styles.minVersionLabel]}>Minimum Version Code *</Text>
+                <TextInput
+                  style={[styles.versionInput, styles.minVersionInput]}
+                  placeholder="96"
+                  value={minVersionCode}
+                  onChangeText={setMinVersionCode}
+                  keyboardType="number-pad"
+                  editable={!savingVersion}
+                />
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.saveButton, savingVersion && styles.saveButtonDisabled]}
+            onPress={handleSaveVersionSettings}
+            disabled={savingVersion}
+          >
+            {savingVersion ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                <Text style={styles.saveButtonText}>Save Version Settings</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
             <Ionicons name="information-circle" size={24} color="#2196F3" />
@@ -291,6 +410,12 @@ export default function DeliverySettingsScreen() {
             <Ionicons name="ellipse" size={8} color="#666" />
             <Text style={styles.infoText}>
               Enable "Pay Later" for specific customers in the Manage Users section
+            </Text>
+          </View>
+          <View style={styles.infoBullet}>
+            <Ionicons name="ellipse" size={8} color="#666" />
+            <Text style={styles.infoText}>
+              Force Update blocks users with older app versions until they update
             </Text>
           </View>
         </View>
