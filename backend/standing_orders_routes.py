@@ -110,10 +110,13 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
             
             total_amount = sum(item["subtotal"] for item in items_with_subtotal)
             
+            # Generate sequential order number (same as regular orders)
+            order_number = await generate_order_number(db)
+            
             # Create order
             order_dict = {
                 "id": str(uuid.uuid4()),
-                "order_number": str(uuid.uuid4())[:8].upper(),
+                "order_number": order_number,
                 "user_id": standing_order["customer_id"],
                 "items": items_with_subtotal,
                 "total_amount": total_amount,
