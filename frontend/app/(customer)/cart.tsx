@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useCartStore, useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
+import apiService from '../../services/api';
 
 export default function CartScreen() {
   const router = useRouter();
