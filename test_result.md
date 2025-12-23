@@ -426,7 +426,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Razorpay payment flow - Cart persistence during OTP verification"
+    - "Standing Order Preparation List Bug Fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
