@@ -403,6 +403,21 @@ frontend:
           agent: "main"
           comment: "Verified closing stock counter display. The 'Prev. Day Stock' field shows the previous_closing_stock value for each product in the preparation list. This field is already being displayed correctly in the preparationStat section of each product card."
 
+  - task: "Standing Order Preparation List Bug Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/standing_orders_routes.py, /app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "BUG: Standing order items are appearing on the preparation list on incorrect days. For example, a Mon/Wed/Fri standing order's items were appearing on Tuesday's preparation list."
+        - working: true
+          agent: "main"
+          comment: "ROOT CAUSE IDENTIFIED AND FIXED: 1) Found 10 orphaned orders from November - their parent standing order was deleted but the child orders remained. 2) Found 1 duplicate order for Dec 22 (same date but different times: 00:00:00 and 13:00:00). 3) The duplicate detection in generate_orders_for_standing_order() was checking exact datetime match instead of date-only match. FIXES: 1) Updated duplicate detection to use date range query ($gte start of day, $lt end of day) instead of exact datetime match. 2) Ran cleanup script to delete 10 orphaned November orders and 1 duplicate order. VERIFIED: Preparation list now correctly shows standing order items ONLY on Mon/Wed/Fri. Tuesday, Thursday, Saturday, Sunday show 0 standing order items as expected."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
