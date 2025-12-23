@@ -2865,41 +2865,70 @@ async def get_preparation_list_report(
     current_user: User = Depends(get_current_admin)
 ):
     """Get preparation list report: Shows products with orders for today and/or tomorrow"""
+    import pytz
     from datetime import datetime as dt
+    from datetime import timedelta
     
-    # Parse date or use today
+    # Use IST timezone for date calculations
+    ist = pytz.timezone('Asia/Kolkata')
+    
+    # Parse date or use today (in IST)
     if date:
         try:
+            # Parse date string as IST date
             report_date = dt.strptime(date, "%Y-%m-%d")
+            report_date = ist.localize(report_date)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     else:
-        report_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        # Use current IST date
+        now_ist = dt.now(ist)
+        report_date = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Get all products (exclude images for performance)
     products_cursor = db.products.find({}, {"image_base64": 0})
     products = await products_cursor.to_list(10000)
     
-    # Set date ranges for today and tomorrow
-    from datetime import timedelta
-    today_start = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = today_start + timedelta(days=1)
-    tomorrow_start = today_end
-    tomorrow_end = tomorrow_start + timedelta(days=1)
+    # Set date ranges for today and tomorrow (in IST, then convert to UTC for DB query)
+    today_start_ist = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end_ist = today_start_ist + timedelta(days=1)
+    tomorrow_start_ist = today_end_ist
+    tomorrow_end_ist = tomorrow_start_ist + timedelta(days=1)
+    
+    # Convert to UTC for MongoDB query (MongoDB stores dates in UTC)
+    today_start_utc = today_start_ist.astimezone(pytz.UTC).replace(tzinfo=None)
+    today_end_utc = today_end_ist.astimezone(pytz.UTC).replace(tzinfo=None)
+    tomorrow_start_utc = tomorrow_start_ist.astimezone(pytz.UTC).replace(tzinfo=None)
+    tomorrow_end_utc = tomorrow_end_ist.astimezone(pytz.UTC).replace(tzinfo=None)
+    
+    logger.info(f"Preparation list for IST date: {report_date.date()}")
+    logger.info(f"Today range (UTC): {today_start_utc} to {today_end_utc}")
+    logger.info(f"Tomorrow range (UTC): {tomorrow_start_utc} to {tomorrow_end_utc}")
     
     # Get orders for today (both pending and confirmed, but not cancelled)
+    # Also check for orders where delivery_date falls within today (handling timezone inconsistencies)
     orders_today_cursor = db.orders.find({
-        "delivery_date": {"$gte": today_start, "$lt": today_end},
-        "order_status": {"$ne": OrderStatus.CANCELLED}
+        "$or": [
+            # Orders with delivery_date in today's range
+            {"delivery_date": {"$gte": today_start_utc, "$lt": today_end_utc}},
+            # Also catch orders stored with IST midnight (without timezone conversion)
+            {"delivery_date": {"$gte": today_start_ist.replace(tzinfo=None), "$lt": today_end_ist.replace(tzinfo=None)}}
+        ],
+        "order_status": {"$nin": [OrderStatus.CANCELLED, "cancelled"]}
     })
     orders_today = await orders_today_cursor.to_list(10000)
     
     # Get orders for tomorrow
     orders_tomorrow_cursor = db.orders.find({
-        "delivery_date": {"$gte": tomorrow_start, "$lt": tomorrow_end},
-        "order_status": {"$ne": OrderStatus.CANCELLED}
+        "$or": [
+            {"delivery_date": {"$gte": tomorrow_start_utc, "$lt": tomorrow_end_utc}},
+            {"delivery_date": {"$gte": tomorrow_start_ist.replace(tzinfo=None), "$lt": tomorrow_end_ist.replace(tzinfo=None)}}
+        ],
+        "order_status": {"$nin": [OrderStatus.CANCELLED, "cancelled"]}
     })
     orders_tomorrow = await orders_tomorrow_cursor.to_list(10000)
+    
+    logger.info(f"Found {len(orders_today)} orders for today, {len(orders_tomorrow)} orders for tomorrow")
     
     # Calculate ordered quantities for today
     ordered_quantities_today = {}
@@ -2970,6 +2999,8 @@ async def get_preparation_list_report(
         "date": report_date.strftime("%Y-%m-%d"),
         "day_name": report_date.strftime("%A"),
         "total_items": len(preparation_list),
+        "orders_today_count": len(orders_today),
+        "orders_tomorrow_count": len(orders_tomorrow),
         "items": preparation_list
     }
 
