@@ -28,6 +28,7 @@ class StandingOrderTester:
         try:
             # Try common admin credentials
             admin_credentials = [
+                {"username": "testadmin", "password": "testpass123"},
                 {"username": "Soman", "password": "admin123"},
                 {"username": "Soman", "password": "admin"},
                 {"username": "Soman", "password": "password"},
