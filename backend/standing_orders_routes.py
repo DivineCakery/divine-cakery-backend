@@ -5,11 +5,37 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import HTTPException, Depends
 from starlette.requests import Request
+from pymongo import ReturnDocument
 
 from models import (
     StandingOrder, StandingOrderCreate, StandingOrderUpdate, StandingOrderStatus,
     RecurrenceType, DurationType, User, Order
 )
+
+
+async def generate_order_number(db) -> str:
+    """
+    Generates simple sequential order number starting from 101
+    No prefix, just incrementing numbers: 101, 102, 103, etc.
+    """
+    # Use MongoDB's findOneAndUpdate with atomic increment for thread-safe counter
+    counter_doc = await db.counters.find_one_and_update(
+        {"_id": "order_counter"},
+        {"$inc": {"sequence": 1}},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+    
+    sequence = counter_doc.get("sequence", 101)
+    
+    if sequence < 101:
+        await db.counters.update_one(
+            {"_id": "order_counter"},
+            {"$set": {"sequence": 101}}
+        )
+        sequence = 101
+    
+    return str(sequence)
 
 
 async def generate_orders_for_standing_order(db, standing_order: dict, days_ahead: int = 10):
