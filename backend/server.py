@@ -2158,13 +2158,28 @@ async def get_order(order_id: str, current_user: User = Depends(get_current_user
     ist = pytz.timezone('Asia/Kolkata')
     if order_dict.get("delivery_date"):
         delivery_dt = order_dict["delivery_date"]
-        if hasattr(delivery_dt, 'replace'):
+        if isinstance(delivery_dt, datetime):
             delivery_utc = delivery_dt.replace(tzinfo=pytz.UTC)
             delivery_ist = delivery_utc.astimezone(ist)
             order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
             order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
             # Override delivery_date to show correct date in any timezone
             order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
+        elif isinstance(delivery_dt, str):
+            try:
+                if 'T' in delivery_dt:
+                    parsed_dt = datetime.fromisoformat(delivery_dt.replace('Z', '+00:00'))
+                else:
+                    parsed_dt = datetime.strptime(delivery_dt[:10], '%Y-%m-%d')
+                if parsed_dt.tzinfo is None:
+                    parsed_dt = parsed_dt.replace(tzinfo=pytz.UTC)
+                delivery_ist = parsed_dt.astimezone(ist)
+                order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
+                order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
+                order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
+            except:
+                order_dict["delivery_date_ist"] = delivery_dt[:10] if len(delivery_dt) >= 10 else delivery_dt
+                order_dict["delivery_date_formatted"] = delivery_dt
     
     return order_dict
 
