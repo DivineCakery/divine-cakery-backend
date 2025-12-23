@@ -1,514 +1,373 @@
 #!/usr/bin/env python3
 """
-Backend Testing for Standing Order Preparation List Bug Fix
-Tests the critical scenarios mentioned in the review request.
+Backend Testing Script for Divine Cakery API
+Focus: Delivery Date Calculation - IST Timezone Fix
 """
 
 import requests
 import json
-import sys
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+import pytz
+import sys
+import os
 
-# Backend URL from environment
+# Configuration
 BACKEND_URL = "https://fresh-fix-portal.preview.emergentagent.com/api"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
 
-class StandingOrderTester:
+class BackendTester:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
-        self.standing_order_id = "70808275-7007-4fa2-952f-ee841d84c470"
-        self.customer_id = "c1ba62e0-5c31-4df9-900f-e386b0c4d155"
+        self.test_results = []
         
-    def authenticate_admin(self) -> bool:
-        """Authenticate as admin user"""
-        print("🔐 Authenticating as admin...")
+    def log_test(self, test_name, success, details=""):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} {test_name}")
+        if details:
+            print(f"   Details: {details}")
         
-        # First, try to get admin credentials from database
+        self.test_results.append({
+            "test": test_name,
+            "success": success,
+            "details": details
+        })
+    
+    def get_admin_token(self):
+        """Get admin authentication token"""
         try:
-            # Try common admin credentials
-            admin_credentials = [
-                {"username": "testadmin", "password": "testpass123"},
-                {"username": "Soman", "password": "admin123"},
-                {"username": "Soman", "password": "admin"},
-                {"username": "Soman", "password": "password"},
-                {"username": "Kitchen", "password": "admin123"},
-                {"username": "Kitchen", "password": "admin"},
-                {"username": "Office", "password": "admin123"},
-                {"username": "Office", "password": "admin"},
-                {"username": "admin", "password": "admin123"},
-                {"username": "admin", "password": "admin"},
-            ]
+            response = self.session.post(f"{BACKEND_URL}/auth/login", json={
+                "username": ADMIN_USERNAME,
+                "password": ADMIN_PASSWORD
+            })
             
-            for creds in admin_credentials:
-                response = self.session.post(
-                    f"{BACKEND_URL}/auth/login",
-                    json=creds,
-                    timeout=30
-                )
+            if response.status_code == 200:
+                data = response.json()
+                self.admin_token = data["access_token"]
+                self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
+                self.log_test("Admin Authentication", True, f"Token obtained successfully")
+                return True
+            else:
+                self.log_test("Admin Authentication", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Admin Authentication", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_delivery_date_endpoint_public_access(self):
+        """Test 1: Verify GET /api/delivery-date endpoint is publicly accessible"""
+        try:
+            # Test without authentication
+            response = requests.get(f"{BACKEND_URL}/delivery-date")
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = [
+                    "delivery_date", "delivery_date_formatted", "day_name", 
+                    "is_same_day", "order_cutoff_message", "current_time_ist"
+                ]
                 
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    self.log_test("Public Access - Delivery Date Endpoint", True, 
+                                f"All required fields present: {list(data.keys())}")
+                    return data
+                else:
+                    self.log_test("Public Access - Delivery Date Endpoint", False, 
+                                f"Missing fields: {missing_fields}")
+                    return None
+            else:
+                self.log_test("Public Access - Delivery Date Endpoint", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
+                return None
+        except Exception as e:
+            self.log_test("Public Access - Delivery Date Endpoint", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_delivery_date_response_format(self, delivery_data):
+        """Test 2: Verify response format and data types"""
+        try:
+            # Check delivery_date format (YYYY-MM-DD)
+            delivery_date = delivery_data.get("delivery_date")
+            try:
+                datetime.strptime(delivery_date, "%Y-%m-%d")
+                date_format_valid = True
+            except:
+                date_format_valid = False
+            
+            # Check if delivery_date_formatted is a readable string
+            formatted_date = delivery_data.get("delivery_date_formatted", "")
+            formatted_valid = len(formatted_date) > 10 and "," in formatted_date
+            
+            # Check day_name is a valid day
+            day_name = delivery_data.get("day_name", "")
+            valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            day_valid = day_name in valid_days
+            
+            # Check is_same_day is boolean
+            is_same_day = delivery_data.get("is_same_day")
+            boolean_valid = isinstance(is_same_day, bool)
+            
+            # Check current_time_ist format
+            current_time = delivery_data.get("current_time_ist", "")
+            try:
+                datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
+                time_format_valid = True
+            except:
+                time_format_valid = False
+            
+            all_valid = all([date_format_valid, formatted_valid, day_valid, boolean_valid, time_format_valid])
+            
+            details = f"Date format: {date_format_valid}, Formatted: {formatted_valid}, Day: {day_valid}, Boolean: {boolean_valid}, Time format: {time_format_valid}"
+            self.log_test("Response Format Validation", all_valid, details)
+            
+            return all_valid
+        except Exception as e:
+            self.log_test("Response Format Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_delivery_date_logic(self, delivery_data):
+        """Test 3: Verify delivery date logic based on IST time"""
+        try:
+            # Parse current IST time from response
+            current_time_str = delivery_data.get("current_time_ist")
+            current_time = datetime.strptime(current_time_str, "%Y-%m-%d %H:%M:%S")
+            
+            # Get current hour in IST
+            current_hour = current_time.hour
+            is_same_day = delivery_data.get("is_same_day")
+            
+            # Verify logic: Before 4 AM IST = same day, At/After 4 AM IST = next day
+            expected_same_day = current_hour < 4
+            logic_correct = (is_same_day == expected_same_day)
+            
+            # Parse delivery date
+            delivery_date_str = delivery_data.get("delivery_date")
+            delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d").date()
+            current_date = current_time.date()
+            
+            # Verify actual delivery date matches logic
+            if expected_same_day:
+                date_correct = delivery_date == current_date
+            else:
+                expected_delivery_date = current_date + timedelta(days=1)
+                date_correct = delivery_date == expected_delivery_date
+            
+            overall_correct = logic_correct and date_correct
+            
+            details = f"Current hour IST: {current_hour}, Expected same day: {expected_same_day}, Got same day: {is_same_day}, Date correct: {date_correct}"
+            self.log_test("Delivery Date Logic Verification", overall_correct, details)
+            
+            return overall_correct
+        except Exception as e:
+            self.log_test("Delivery Date Logic Verification", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_order_cutoff_message(self, delivery_data):
+        """Test 4: Verify order cutoff message is appropriate"""
+        try:
+            message = delivery_data.get("order_cutoff_message", "")
+            is_same_day = delivery_data.get("is_same_day")
+            
+            # Check message content based on delivery type
+            if is_same_day:
+                message_appropriate = "same day" in message.lower()
+            else:
+                message_appropriate = ("next day" in message.lower() or "4 am" in message.lower())
+            
+            message_not_empty = len(message) > 10
+            
+            overall_valid = message_appropriate and message_not_empty
+            
+            details = f"Message: '{message}', Same day: {is_same_day}, Appropriate: {message_appropriate}"
+            self.log_test("Order Cutoff Message Validation", overall_valid, details)
+            
+            return overall_valid
+        except Exception as e:
+            self.log_test("Order Cutoff Message Validation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_order_creation_with_delivery_date(self):
+        """Test 5: Verify order creation uses correct delivery date calculation"""
+        if not self.admin_token:
+            self.log_test("Order Creation Delivery Date Test", False, "No admin token available")
+            return False
+        
+        try:
+            # First, get a customer to create order for
+            customers_response = self.session.get(f"{BACKEND_URL}/admin/users")
+            if customers_response.status_code != 200:
+                self.log_test("Order Creation Delivery Date Test", False, "Failed to get customers")
+                return False
+            
+            customers = customers_response.json()
+            customer_users = [u for u in customers if u.get("role") == "customer"]
+            
+            if not customer_users:
+                self.log_test("Order Creation Delivery Date Test", False, "No customer users found")
+                return False
+            
+            customer = customer_users[0]
+            
+            # Get products to create order
+            products_response = requests.get(f"{BACKEND_URL}/products")
+            if products_response.status_code != 200:
+                self.log_test("Order Creation Delivery Date Test", False, "Failed to get products")
+                return False
+            
+            products = products_response.json()
+            if not products:
+                self.log_test("Order Creation Delivery Date Test", False, "No products found")
+                return False
+            
+            # Create a test order
+            test_order = {
+                "customer_id": customer["id"],
+                "items": [
+                    {
+                        "product_id": products[0]["id"],
+                        "quantity": 2,
+                        "price": products[0]["price"]
+                    }
+                ],
+                "total_amount": products[0]["price"] * 2,
+                "delivery_address": "Test Address for Delivery Date Verification"
+            }
+            
+            # Create order
+            order_response = self.session.post(f"{BACKEND_URL}/orders", json=test_order)
+            
+            if order_response.status_code == 201:
+                order_data = order_response.json()
+                order_delivery_date = order_data.get("delivery_date")
+                
+                # Get current delivery date from endpoint
+                delivery_info = requests.get(f"{BACKEND_URL}/delivery-date").json()
+                expected_delivery_date = delivery_info.get("delivery_date")
+                
+                # Compare dates (convert to date objects for comparison)
+                if order_delivery_date and expected_delivery_date:
+                    order_date = datetime.fromisoformat(order_delivery_date.replace('Z', '+00:00')).date()
+                    expected_date = datetime.strptime(expected_delivery_date, "%Y-%m-%d").date()
+                    
+                    dates_match = order_date == expected_date
+                    
+                    details = f"Order delivery date: {order_date}, Expected: {expected_date}, Match: {dates_match}"
+                    self.log_test("Order Creation Delivery Date Test", dates_match, details)
+                    
+                    # Clean up - delete test order
+                    try:
+                        self.session.delete(f"{BACKEND_URL}/orders/{order_data['id']}")
+                    except:
+                        pass  # Ignore cleanup errors
+                    
+                    return dates_match
+                else:
+                    self.log_test("Order Creation Delivery Date Test", False, "Missing delivery date in order or endpoint response")
+                    return False
+            else:
+                self.log_test("Order Creation Delivery Date Test", False, 
+                            f"Order creation failed: {order_response.status_code} - {order_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Order Creation Delivery Date Test", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_endpoint_consistency(self):
+        """Test 6: Verify endpoint returns consistent results across multiple calls"""
+        try:
+            results = []
+            for i in range(3):
+                response = requests.get(f"{BACKEND_URL}/delivery-date")
                 if response.status_code == 200:
                     data = response.json()
-                    self.admin_token = data["access_token"]
-                    self.session.headers.update({
-                        "Authorization": f"Bearer {self.admin_token}"
-                    })
-                    print(f"✅ Admin authentication successful with {creds['username']}")
-                    return True
-                else:
-                    print(f"❌ Failed to authenticate with {creds['username']}: {response.status_code}")
-            
-            return False
-            
-        except Exception as e:
-            print(f"❌ Authentication error: {str(e)}")
-            return False
-    
-    def test_preparation_list_date_filtering(self) -> Dict[str, Any]:
-        """
-        CRITICAL TEST: Test preparation list date filtering
-        Standing order is configured for Mon (0), Wed (2), Fri (4)
-        Expected results:
-        - 2025-12-22 (Monday): Should have 1 standing order item
-        - 2025-12-23 (Tuesday): Should have 0 standing order items  
-        - 2025-12-24 (Wednesday): Should have 1 standing order item
-        - 2025-12-25 (Thursday): Should have 0 standing order items
-        - 2025-12-26 (Friday): Should have 1 standing order item
-        """
-        print("\n🧪 CRITICAL TEST: Preparation List Date Filtering")
-        
-        test_dates = [
-            ("2025-12-22", "Monday", True),    # Should have standing order
-            ("2025-12-23", "Tuesday", False),  # Should NOT have standing order
-            ("2025-12-24", "Wednesday", True), # Should have standing order
-            ("2025-12-25", "Thursday", False), # Should NOT have standing order
-            ("2025-12-26", "Friday", True),    # Should have standing order
-        ]
-        
-        results = []
-        all_passed = True
-        
-        for date, day_name, should_have_orders in test_dates:
-            try:
-                print(f"  📅 Testing {date} ({day_name})...")
-                
-                response = self.session.get(
-                    f"{BACKEND_URL}/admin/reports/preparation-list",
-                    params={"date": date},
-                    timeout=30
-                )
-                
-                if response.status_code != 200:
-                    print(f"    ❌ API Error: {response.status_code} - {response.text}")
                     results.append({
-                        "date": date,
-                        "day_name": day_name,
-                        "expected": should_have_orders,
-                        "actual": None,
-                        "status": "API_ERROR",
-                        "error": f"HTTP {response.status_code}"
+                        "delivery_date": data.get("delivery_date"),
+                        "is_same_day": data.get("is_same_day"),
+                        "day_name": data.get("day_name")
                     })
-                    all_passed = False
-                    continue
-                
-                data = response.json()
-                
-                # Count standing order items (items with standing_order_id)
-                standing_order_items = 0
-                total_items = len(data.get("items", []))
-                
-                # Check if any orders exist for this date that are from standing orders
-                # We need to check the orders collection for this date
-                orders_response = self.session.get(
-                    f"{BACKEND_URL}/orders",
-                    params={"delivery_date": date},
-                    timeout=30
-                )
-                
-                standing_order_count = 0
-                if orders_response.status_code == 200:
-                    orders_data = orders_response.json()
-                    for order in orders_data:
-                        if order.get("standing_order_id") == self.standing_order_id:
-                            standing_order_count += 1
-                
-                # Alternative: check preparation list items for standing order products
-                # Since we know the standing order exists, check if items appear in prep list
-                has_standing_order_items = total_items > 0 and should_have_orders
-                
-                actual_result = standing_order_count > 0 or (total_items > 0 and should_have_orders)
-                
-                if actual_result == should_have_orders:
-                    print(f"    ✅ PASS: Expected {should_have_orders}, got {actual_result}")
-                    status = "PASS"
                 else:
-                    print(f"    ❌ FAIL: Expected {should_have_orders}, got {actual_result}")
-                    print(f"       Total prep items: {total_items}, Standing orders: {standing_order_count}")
-                    status = "FAIL"
-                    all_passed = False
-                
-                results.append({
-                    "date": date,
-                    "day_name": day_name,
-                    "expected": should_have_orders,
-                    "actual": actual_result,
-                    "total_prep_items": total_items,
-                    "standing_order_count": standing_order_count,
-                    "status": status
-                })
-                
-            except Exception as e:
-                print(f"    ❌ Exception: {str(e)}")
-                results.append({
-                    "date": date,
-                    "day_name": day_name,
-                    "expected": should_have_orders,
-                    "actual": None,
-                    "status": "EXCEPTION",
-                    "error": str(e)
-                })
-                all_passed = False
-        
-        return {
-            "test_name": "Preparation List Date Filtering",
-            "status": "PASS" if all_passed else "FAIL",
-            "results": results
-        }
-    
-    def test_standing_order_regenerate_all(self) -> Dict[str, Any]:
-        """Test the regenerate-all endpoint to ensure no duplicates are created"""
-        print("\n🧪 TEST: Standing Order Regenerate All (No Duplicates)")
-        
-        try:
-            # First, get current order count for the standing order
-            print("  📊 Getting current order count...")
-            orders_response = self.session.get(
-                f"{BACKEND_URL}/admin/standing-orders/{self.standing_order_id}/generated-orders",
-                timeout=30
-            )
+                    self.log_test("Endpoint Consistency Test", False, f"Call {i+1} failed with status {response.status_code}")
+                    return False
             
-            if orders_response.status_code != 200:
-                return {
-                    "test_name": "Standing Order Regenerate All",
-                    "status": "FAIL",
-                    "error": f"Failed to get current orders: {orders_response.status_code}"
-                }
+            # Check if all results are identical (they should be within the same minute)
+            first_result = results[0]
+            all_consistent = all(r["delivery_date"] == first_result["delivery_date"] and 
+                               r["is_same_day"] == first_result["is_same_day"] and
+                               r["day_name"] == first_result["day_name"] for r in results)
             
-            initial_orders = orders_response.json()
-            initial_count = len(initial_orders)
-            print(f"    Initial order count: {initial_count}")
+            details = f"All 3 calls returned consistent results: {all_consistent}"
+            self.log_test("Endpoint Consistency Test", all_consistent, details)
             
-            # Call regenerate-all endpoint
-            print("  🔄 Calling regenerate-all endpoint...")
-            regenerate_response = self.session.post(
-                f"{BACKEND_URL}/admin/standing-orders/regenerate-all",
-                timeout=30
-            )
-            
-            if regenerate_response.status_code != 200:
-                return {
-                    "test_name": "Standing Order Regenerate All",
-                    "status": "FAIL",
-                    "error": f"Regenerate failed: {regenerate_response.status_code} - {regenerate_response.text}"
-                }
-            
-            regenerate_data = regenerate_response.json()
-            print(f"    Regenerate response: {regenerate_data}")
-            
-            # Get order count after regeneration
-            print("  📊 Getting order count after regeneration...")
-            orders_response_after = self.session.get(
-                f"{BACKEND_URL}/admin/standing-orders/{self.standing_order_id}/generated-orders",
-                timeout=30
-            )
-            
-            if orders_response_after.status_code != 200:
-                return {
-                    "test_name": "Standing Order Regenerate All",
-                    "status": "FAIL",
-                    "error": f"Failed to get orders after regeneration: {orders_response_after.status_code}"
-                }
-            
-            final_orders = orders_response_after.json()
-            final_count = len(final_orders)
-            print(f"    Final order count: {final_count}")
-            
-            # Check for duplicates by date
-            order_dates = {}
-            duplicates_found = []
-            
-            for order in final_orders:
-                delivery_date = order.get("delivery_date", "")[:10]  # Get date part only
-                if delivery_date in order_dates:
-                    order_dates[delivery_date] += 1
-                    if order_dates[delivery_date] == 2:  # First duplicate
-                        duplicates_found.append(delivery_date)
-                else:
-                    order_dates[delivery_date] = 1
-            
-            if duplicates_found:
-                print(f"    ❌ DUPLICATES FOUND for dates: {duplicates_found}")
-                status = "FAIL"
-            else:
-                print(f"    ✅ NO DUPLICATES FOUND")
-                status = "PASS"
-            
-            return {
-                "test_name": "Standing Order Regenerate All",
-                "status": status,
-                "initial_count": initial_count,
-                "final_count": final_count,
-                "orders_generated": regenerate_data.get("total_orders_generated", 0),
-                "duplicates_found": duplicates_found,
-                "order_dates": order_dates
-            }
-            
+            return all_consistent
         except Exception as e:
-            return {
-                "test_name": "Standing Order Regenerate All",
-                "status": "EXCEPTION",
-                "error": str(e)
-            }
+            self.log_test("Endpoint Consistency Test", False, f"Exception: {str(e)}")
+            return False
     
-    def test_individual_standing_order_regeneration(self) -> Dict[str, Any]:
-        """Test individual standing order regeneration"""
-        print("\n🧪 TEST: Individual Standing Order Regeneration")
+    def run_all_tests(self):
+        """Run all delivery date tests"""
+        print("🚀 Starting Delivery Date Calculation - IST Timezone Fix Tests")
+        print("=" * 70)
         
-        try:
-            # Get current order count
-            print(f"  📊 Getting current orders for standing order {self.standing_order_id}...")
-            orders_response = self.session.get(
-                f"{BACKEND_URL}/admin/standing-orders/{self.standing_order_id}/generated-orders",
-                timeout=30
-            )
-            
-            if orders_response.status_code != 200:
-                return {
-                    "test_name": "Individual Standing Order Regeneration",
-                    "status": "FAIL",
-                    "error": f"Failed to get current orders: {orders_response.status_code}"
-                }
-            
-            initial_orders = orders_response.json()
-            initial_count = len(initial_orders)
-            print(f"    Initial order count: {initial_count}")
-            
-            # Call individual regenerate endpoint
-            print("  🔄 Calling individual regenerate endpoint...")
-            regenerate_response = self.session.post(
-                f"{BACKEND_URL}/admin/standing-orders/{self.standing_order_id}/regenerate",
-                timeout=30
-            )
-            
-            if regenerate_response.status_code != 200:
-                return {
-                    "test_name": "Individual Standing Order Regeneration",
-                    "status": "FAIL",
-                    "error": f"Individual regenerate failed: {regenerate_response.status_code} - {regenerate_response.text}"
-                }
-            
-            regenerate_data = regenerate_response.json()
-            print(f"    Regenerate response: {regenerate_data}")
-            
-            # Get order count after regeneration
-            orders_response_after = self.session.get(
-                f"{BACKEND_URL}/admin/standing-orders/{self.standing_order_id}/generated-orders",
-                timeout=30
-            )
-            
-            if orders_response_after.status_code != 200:
-                return {
-                    "test_name": "Individual Standing Order Regeneration",
-                    "status": "FAIL",
-                    "error": f"Failed to get orders after regeneration: {orders_response_after.status_code}"
-                }
-            
-            final_orders = orders_response_after.json()
-            final_count = len(final_orders)
-            print(f"    Final order count: {final_count}")
-            
-            # Check for duplicates
-            order_dates = {}
-            duplicates_found = []
-            
-            for order in final_orders:
-                delivery_date = order.get("delivery_date", "")[:10]
-                if delivery_date in order_dates:
-                    order_dates[delivery_date] += 1
-                    if order_dates[delivery_date] == 2:
-                        duplicates_found.append(delivery_date)
-                else:
-                    order_dates[delivery_date] = 1
-            
-            if duplicates_found:
-                print(f"    ❌ DUPLICATES FOUND for dates: {duplicates_found}")
-                status = "FAIL"
-            else:
-                print(f"    ✅ NO DUPLICATES FOUND")
-                status = "PASS"
-            
-            return {
-                "test_name": "Individual Standing Order Regeneration",
-                "status": status,
-                "initial_count": initial_count,
-                "final_count": final_count,
-                "orders_generated": regenerate_data.get("orders_count", 0),
-                "duplicates_found": duplicates_found
-            }
-            
-        except Exception as e:
-            return {
-                "test_name": "Individual Standing Order Regeneration",
-                "status": "EXCEPTION",
-                "error": str(e)
-            }
-    
-    def test_orphaned_orders(self) -> Dict[str, Any]:
-        """Verify no orphaned orders remain (orders with standing_order_id that doesn't exist)"""
-        print("\n🧪 TEST: Verify No Orphaned Orders Remain")
+        # Get admin token for authenticated tests
+        if not self.get_admin_token():
+            print("❌ Cannot proceed without admin authentication")
+            return False
         
-        try:
-            # Get all standing order IDs
-            print("  📊 Getting all standing orders...")
-            standing_orders_response = self.session.get(
-                f"{BACKEND_URL}/admin/standing-orders",
-                timeout=30
-            )
-            
-            if standing_orders_response.status_code != 200:
-                return {
-                    "test_name": "Verify No Orphaned Orders",
-                    "status": "FAIL",
-                    "error": f"Failed to get standing orders: {standing_orders_response.status_code}"
-                }
-            
-            standing_orders = standing_orders_response.json()
-            valid_standing_order_ids = {so["id"] for so in standing_orders}
-            print(f"    Found {len(valid_standing_order_ids)} standing orders")
-            
-            # Get all orders with standing_order_id
-            print("  📊 Checking for orphaned orders...")
-            # We need to use a different approach since we can't directly query orders by standing_order_id
-            # Let's check each standing order's generated orders
-            
-            orphaned_orders = []
-            total_standing_orders_checked = 0
-            
-            for standing_order in standing_orders:
-                so_id = standing_order["id"]
-                orders_response = self.session.get(
-                    f"{BACKEND_URL}/admin/standing-orders/{so_id}/generated-orders",
-                    timeout=30
-                )
-                
-                if orders_response.status_code == 200:
-                    orders = orders_response.json()
-                    total_standing_orders_checked += len(orders)
-                    
-                    # All these orders should have valid standing_order_id
-                    for order in orders:
-                        if order.get("standing_order_id") != so_id:
-                            orphaned_orders.append({
-                                "order_id": order.get("id"),
-                                "standing_order_id": order.get("standing_order_id"),
-                                "delivery_date": order.get("delivery_date")
-                            })
-            
-            if orphaned_orders:
-                print(f"    ❌ FOUND {len(orphaned_orders)} ORPHANED ORDERS")
-                status = "FAIL"
-            else:
-                print(f"    ✅ NO ORPHANED ORDERS FOUND")
-                status = "PASS"
-            
-            return {
-                "test_name": "Verify No Orphaned Orders",
-                "status": status,
-                "total_standing_orders": len(valid_standing_order_ids),
-                "total_orders_checked": total_standing_orders_checked,
-                "orphaned_orders_count": len(orphaned_orders),
-                "orphaned_orders": orphaned_orders[:10]  # Show first 10 for brevity
-            }
-            
-        except Exception as e:
-            return {
-                "test_name": "Verify No Orphaned Orders",
-                "status": "EXCEPTION",
-                "error": str(e)
-            }
-    
-    def run_all_tests(self) -> Dict[str, Any]:
-        """Run all standing order tests"""
-        print("🚀 Starting Standing Order Preparation List Bug Fix Tests")
-        print("=" * 60)
+        # Test 1: Public endpoint access
+        delivery_data = self.test_delivery_date_endpoint_public_access()
+        if not delivery_data:
+            print("❌ Cannot proceed without valid delivery date response")
+            return False
         
-        if not self.authenticate_admin():
-            return {
-                "overall_status": "FAIL",
-                "error": "Failed to authenticate as admin",
-                "tests": []
-            }
+        # Test 2: Response format validation
+        self.test_delivery_date_response_format(delivery_data)
         
-        tests = [
-            self.test_preparation_list_date_filtering,
-            self.test_standing_order_regenerate_all,
-            self.test_individual_standing_order_regeneration,
-            self.test_orphaned_orders
-        ]
+        # Test 3: Delivery date logic verification
+        self.test_delivery_date_logic(delivery_data)
         
-        results = []
-        all_passed = True
+        # Test 4: Order cutoff message validation
+        self.test_order_cutoff_message(delivery_data)
         
-        for test_func in tests:
-            try:
-                result = test_func()
-                results.append(result)
-                if result.get("status") != "PASS":
-                    all_passed = False
-            except Exception as e:
-                results.append({
-                    "test_name": test_func.__name__,
-                    "status": "EXCEPTION",
-                    "error": str(e)
-                })
-                all_passed = False
+        # Test 5: Order creation with delivery date
+        self.test_order_creation_with_delivery_date()
         
-        return {
-            "overall_status": "PASS" if all_passed else "FAIL",
-            "tests": results,
-            "summary": {
-                "total_tests": len(results),
-                "passed": len([r for r in results if r.get("status") == "PASS"]),
-                "failed": len([r for r in results if r.get("status") in ["FAIL", "EXCEPTION"]])
-            }
-        }
-
-def main():
-    """Main test execution"""
-    tester = StandingOrderTester()
-    results = tester.run_all_tests()
-    
-    print("\n" + "=" * 60)
-    print("🏁 FINAL TEST RESULTS")
-    print("=" * 60)
-    
-    print(f"Overall Status: {'✅ PASS' if results['overall_status'] == 'PASS' else '❌ FAIL'}")
-    
-    if 'summary' in results:
-        print(f"Tests Passed: {results['summary']['passed']}/{results['summary']['total_tests']}")
-    elif 'error' in results:
-        print(f"Error: {results['error']}")
-    
-    print("\nDetailed Results:")
-    if 'tests' in results:
-        for test in results["tests"]:
-            status_icon = "✅" if test.get("status") == "PASS" else "❌"
-            print(f"  {status_icon} {test.get('test_name', 'Unknown Test')}: {test.get('status', 'UNKNOWN')}")
-            if test.get("error"):
-                print(f"     Error: {test['error']}")
-    
-    # Return appropriate exit code
-    return 0 if results['overall_status'] == 'PASS' else 1
+        # Test 6: Endpoint consistency
+        self.test_endpoint_consistency()
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print("📊 TEST SUMMARY")
+        print("=" * 70)
+        
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        total_tests = len(self.test_results)
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {total_tests - passed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        # Show failed tests
+        failed_tests = [result for result in self.test_results if not result["success"]]
+        if failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        return passed_tests == total_tests
 
 if __name__ == "__main__":
-    sys.exit(main())
+    tester = BackendTester()
+    success = tester.run_all_tests()
+    
+    if success:
+        print("\n🎉 All tests passed! Delivery Date Calculation feature is working correctly.")
+        sys.exit(0)
+    else:
+        print("\n⚠️  Some tests failed. Please check the details above.")
+        sys.exit(1)
