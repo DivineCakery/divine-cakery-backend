@@ -481,7 +481,7 @@ export default function ManageOrdersScreen() {
         <Text style={styles.detailText}>Order Date: {new Date(item.created_at).toLocaleDateString('en-IN')}</Text>
         <View style={styles.deliveryDateContainer}>
           <Text style={styles.detailText}>
-            Delivery: {item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('en-IN') : 'Not set'}
+            Delivery: {item.delivery_date_formatted || item.delivery_date_ist || (item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('en-IN') : 'Not set')}
           </Text>
           <TouchableOpacity 
             style={styles.editDateButton}
