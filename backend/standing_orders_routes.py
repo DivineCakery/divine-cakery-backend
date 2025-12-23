@@ -63,14 +63,18 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
                     continue
             
             # Check if order already exists for this customer on this date (avoid duplicates)
+            # Use date range to handle orders stored with different times
+            delivery_date_start = delivery_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            delivery_date_end = delivery_date_start + timedelta(days=1)
+            
             existing_order = await db.orders.find_one({
                 "user_id": standing_order["customer_id"],
-                "delivery_date": delivery_date,
+                "delivery_date": {"$gte": delivery_date_start, "$lt": delivery_date_end},
                 "standing_order_id": standing_order["id"]
             })
             
             if existing_order:
-                continue  # Skip if order already exists
+                continue  # Skip if order already exists for this date
             
             # Calculate order total and add subtotals to items
             items_with_subtotal = []
