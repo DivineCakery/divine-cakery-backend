@@ -2081,12 +2081,27 @@ async def get_orders(
     
     orders = await db.orders.find(query).sort("created_at", -1).to_list(1000)
     
+    # IST timezone for delivery date conversion
+    ist = pytz.timezone('Asia/Kolkata')
+    
     # Enrich orders with user information for admin view
     enriched_orders = []
     for order in orders:
         # Remove MongoDB _id field to avoid serialization issues
         order.pop('_id', None)
         order_dict = dict(order)
+        
+        # Convert delivery_date to IST date string for correct display on all app versions
+        if order_dict.get("delivery_date"):
+            delivery_dt = order_dict["delivery_date"]
+            # If stored as UTC (18:30 UTC = midnight IST next day)
+            if hasattr(delivery_dt, 'replace'):
+                delivery_utc = delivery_dt.replace(tzinfo=pytz.UTC)
+                delivery_ist = delivery_utc.astimezone(ist)
+                # Add formatted IST date string for display
+                order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
+                order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
+        
         # Fetch user information (handle both user_id and customer_id fields)
         user_id = order_dict.get("user_id") or order_dict.get("customer_id")
         if user_id:
