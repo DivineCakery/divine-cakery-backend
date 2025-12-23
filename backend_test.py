@@ -1,69 +1,153 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Divine Cakery API
-Focus: Delivery Date Calculation - IST Timezone Fix
+Backend Testing Script for Delivery Date Display Fix
+Tests the delivery date conversion to noon-UTC format for all app versions
 """
 
 import requests
 import json
+import sys
 from datetime import datetime, timedelta
 import pytz
-import sys
-import os
 
 # Configuration
 BACKEND_URL = "https://fresh-fix-portal.preview.emergentagent.com/api"
-ADMIN_USERNAME = "testadmin"
-ADMIN_PASSWORD = "testpass123"
 
-class BackendTester:
+# Test credentials
+ADMIN_CREDENTIALS = {
+    "username": "admin",
+    "password": "admin123"
+}
+
+CUSTOMER_CREDENTIALS = {
+    "username": "testcustomer",
+    "password": "password123"
+}
+
+class DeliveryDateTester:
     def __init__(self):
-        self.session = requests.Session()
         self.admin_token = None
+        self.customer_token = None
         self.test_results = []
         
-    def log_test(self, test_name, success, details=""):
+    def log_result(self, test_name, success, message, details=None):
         """Log test result"""
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status} {test_name}")
-        if details:
-            print(f"   Details: {details}")
-        
-        self.test_results.append({
+        result = {
             "test": test_name,
-            "success": success,
-            "details": details
-        })
+            "status": status,
+            "message": message,
+            "details": details or {}
+        }
+        self.test_results.append(result)
+        print(f"{status}: {test_name} - {message}")
+        if details and not success:
+            print(f"   Details: {details}")
     
-    def get_admin_token(self):
-        """Get admin authentication token"""
+    def authenticate_admin(self):
+        """Authenticate as admin"""
         try:
-            response = self.session.post(f"{BACKEND_URL}/auth/login", json={
-                "username": ADMIN_USERNAME,
-                "password": ADMIN_PASSWORD
-            })
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=ADMIN_CREDENTIALS,
+                timeout=10
+            )
             
             if response.status_code == 200:
-                data = response.json()
-                self.admin_token = data["access_token"]
-                self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
-                self.log_test("Admin Authentication", True, f"Token obtained successfully")
+                self.admin_token = response.json()["access_token"]
+                self.log_result("Admin Authentication", True, "Successfully authenticated as admin")
                 return True
             else:
-                self.log_test("Admin Authentication", False, f"Status: {response.status_code}, Response: {response.text}")
+                self.log_result("Admin Authentication", False, f"Failed with status {response.status_code}", response.text)
                 return False
+                
         except Exception as e:
-            self.log_test("Admin Authentication", False, f"Exception: {str(e)}")
+            self.log_result("Admin Authentication", False, f"Exception: {str(e)}")
             return False
     
-    def test_delivery_date_endpoint_public_access(self):
-        """Test 1: Verify GET /api/delivery-date endpoint is publicly accessible"""
+    def authenticate_customer(self):
+        """Authenticate as customer"""
         try:
-            # Test without authentication
-            response = requests.get(f"{BACKEND_URL}/delivery-date")
+            response = requests.post(
+                f"{BACKEND_URL}/auth/login",
+                json=CUSTOMER_CREDENTIALS,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                self.customer_token = response.json()["access_token"]
+                self.log_result("Customer Authentication", True, "Successfully authenticated as customer")
+                return True
+            else:
+                # Try to create customer if login fails
+                return self.create_test_customer()
+                
+        except Exception as e:
+            self.log_result("Customer Authentication", False, f"Exception: {str(e)}")
+            return False
+    
+    def create_test_customer(self):
+        """Create test customer if doesn't exist"""
+        try:
+            customer_data = {
+                "username": "testcustomer",
+                "password": "password123",
+                "email": "test@example.com",
+                "phone": "+919876543210",
+                "business_name": "Test Business",
+                "address": "Test Address",
+                "can_topup_wallet": True
+            }
+            
+            response = requests.post(
+                f"{BACKEND_URL}/auth/register",
+                json=customer_data,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                # Approve the customer using admin token
+                if self.admin_token:
+                    user_id = response.json()["id"]
+                    approve_response = requests.put(
+                        f"{BACKEND_URL}/admin/users/{user_id}",
+                        json={"is_approved": True},
+                        headers={"Authorization": f"Bearer {self.admin_token}"},
+                        timeout=10
+                    )
+                    
+                    if approve_response.status_code == 200:
+                        # Now try to login
+                        login_response = requests.post(
+                            f"{BACKEND_URL}/auth/login",
+                            json=CUSTOMER_CREDENTIALS,
+                            timeout=10
+                        )
+                        
+                        if login_response.status_code == 200:
+                            self.customer_token = login_response.json()["access_token"]
+                            self.log_result("Customer Creation & Authentication", True, "Created and authenticated test customer")
+                            return True
+                
+                self.log_result("Customer Creation", False, "Failed to approve customer")
+                return False
+            else:
+                self.log_result("Customer Creation", False, f"Failed with status {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("Customer Creation", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_delivery_date_endpoint(self):
+        """Test GET /api/delivery-date endpoint (Public)"""
+        try:
+            response = requests.get(f"{BACKEND_URL}/delivery-date", timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
+                
+                # Check required fields
                 required_fields = [
                     "delivery_date", "delivery_date_formatted", "day_name", 
                     "is_same_day", "order_cutoff_message", "current_time_ist"
@@ -71,296 +155,401 @@ class BackendTester:
                 
                 missing_fields = [field for field in required_fields if field not in data]
                 
-                if not missing_fields:
-                    self.log_test("Public Access - Delivery Date Endpoint", True, 
-                                f"All required fields present: {list(data.keys())}")
-                    return data
-                else:
-                    self.log_test("Public Access - Delivery Date Endpoint", False, 
-                                f"Missing fields: {missing_fields}")
-                    return None
+                if missing_fields:
+                    self.log_result(
+                        "Delivery Date Endpoint - Fields", 
+                        False, 
+                        f"Missing fields: {missing_fields}",
+                        data
+                    )
+                    return False
+                
+                # Validate date format (YYYY-MM-DD)
+                try:
+                    datetime.strptime(data["delivery_date"], "%Y-%m-%d")
+                    date_format_valid = True
+                except ValueError:
+                    date_format_valid = False
+                
+                if not date_format_valid:
+                    self.log_result(
+                        "Delivery Date Endpoint - Date Format", 
+                        False, 
+                        f"Invalid date format: {data['delivery_date']}",
+                        data
+                    )
+                    return False
+                
+                # Validate IST timezone logic
+                ist = pytz.timezone('Asia/Kolkata')
+                now_ist = datetime.now(ist)
+                current_hour = now_ist.hour
+                
+                expected_is_same_day = current_hour < 4
+                actual_is_same_day = data["is_same_day"]
+                
+                if expected_is_same_day != actual_is_same_day:
+                    self.log_result(
+                        "Delivery Date Endpoint - IST Logic", 
+                        False, 
+                        f"IST logic mismatch. Hour: {current_hour}, Expected same_day: {expected_is_same_day}, Got: {actual_is_same_day}",
+                        data
+                    )
+                    return False
+                
+                self.log_result(
+                    "Delivery Date Endpoint", 
+                    True, 
+                    f"All fields present and valid. IST time: {data['current_time_ist']}, Same day: {data['is_same_day']}"
+                )
+                return True
+                
             else:
-                self.log_test("Public Access - Delivery Date Endpoint", False, 
-                            f"Status: {response.status_code}, Response: {response.text}")
-                return None
-        except Exception as e:
-            self.log_test("Public Access - Delivery Date Endpoint", False, f"Exception: {str(e)}")
-            return None
-    
-    def test_delivery_date_response_format(self, delivery_data):
-        """Test 2: Verify response format and data types"""
-        try:
-            # Check delivery_date format (YYYY-MM-DD)
-            delivery_date = delivery_data.get("delivery_date")
-            try:
-                datetime.strptime(delivery_date, "%Y-%m-%d")
-                date_format_valid = True
-            except:
-                date_format_valid = False
-            
-            # Check if delivery_date_formatted is a readable string
-            formatted_date = delivery_data.get("delivery_date_formatted", "")
-            formatted_valid = len(formatted_date) > 10 and "," in formatted_date
-            
-            # Check day_name is a valid day
-            day_name = delivery_data.get("day_name", "")
-            valid_days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-            day_valid = day_name in valid_days
-            
-            # Check is_same_day is boolean
-            is_same_day = delivery_data.get("is_same_day")
-            boolean_valid = isinstance(is_same_day, bool)
-            
-            # Check current_time_ist format
-            current_time = delivery_data.get("current_time_ist", "")
-            try:
-                datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
-                time_format_valid = True
-            except:
-                time_format_valid = False
-            
-            all_valid = all([date_format_valid, formatted_valid, day_valid, boolean_valid, time_format_valid])
-            
-            details = f"Date format: {date_format_valid}, Formatted: {formatted_valid}, Day: {day_valid}, Boolean: {boolean_valid}, Time format: {time_format_valid}"
-            self.log_test("Response Format Validation", all_valid, details)
-            
-            return all_valid
-        except Exception as e:
-            self.log_test("Response Format Validation", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_delivery_date_logic(self, delivery_data):
-        """Test 3: Verify delivery date logic based on IST time"""
-        try:
-            # Parse current IST time from response
-            current_time_str = delivery_data.get("current_time_ist")
-            current_time = datetime.strptime(current_time_str, "%Y-%m-%d %H:%M:%S")
-            
-            # Get current hour in IST
-            current_hour = current_time.hour
-            is_same_day = delivery_data.get("is_same_day")
-            
-            # Verify logic: Before 4 AM IST = same day, At/After 4 AM IST = next day
-            expected_same_day = current_hour < 4
-            logic_correct = (is_same_day == expected_same_day)
-            
-            # Parse delivery date
-            delivery_date_str = delivery_data.get("delivery_date")
-            delivery_date = datetime.strptime(delivery_date_str, "%Y-%m-%d").date()
-            current_date = current_time.date()
-            
-            # Verify actual delivery date matches logic
-            if expected_same_day:
-                date_correct = delivery_date == current_date
-            else:
-                expected_delivery_date = current_date + timedelta(days=1)
-                date_correct = delivery_date == expected_delivery_date
-            
-            overall_correct = logic_correct and date_correct
-            
-            details = f"Current hour IST: {current_hour}, Expected same day: {expected_same_day}, Got same day: {is_same_day}, Date correct: {date_correct}"
-            self.log_test("Delivery Date Logic Verification", overall_correct, details)
-            
-            return overall_correct
-        except Exception as e:
-            self.log_test("Delivery Date Logic Verification", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_order_cutoff_message(self, delivery_data):
-        """Test 4: Verify order cutoff message is appropriate"""
-        try:
-            message = delivery_data.get("order_cutoff_message", "")
-            is_same_day = delivery_data.get("is_same_day")
-            
-            # Check message content based on delivery type
-            if is_same_day:
-                message_appropriate = "same day" in message.lower()
-            else:
-                message_appropriate = ("next day" in message.lower() or "4 am" in message.lower())
-            
-            message_not_empty = len(message) > 10
-            
-            overall_valid = message_appropriate and message_not_empty
-            
-            details = f"Message: '{message}', Same day: {is_same_day}, Appropriate: {message_appropriate}"
-            self.log_test("Order Cutoff Message Validation", overall_valid, details)
-            
-            return overall_valid
-        except Exception as e:
-            self.log_test("Order Cutoff Message Validation", False, f"Exception: {str(e)}")
-            return False
-    
-    def test_order_creation_with_delivery_date(self):
-        """Test 5: Verify order creation uses correct delivery date calculation"""
-        if not self.admin_token:
-            self.log_test("Order Creation Delivery Date Test", False, "No admin token available")
-            return False
-        
-        try:
-            # Get products to create order
-            products_response = requests.get(f"{BACKEND_URL}/products")
-            if products_response.status_code != 200:
-                self.log_test("Order Creation Delivery Date Test", False, "Failed to get products")
+                self.log_result(
+                    "Delivery Date Endpoint", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
                 return False
+                
+        except Exception as e:
+            self.log_result("Delivery Date Endpoint", False, f"Exception: {str(e)}")
+            return False
+    
+    def create_test_order(self):
+        """Create a test order to verify delivery date conversion"""
+        if not self.customer_token:
+            return None
+            
+        try:
+            # First get some products
+            products_response = requests.get(f"{BACKEND_URL}/products", timeout=10)
+            if products_response.status_code != 200:
+                self.log_result("Get Products for Order", False, "Failed to fetch products")
+                return None
             
             products = products_response.json()
             if not products:
-                self.log_test("Order Creation Delivery Date Test", False, "No products found")
-                return False
+                self.log_result("Get Products for Order", False, "No products available")
+                return None
             
-            # Create a test order using the authenticated admin user
-            test_order = {
+            # Create order with first available product
+            product = products[0]
+            order_data = {
                 "items": [
                     {
-                        "product_id": products[0]["id"],
-                        "product_name": products[0]["name"],
+                        "product_id": product["id"],
+                        "product_name": product["name"],
                         "quantity": 2,
-                        "price": products[0]["price"],
-                        "subtotal": products[0]["price"] * 2
+                        "price": product["price"],
+                        "unit": product.get("unit", "piece")
                     }
                 ],
-                "subtotal": products[0]["price"] * 2,
-                "total_amount": products[0]["price"] * 2,
-                "payment_method": "wallet",
-                "delivery_address": "Test Address for Delivery Date Verification"
+                "total_amount": product["price"] * 2,
+                "delivery_address": "Test Address for Delivery Date Testing",
+                "notes": "Test order for delivery date conversion testing"
             }
             
-            # Create order
-            order_response = self.session.post(f"{BACKEND_URL}/orders", json=test_order)
+            response = requests.post(
+                f"{BACKEND_URL}/orders",
+                json=order_data,
+                headers={"Authorization": f"Bearer {self.customer_token}"},
+                timeout=10
+            )
             
-            if order_response.status_code == 201:
-                order_data = order_response.json()
-                order_delivery_date = order_data.get("delivery_date")
-                
-                # Get current delivery date from endpoint
-                delivery_info = requests.get(f"{BACKEND_URL}/delivery-date").json()
-                expected_delivery_date = delivery_info.get("delivery_date")
-                
-                # Compare dates (convert to date objects for comparison)
-                if order_delivery_date and expected_delivery_date:
-                    order_date = datetime.fromisoformat(order_delivery_date.replace('Z', '+00:00')).date()
-                    expected_date = datetime.strptime(expected_delivery_date, "%Y-%m-%d").date()
-                    
-                    dates_match = order_date == expected_date
-                    
-                    details = f"Order delivery date: {order_date}, Expected: {expected_date}, Match: {dates_match}"
-                    self.log_test("Order Creation Delivery Date Test", dates_match, details)
-                    
-                    # Clean up - delete test order
-                    try:
-                        self.session.delete(f"{BACKEND_URL}/orders/{order_data['id']}")
-                    except:
-                        pass  # Ignore cleanup errors
-                    
-                    return dates_match
-                else:
-                    self.log_test("Order Creation Delivery Date Test", False, "Missing delivery date in order or endpoint response")
-                    return False
-            elif order_response.status_code == 400 and "wallet balance" in order_response.text:
-                # Admin user might not have wallet balance, this is expected
-                # Let's just verify the delivery date endpoint works correctly
-                self.log_test("Order Creation Delivery Date Test", True, "Skipped due to insufficient wallet balance (expected for admin user)")
-                return True
+            if response.status_code == 200:
+                order = response.json()
+                self.log_result("Create Test Order", True, f"Created order {order['order_number']}")
+                return order["id"]
             else:
-                self.log_test("Order Creation Delivery Date Test", False, 
-                            f"Order creation failed: {order_response.status_code} - {order_response.text}")
+                self.log_result("Create Test Order", False, f"Failed with status {response.status_code}", response.text)
+                return None
+                
+        except Exception as e:
+            self.log_result("Create Test Order", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_orders_endpoint_delivery_date_conversion(self):
+        """Test GET /api/orders endpoint for delivery date conversion"""
+        if not self.customer_token:
+            self.log_result("Orders Endpoint Test", False, "No customer token available")
+            return False
+        
+        # Create a test order first
+        order_id = self.create_test_order()
+        if not order_id:
+            self.log_result("Orders Endpoint Test", False, "Failed to create test order")
+            return False
+        
+        try:
+            # Fetch orders
+            response = requests.get(
+                f"{BACKEND_URL}/orders",
+                headers={"Authorization": f"Bearer {self.customer_token}"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                orders = response.json()
+                
+                if not orders:
+                    self.log_result("Orders Endpoint Test", False, "No orders returned")
+                    return False
+                
+                # Find our test order
+                test_order = None
+                for order in orders:
+                    if order.get("id") == order_id:
+                        test_order = order
+                        break
+                
+                if not test_order:
+                    self.log_result("Orders Endpoint Test", False, "Test order not found in response")
+                    return False
+                
+                # Verify delivery date conversion
+                success = self.verify_delivery_date_conversion(test_order, "Orders Endpoint")
+                return success
+                
+            else:
+                self.log_result("Orders Endpoint Test", False, f"Failed with status {response.status_code}", response.text)
                 return False
                 
         except Exception as e:
-            self.log_test("Order Creation Delivery Date Test", False, f"Exception: {str(e)}")
+            self.log_result("Orders Endpoint Test", False, f"Exception: {str(e)}")
             return False
     
-    def test_endpoint_consistency(self):
-        """Test 6: Verify endpoint returns consistent results across multiple calls"""
+    def verify_delivery_date_conversion(self, order, test_context):
+        """Verify that delivery date is converted to noon-UTC format"""
         try:
-            results = []
-            for i in range(3):
-                response = requests.get(f"{BACKEND_URL}/delivery-date")
-                if response.status_code == 200:
-                    data = response.json()
-                    results.append({
-                        "delivery_date": data.get("delivery_date"),
-                        "is_same_day": data.get("is_same_day"),
-                        "day_name": data.get("day_name")
-                    })
-                else:
-                    self.log_test("Endpoint Consistency Test", False, f"Call {i+1} failed with status {response.status_code}")
+            # Check required fields
+            required_fields = ["delivery_date", "delivery_date_ist", "delivery_date_formatted"]
+            missing_fields = [field for field in required_fields if field not in order]
+            
+            if missing_fields:
+                self.log_result(
+                    f"{test_context} - Required Fields", 
+                    False, 
+                    f"Missing fields: {missing_fields}",
+                    order
+                )
+                return False
+            
+            delivery_date = order["delivery_date"]
+            delivery_date_ist = order["delivery_date_ist"]
+            delivery_date_formatted = order["delivery_date_formatted"]
+            
+            # Verify delivery_date is in noon-UTC format (ends with T12:00:00.000Z)
+            if not delivery_date.endswith("T12:00:00.000Z"):
+                self.log_result(
+                    f"{test_context} - Noon UTC Format", 
+                    False, 
+                    f"delivery_date not in noon-UTC format: {delivery_date}",
+                    {"expected_suffix": "T12:00:00.000Z", "actual": delivery_date}
+                )
+                return False
+            
+            # Verify delivery_date_ist is in YYYY-MM-DD format
+            try:
+                datetime.strptime(delivery_date_ist, "%Y-%m-%d")
+            except ValueError:
+                self.log_result(
+                    f"{test_context} - IST Date Format", 
+                    False, 
+                    f"delivery_date_ist not in YYYY-MM-DD format: {delivery_date_ist}"
+                )
+                return False
+            
+            # Verify the date portion matches between delivery_date and delivery_date_ist
+            delivery_date_portion = delivery_date.split("T")[0]
+            if delivery_date_portion != delivery_date_ist:
+                self.log_result(
+                    f"{test_context} - Date Consistency", 
+                    False, 
+                    f"Date mismatch: delivery_date={delivery_date_portion}, delivery_date_ist={delivery_date_ist}"
+                )
+                return False
+            
+            # Verify delivery_date_formatted is human readable
+            if not delivery_date_formatted or len(delivery_date_formatted) < 10:
+                self.log_result(
+                    f"{test_context} - Formatted Date", 
+                    False, 
+                    f"delivery_date_formatted seems invalid: {delivery_date_formatted}"
+                )
+                return False
+            
+            # Test that old apps would show correct date
+            # Simulate what old apps do: new Date(delivery_date).toLocaleDateString()
+            try:
+                # Parse the noon-UTC datetime
+                dt = datetime.fromisoformat(delivery_date.replace("Z", "+00:00"))
+                
+                # Convert to various timezones to verify it shows same date
+                timezones_to_test = [
+                    ("UTC", pytz.UTC),
+                    ("US/Eastern", pytz.timezone("US/Eastern")),
+                    ("Europe/London", pytz.timezone("Europe/London")),
+                    ("Asia/Tokyo", pytz.timezone("Asia/Tokyo")),
+                    ("Australia/Sydney", pytz.timezone("Australia/Sydney")),
+                    ("Asia/Kolkata", pytz.timezone("Asia/Kolkata"))
+                ]
+                
+                expected_date = delivery_date_ist
+                date_consistency_issues = []
+                
+                for tz_name, tz in timezones_to_test:
+                    local_dt = dt.astimezone(tz)
+                    local_date = local_dt.strftime("%Y-%m-%d")
+                    
+                    if local_date != expected_date:
+                        date_consistency_issues.append(f"{tz_name}: {local_date}")
+                
+                if date_consistency_issues:
+                    self.log_result(
+                        f"{test_context} - Timezone Consistency", 
+                        False, 
+                        f"Date inconsistency across timezones: {date_consistency_issues}",
+                        {"expected": expected_date, "delivery_date": delivery_date}
+                    )
                     return False
-            
-            # Check if all results are identical (they should be within the same minute)
-            first_result = results[0]
-            all_consistent = all(r["delivery_date"] == first_result["delivery_date"] and 
-                               r["is_same_day"] == first_result["is_same_day"] and
-                               r["day_name"] == first_result["day_name"] for r in results)
-            
-            details = f"All 3 calls returned consistent results: {all_consistent}"
-            self.log_test("Endpoint Consistency Test", all_consistent, details)
-            
-            return all_consistent
+                
+                self.log_result(
+                    f"{test_context} - Delivery Date Conversion", 
+                    True, 
+                    f"All conversion checks passed. IST date: {delivery_date_ist}, Noon-UTC: {delivery_date}"
+                )
+                return True
+                
+            except Exception as e:
+                self.log_result(
+                    f"{test_context} - Date Parsing", 
+                    False, 
+                    f"Failed to parse delivery_date: {str(e)}",
+                    {"delivery_date": delivery_date}
+                )
+                return False
+                
         except Exception as e:
-            self.log_test("Endpoint Consistency Test", False, f"Exception: {str(e)}")
+            self.log_result(f"{test_context} - Verification", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_delivery_date_calculation_logic(self):
+        """Test the delivery date calculation logic for different times"""
+        try:
+            # Get current delivery date info
+            response = requests.get(f"{BACKEND_URL}/delivery-date", timeout=10)
+            
+            if response.status_code != 200:
+                self.log_result("Delivery Date Logic Test", False, "Failed to get delivery date info")
+                return False
+            
+            data = response.json()
+            current_time_ist = data["current_time_ist"]
+            is_same_day = data["is_same_day"]
+            delivery_date = data["delivery_date"]
+            
+            # Parse current IST time
+            ist_dt = datetime.strptime(current_time_ist, "%Y-%m-%d %H:%M:%S")
+            current_hour = ist_dt.hour
+            
+            # Verify logic: before 4 AM = same day, after 4 AM = next day
+            expected_same_day = current_hour < 4
+            
+            if expected_same_day != is_same_day:
+                self.log_result(
+                    "Delivery Date Logic Test", 
+                    False, 
+                    f"Logic mismatch. Hour: {current_hour}, Expected same_day: {expected_same_day}, Got: {is_same_day}"
+                )
+                return False
+            
+            # Verify delivery date is correct based on logic
+            today = ist_dt.date()
+            tomorrow = today + timedelta(days=1)
+            
+            expected_delivery_date = today.strftime("%Y-%m-%d") if expected_same_day else tomorrow.strftime("%Y-%m-%d")
+            
+            if delivery_date != expected_delivery_date:
+                self.log_result(
+                    "Delivery Date Logic Test", 
+                    False, 
+                    f"Date mismatch. Expected: {expected_delivery_date}, Got: {delivery_date}"
+                )
+                return False
+            
+            self.log_result(
+                "Delivery Date Logic Test", 
+                True, 
+                f"Logic correct. IST hour: {current_hour}, Same day: {is_same_day}, Delivery: {delivery_date}"
+            )
+            return True
+            
+        except Exception as e:
+            self.log_result("Delivery Date Logic Test", False, f"Exception: {str(e)}")
             return False
     
     def run_all_tests(self):
         """Run all delivery date tests"""
-        print("🚀 Starting Delivery Date Calculation - IST Timezone Fix Tests")
-        print("=" * 70)
+        print("🚀 Starting Delivery Date Display Fix Testing...")
+        print("=" * 60)
         
-        # Get admin token for authenticated tests
-        if not self.get_admin_token():
+        # Authentication tests
+        if not self.authenticate_admin():
             print("❌ Cannot proceed without admin authentication")
             return False
         
-        # Test 1: Public endpoint access
-        delivery_data = self.test_delivery_date_endpoint_public_access()
-        if not delivery_data:
-            print("❌ Cannot proceed without valid delivery date response")
-            return False
+        if not self.authenticate_customer():
+            print("⚠️ Customer authentication failed, some tests may be skipped")
         
-        # Test 2: Response format validation
-        self.test_delivery_date_response_format(delivery_data)
+        # Core delivery date tests
+        test_methods = [
+            self.test_delivery_date_endpoint,
+            self.test_delivery_date_calculation_logic,
+            self.test_orders_endpoint_delivery_date_conversion
+        ]
         
-        # Test 3: Delivery date logic verification
-        self.test_delivery_date_logic(delivery_data)
+        passed_tests = 0
+        total_tests = len(test_methods)
         
-        # Test 4: Order cutoff message validation
-        self.test_order_cutoff_message(delivery_data)
-        
-        # Test 5: Order creation with delivery date
-        self.test_order_creation_with_delivery_date()
-        
-        # Test 6: Endpoint consistency
-        self.test_endpoint_consistency()
+        for test_method in test_methods:
+            try:
+                if test_method():
+                    passed_tests += 1
+            except Exception as e:
+                print(f"❌ Test {test_method.__name__} failed with exception: {str(e)}")
         
         # Summary
-        print("\n" + "=" * 70)
-        print("📊 TEST SUMMARY")
-        print("=" * 70)
+        print("\n" + "=" * 60)
+        print("📊 DELIVERY DATE DISPLAY FIX TEST SUMMARY")
+        print("=" * 60)
         
-        passed_tests = sum(1 for result in self.test_results if result["success"])
-        total_tests = len(self.test_results)
+        for result in self.test_results:
+            print(f"{result['status']}: {result['test']}")
+            if result['status'] == "❌ FAIL":
+                print(f"   └─ {result['message']}")
         
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests}")
-        print(f"Failed: {total_tests - passed_tests}")
-        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        print(f"\n🎯 Overall Result: {passed_tests}/{total_tests} tests passed")
         
-        # Show failed tests
-        failed_tests = [result for result in self.test_results if not result["success"]]
-        if failed_tests:
-            print("\n❌ FAILED TESTS:")
-            for test in failed_tests:
-                print(f"   • {test['test']}: {test['details']}")
-        
-        return passed_tests == total_tests
+        if passed_tests == total_tests:
+            print("🎉 ALL TESTS PASSED! Delivery date display fix is working correctly.")
+            return True
+        else:
+            print(f"⚠️ {total_tests - passed_tests} test(s) failed. Review the issues above.")
+            return False
 
-if __name__ == "__main__":
-    tester = BackendTester()
+def main():
+    """Main test execution"""
+    tester = DeliveryDateTester()
     success = tester.run_all_tests()
     
     if success:
-        print("\n🎉 All tests passed! Delivery Date Calculation feature is working correctly.")
+        print("\n✅ DELIVERY DATE DISPLAY FIX: FULLY FUNCTIONAL")
         sys.exit(0)
     else:
-        print("\n⚠️  Some tests failed. Please check the details above.")
+        print("\n❌ DELIVERY DATE DISPLAY FIX: ISSUES FOUND")
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
