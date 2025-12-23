@@ -68,8 +68,12 @@ export default function ManageOrdersScreen() {
 
   const sendWhatsAppMessage = async (order: any) => {
     try {
+      // Format delivery date - use IST formatted date from backend if available
+      const deliveryDateStr = order.delivery_date_formatted || order.delivery_date_ist || 
+        (order.delivery_date ? new Date(order.delivery_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD');
+      
       // Send confirmation message to CUSTOMER, not admin
-      const message = `✅ Order Confirmed!\n\nYour order #${order.id.substring(0, 8)} has been confirmed by Divine Cakery.\n\nDelivery Date: ${new Date(order.delivery_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}\n\nThank you for your order!\n- Divine Cakery`;
+      const message = `✅ Order Confirmed!\n\nYour order #${order.id.substring(0, 8)} has been confirmed by Divine Cakery.\n\nDelivery Date: ${deliveryDateStr}\n\nThank you for your order!\n- Divine Cakery`;
       
       // Get customer's phone number from order
       const customerPhone = order.user_phone || order.phone;
