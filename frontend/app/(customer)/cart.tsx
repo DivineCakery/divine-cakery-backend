@@ -88,6 +88,12 @@ export default function CartScreen() {
   // Orders before 4 AM: same day delivery
   // Orders after 4 AM: next day delivery
   const getDeliveryDate = () => {
+    // Use backend-calculated delivery date if available (IST timezone)
+    if (deliveryDateInfo?.delivery_date_formatted) {
+      return deliveryDateInfo.delivery_date_formatted;
+    }
+    
+    // Fallback: Calculate locally (may be inaccurate for non-IST timezones)
     const now = new Date();
     const currentHour = now.getHours();
     
