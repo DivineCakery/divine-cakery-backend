@@ -13,8 +13,8 @@ import os
 
 # Configuration
 BACKEND_URL = "https://fresh-fix-portal.preview.emergentagent.com/api"
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+ADMIN_USERNAME = "testadmin"
+ADMIN_PASSWORD = "testpass123"
 
 class BackendTester:
     def __init__(self):
