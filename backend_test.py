@@ -225,15 +225,18 @@ class BackendTester:
             
             # Create a test order
             test_order = {
-                "customer_id": customer["id"],
                 "items": [
                     {
                         "product_id": products[0]["id"],
+                        "product_name": products[0]["name"],
                         "quantity": 2,
-                        "price": products[0]["price"]
+                        "price": products[0]["price"],
+                        "subtotal": products[0]["price"] * 2
                     }
                 ],
+                "subtotal": products[0]["price"] * 2,
                 "total_amount": products[0]["price"] * 2,
+                "payment_method": "wallet",
                 "delivery_address": "Test Address for Delivery Date Verification"
             }
             
