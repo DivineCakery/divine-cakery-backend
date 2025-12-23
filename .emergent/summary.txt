@@ -1,210 +1,192 @@
 <analysis>
 
 original_problem_statement:
-The initial task was to resolve a Network Error on the product detail page, which was traced to slow API responses from fetching large, uncompressed images. After fixing this, the user made numerous follow-up requests and reported several bugs:
-1.  Images were not visible after the initial fix.
-2.  Some product images were incorrect or missing.
-3.  Implement automatic delivery date calculation (orders before 4 AM IST are for the same day, otherwise next day).
-4.  Favorites page was not loading and favorites could not be updated.
-5.  Admin reports/preparation list page was not loading.
-6.  The default order option in checkout should be 'delivery'.
-7.  Orders placed as 'delivery' were showing as 'pickup' in the admin panel.
-8.  Customer order numbers were too long and should be reset to a simple sequence starting from 101.
-9.  Products in 'admin-only' categories should not be visible to customers in the All products view.
-10. A new production build was requested for the Google Play Store.
-11. Some users were still experiencing old issues (long order numbers, wrong order type), which was an app versioning problem.
-12. An old debug page/icon needed to be removed.
-13. The checkout payment button text 'UPI payment' should be changed to 'Instant Payment'.
-14. A new build was requested again to include all recent fixes.
-15. A  was occurring during payment initiation.
-16. A temporary debug pop-up on the admin products page needed to be removed.
-17. A critical bug where minimizing the app during Razorpay OTP verification resets the checkout process and empties the cart.
+The initial task was a continuation of fixing production bugs and adding new features. The session began by addressing a critical app crash on the 'Orders' page. However, due to user frustration with recent instabilities, a hard reset of the codebase to a state from Dec 14, 2025, was performed.
+
+Following the rollback, the user requested the implementation of several new features and bug fixes:
+1.  **Product Whitelisting:** Re-implement a feature allowing admins to control which products are visible to specific customers.
+2.  **Pay Later (COD):** Implement a Pay Later option for whitelisted customers with admin-configurable limits and custom order confirmation messages.
+3.  **Manual Quantity Input:** Change the product quantity selector on customer-facing pages from a simple +/- button to a manual text input.
+4.  **Mandatory Force Update:** Implement a blocking, admin-configurable force update mechanism to prevent users on old versions from using the app.
+5.  **Delivery Date Calculation Bug:** Fix an issue where the delivery date for online payments was being calculated incorrectly based on the user's device time instead of the server's IST timezone.
+6.  **Standing Orders Product List Bug:** Fix a bug where the product selection list on the admin's standing orders page was not showing all available products.
+7.  **Standing Order Auto-Regeneration:** Implement a mechanism for standing orders to automatically regenerate after their 10-day cycle.
+8.  **Preparation List Bug:** Fix a report that was showing the same items every day due to a timezone mismatch (UTC vs. IST).
+9.  **Recurring Standing Order Items Bug:** Investigate and fix why items from standing orders are appearing on the preparation list on days they are not scheduled for delivery.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack Expo/FastAPI monorepo for a bakery. The backend has been significantly refactored to handle image compression, dynamic delivery date calculation, simplified order numbering, and user status management. The frontend has been updated to fix numerous bugs related to performance, state management, and API integration. Most of the user's requests have been implemented, but the mobile app requires a new build to receive all the fixes. The last task to fix the payment flow interruption is in progress.
+The application is a full-stack Expo/FastAPI monorepo.
+-   **Backend:** The FastAPI backend is connected to a production MongoDB database and deployed on Render.com with auto-deploy from the  branch. It has been significantly updated with:
+    -   Product whitelisting endpoints.
+    -   Pay Later (COD) logic, including new fields on the  model and a new  collection for configuration.
+    -   Admin-configurable force update logic.
+    -   A fix for the delivery date calculation bug.
+    -   A fix for the preparation list timezone bug.
+    -   An endpoint for automatically regenerating standing orders.
+-   **Frontend:** The Expo codebase contains the UI for all the newly implemented features (Whitelisting Modal, Pay Later options, Manual Quantity Input, Force Update Modal, Admin Settings). However, several of these changes are **not yet available to users** as they require a new build. The last successful build was **Build 99 (v1.0.17)**.
 
 **Last working item**:
-- Last item agent was working: The agent was debugging a critical user experience issue where the checkout process is aborted if the user minimizes the app to retrieve an OTP during a Razorpay payment. The agent identified that  was being called prematurely and the use of  was not preserving the payment state when the app is backgrounded. A partial fix was applied by commenting out the premature  call in .
+- Last item agent was working: Investigating why items from standing orders are appearing on the preparation list on incorrect days. The agent found old, incorrectly generated order documents in the database from November that might be polluting the report. The investigation was paused while trying to understand how these old orders were being included in the current day's report.
 - Status: IN PROGRESS
 - Agent Testing Done: N
-- Which testing method agent to use? frontend testing agent
+- Which testing method agent to use? backend testing agent
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- Issue 1: Razorpay payment flow breaks on app minimization (P0)
-- Issue 2: Mismatched or missing product images (P1)
+- Issue 1: Standing order items appear on the preparation list on non-scheduled days (P0)
 
 Issues Detail:
-- Issue 1:
-  - Description: When a user initiates a Razorpay payment and minimizes the app (e.g., to check an OTP message), returning to the app shows the checkout page has been reset and the cart is empty. This prevents order completion.
-  - Attempted fixes: The agent identified that  was called prematurely when the  component closed. The agent commented out this line as a first step.
-  - Next debug checklist:
-    - The fix is incomplete. The cart should only be cleared after a successful payment confirmation, which is handled by the  endpoint.
-    - Investigate if the  can be modified to persist the cart state until the webhook confirms the order.
-    - Modify  to remove the  call from the  function's error/finally block.
-    - Ensure the backend webhook correctly identifies the order and user to associate the payment with, as the cart state will now persist on the client side through a failed/aborted payment attempt.
-  - Why fix this issue and what will be achieved with the fix? This is a critical bug that blocks users from completing payments, leading to lost sales and a very poor user experience. Fixing it will ensure a robust and reliable payment process.
-  - Status: IN PROGRESS
-  - Is recurring issue? N
-  - Should Test frontend/backend/both after fix? frontend
-  - Blocked on other issue: None
-
-- Issue 2:
-  - Description: The user reported that after the image compression migration, some products show the wrong image, and 53 products have no image at all.
-  - Attempted fixes: The agent identified that this was due to a mismatch between product names and image filenames during an initial bulk upload. This issue was acknowledged but deprioritized by the user in favor of other feature requests and bug fixes.
-  - Next debug checklist:
-    - Discuss with the user the best approach: a manual mapping tool in the admin panel, or a script to re-process uploads.
-    - Plan and implement a UI in the admin 'Manage Products' page to allow uploading/changing an image for a specific product.
-    - This will involve creating a new backend endpoint (e.g., ).
-  - Why fix this issue and what will be achieved with the fix? A complete and accurate product catalog is essential for a wholesale ordering app. This will improve user trust and reduce order errors.
-  - Status: NOT STARTED
-  - Is recurring issue? N
-  - Should Test frontend/backend/both after fix? both
-  - Blocked on other issue: None
+- Issue 1: 
+     - **Description**: The daily preparation list is including items from standing orders even on days when those orders are not scheduled for delivery (e.g., a Mon/Wed/Fri standing order item appearing on a Tuesday list).
+     - **Attempted fixes**: The agent identified that old, incorrectly generated standing order documents exist in the database with incorrect delivery dates. It was in the process of debugging why the preparation list query was fetching these items.
+     - **Next debug checklist**:
+        1.  Examine the query in the  endpoint in .
+        2.  Verify the filters being used. The query likely filters by , but it may be missing a filter for  (e.g., it should only include  orders). The old, bad orders might have a different status that causes them to be incorrectly included.
+        3.  Consider creating a one-time script to clean up or delete the old, malformed standing order documents from November to prevent them from affecting future reports.
+     - **Why fix this issue and what will be achieved with the fix?** This bug leads to incorrect production planning, causing waste and confusion. Fixing it will ensure the preparation list is accurate and reliable.
+     - **Status**:  IN PROGRESS
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** Backend.
+     - **Blocked on other issue**: None
 
 **In progress Task List**:
-- Task 1: Complete the fix for the Razorpay payment flow.
-  - Where to resume: The agent has commented out the premature  call in . The next step is to ensure the cart is cleared only after a successful payment webhook confirmation. This may involve checking the state management logic in  and the backend webhook logic in .
-  - What will be achieved with this? A stable payment process that can handle the app being sent to the background.
-  - Status: IN PROGRESS
-  - Should Test frontend/backend/both after fix? frontend
-  - Blocked on something: None
+- None.
 
 **Upcoming and Future Tasks**
-- Upcoming Tasks:
-  - (P0) Create a new Android build (version 1.0.11, build code 56 or higher) and provide the AAB file for upload to the Google Play Store. This is critical as many fixes are not available to mobile users.
-  - (P1) Implement a UI for admins to manually upload or change images for individual products to fix the missing/incorrect image issue.
-  - (P2) Add an in-app notification that prompts users with outdated app versions to update from the Play Store, to resolve inconsistencies between user experiences.
+
+- **Upcoming Tasks:**
+    - **P0: Create and Deliver a New Android Build:** Multiple critical frontend fixes and features are complete in the codebase but are not in the hands of users. This includes Manual Quantity Input, fixes for the Standing Orders UI (product list and regenerate button), and the admin-configurable force update UI. A new build is required to deploy these changes.
+    - **P1: Re-attempt  Native SDK Integration:** The original payment window closes on minimize issue still exists because the app uses . This task was abandoned in a previous session due to build failures and should be re-attempted to improve the payment UX.
+
+- **Future Tasks:**
+    - **P2: Refactor Order Data Model:** The database  collection has inconsistent fields ( vs. ) and inconsistent  formats (some with time, some without). A migration script and code refactor would improve stability.
 
 **Completed work in this session**
 - List of all completed tasks with file and method name:
-  - **Image Rendering Fix:** Fixed missing Data URI prefix in  and ran a migration via a new API endpoint () to correct all images in the production database.
-  - **Delivery Date Automation:** Implemented logic in  ( function and  endpoint) to set delivery dates based on a 4 AM IST cutoff.
-  - **Favorites Page Performance Fix:** Resolved  and timeout errors by optimizing the backend  endpoint in  to exclude large image data. Multiple frontend fixes in  were also implemented to handle component re-renders.
-  - **Admin Reports Performance Fix:** Optimized the  endpoint in  to exclude image data, fixing page load timeouts.
-  - **Order Type Default:** Changed the default selection in  to 'delivery'.
-  - **Order Type Mismatch Fix:** Corrected the payload in  to use the  field instead of  for Razorpay payments.
-  - **Sequential Order Numbering:** Reworked order number generation in  to use a MongoDB counter, starting from 101.
-  - **Admin Category Filtering:** Updated 's  endpoint to hide products belonging exclusively to admin-only categories from the customer-facing All view.
-  - **Admin Product Visibility Fix:** Added an  parameter to the  endpoint and updated the admin  page to use it, ensuring admins can see all products.
-  - **User Activation Feature:**
-    - Backend: Added endpoints in  for admins to toggle a user's  status (, ) and to automatically deactivate dormant users (). Updated  to block inactive users.
-    - Frontend: Added a UI toggle button in the  page.
-  - **Order Deletion/Filtering:** Implemented a 7-day filter on the main  endpoint and created a  endpoint in  to permanently delete old orders.
-  - **Address Field Optional:** Removed the mandatory validation for the address field in .
-  - **UI Text Change:** Renamed 'UPI Payment' to 'Instant Payment' in .
-  - **Debug Code Removal:** Deleted  and removed the associated hidden button from . Also removed a temporary debug pop-up from .
-  - **Payment Error Handling:** Added improved error logging to the Razorpay integration in .
+  - **Codebase Rollback**: Reverted the entire repository to a commit from Dec 14, 2025 () as per user request.
+  - **Product Whitelisting Feature**:
+    - Backend: Added  to  model (), added  and modified  in .
+    - Frontend: Created  and integrated it into .
+  - **Pay Later (COD) Feature**:
+    - Backend: Added  &  to  model, created  for confirmation messages, and updated order creation logic in .
+    - Frontend: Updated , , and . Added highlighting for Pay Later orders in .
+  - **Manual Quantity Input Feature**: Modified the quantity counter to be a  in  and . (NEEDS NEW BUILD)
+  - **Admin-Configurable Force Update**:
+    - Backend: Modified  to read from a new  collection and added  endpoints in .
+    - Frontend: Created , integrated it in , and added a management UI in .
+  - **Delivery Date Calculation Fix**: Removed frontend date calculation and centralized it in the backend payment callback logic in  to always use IST. (FIX IS LIVE)
+  - **Standing Order Product List Fix**: Modified  to call  with . (NEEDS NEW BUILD)
+  - **Standing Order Auto-Regeneration**: Added a  endpoint in  for cron job execution. (BACKEND IS LIVE)
+  - **Preparation List Timezone Fix**: Corrected the  query in  to use IST instead of UTC. (FIX IS LIVE)
+  - **Android Build 99 (v1.0.17)**: Successfully created a new build including the whitelisting and Pay Later features.
+
 - Recently completed:
-  - User Activation Feature (Backend + Frontend) (DONE)
-  - Admin Product Visibility Fix ( parameter) (DONE)
-  - Order Deletion/Filtering Feature (Backend) (DONE)
-  - Debug Code & UI Popups Removed (DONE)
+  - Preparation List Timezone Fix (DONE - DEPLOYED)
+  - Standing Order Auto-Regeneration (Backend) (DONE - DEPLOYED)
+  - Standing Orders Product List Fix (DONE - IN CODE, PENDING BUILD)
+  - Delivery Date Calculation Bug Fix (DONE - DEPLOYED)
+  - Android Build 99 (v1.0.17) (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-   - Issue 1: 53 products are missing images, and some have incorrect images.
-     - Debug checklist: This was due to mismatches during an initial data load. An admin tool is needed to allow manual correction. A new endpoint and frontend UI are required.
-     - Why to solve this issue and what will be achieved with this? To ensure a complete and accurate product catalog for customers.
-     - Should Test frontend/backend/both after fix: both
-     - Is recurring issue? N
+   - **Issue 1: EAS Build failures with native modules ()**
+     - **Debug checklist**:
+       - Start a fresh branch from .
+       - Re-add .
+       - Use an Expo config plugin to manage native file modifications instead of .
+       - Check for  and dependency version compatibility between the app and the library.
+     - **Why to solve this issue and what will be achieved with this?** This will solve a major UX problem where the payment window closes if the user minimizes the app, leading to failed or abandoned payments.
+     - **Should Test frontend/backend/both after fix?** Frontend (via new Android build).
+     - **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
-  - Issue recurrence in previous fork: None from the initial handover, but a new pattern emerged in this session.
-  - Recurrence count: 3
-  - Description: Multiple pages (, ) were slow or timing out. The root cause was consistently the same: backend list endpoints were returning full, large base64 product images, leading to massive response payloads and slow performance.
-  - Status: RESOLVED (by modifying each endpoint to exclude images). The next agent should be aware of this pattern when creating new list-based endpoints.
+  - **Issue recurrence in previous fork**: App crashes on 'Orders' page.
+  - **Recurrence count**: This issue was the initial focus of the session. While the code was fixed, the entire codebase was then reverted at the user's request. The fix was later re-applied while debugging a different missing orders issue.
+  - **Status**: RESOLVED (The null-safe fixes were re-implemented and included in Build 99).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- Full-Stack Monorepo: Expo (React Native) frontend, FastAPI (Python) backend.
-- Database: MongoDB Atlas (production) and local MongoDB (development). A key point of confusion during the session was the agent testing against the local DB while the user was on production.
-- Image Processing:  library for base64 image compression.
-- Deployment: Backend on Render.com, Frontend builds via EAS.
-- Authentication: JWT-based, managed with Zustand on the frontend.
-- API Performance Tuning: A recurring theme was optimizing list endpoints by excluding large  fields.
-- Frontend State Management: Zustand (, ).
-- React Native Component Lifecycle: Deep debugging of  and  was required to solve re-render loops ( errors).
-- Mobile App State: The issue with the payment flow being interrupted highlights challenges with managing state when the app is backgrounded.
+- **Hard Reset & Feature Re-implementation**: The session involved a HEAD is now at 1a4f997e auto-commit for 46e7dfb2-80cb-4c22-a071-bbdfe4d5ac32, wiping out recent work, followed by a careful, planned re-implementation of features.
+- **Backend-Driven UI/Features**: Features like Pay Later and Force Update are controlled by flags and settings in the backend database, allowing for dynamic changes without new app builds.
+- **Timezone-Sensitive Logic**: Several bugs were caused by mishandling timezones (UTC vs. IST). The fixes involved centralizing date/time logic on the backend and ensuring it consistently uses the correct timezone (IST).
+- **Graceful Degradation for Old Clients**: New features like Pay Later were implemented such that older app versions without the UI would simply not see the option, preventing crashes.
+- **Frontend vs. Backend Changes**: The agent had to repeatedly explain to the user which changes require a new app build (frontend UI) and which are effective immediately (backend logic deployed on Render).
 
 **key DB schema**
-  - : {name, description, image_base64, categories: [String], ...}
-  - : {order_number, customer_id, items, total_amount, order_type: delivery | pickup, delivery_date, ...}
-  - : {username, role, is_active: Boolean, favorite_products: [String], ...}
-  - : {name, is_admin_only: Boolean}
-  - : {_id: order_number, sequence_value: Number} (New collection)
+- **users**: { ..., : List[str], : bool, : float }
+- **orders**: { : String, : String, : String, : Datetime } - NOTE: Still contains inconsistent / fields.
+- **settings**: { : String, : Dict } - New collection to store global settings like confirmation messages and app version info.
 
 **changes in tech stack**
-- No fundamental changes to the tech stack.
+-  was removed from  to resolve build issues.
 
 **All files of reference**
-- : The core of all business logic. Heavily modified to add new features and fix performance issues.
-- : Center of multiple bug fixes and feature requests related to ordering.
-- : Was the subject of an extensive and difficult debugging session.
-- : Modified to allow admins to see all products.
-- : Modified to add the user activation toggle.
-- : Modified to adjust timeouts and add new API client methods.
-- : The Zustand store, which is relevant for the pending cart/payment issue.
+- : Core logic for orders, payments, prep lists, and app settings. All major backend fixes are here.
+- : Contains the new auto-regeneration logic.
+- : New central hub for admin-configurable settings.
+- : Contains logic for the Pay Later feature.
+- : Contains frontend fixes that are not yet deployed.
+- : Contains frontend changes that are not yet deployed.
+- : Contains the new force update logic.
 
 **Areas that need refactoring**:
-- The repeated issue of slow list endpoints suggests a pattern should be enforced. A custom Pydantic  model that omits  by default could prevent future occurrences of this bug.
-- The complex / logic in several components (, ) indicates that data fetching logic could be abstracted into custom hooks to simplify components and reduce bugs.
+- The  collection data model is still a source of bugs due to inconsistent fields ( vs ) and date formats. A data migration and code cleanup are recommended.
+- The standing order logic seems complex and has led to bad data being created. It could benefit from a review and simplification.
 
 **key api endpoints**
-- : (One-time use) Fixes image data in the DB.
-- : Deletes orders older than 7 days.
-- : Deactivates users with no orders in 10+ days.
-- : Manually activate a user.
-- : Manually deactivate a user.
-- : Now accepts an  parameter.
-- : Now excludes image data for performance.
-- : Now excludes image data for performance.
-- : Endpoint that was failing with .
+- : Sets product whitelist.
+- : Manages confirmation messages for orders.
+- : Manages force update configuration.
+- : Serves version info to the app, now reads from DB.
+- : Modified to handle .
+- : New endpoint for cron job to regenerate all standing orders.
+- : Fixed to use correct IST timezone.
 
 **Critical Info for New Agent**
-- **App Versioning is Critical:** The user has a live app on the Play Store. Many issues reported by the user were due to them (or their customers) using an old build that did not contain recent fixes. The web preview updates instantly, but the mobile app requires a **new EAS build** for users to see changes. Do not assume a code push fixes the issue for mobile users.
-- **Production vs. Local Database:** The agent wasted significant time testing against the local development database while the user was interacting with the production MongoDB Atlas database on Render. Always clarify which environment is being tested. The local DB has stale/different data.
-- **Performance Pattern:** Be extremely cautious with endpoints that return lists of objects (products, favorites, etc.). By default, you should **exclude the  field** to prevent performance bottlenecks and timeouts, which manifest as  or timeout errors on the frontend.
-- **Do not create new builds without permission.** The user explicitly requested this.
+- **Your immediate task is to fix the bug with the preparation list showing incorrect standing order items.** The root cause is likely old, malformed data being included in the query. Investigate the query in  and consider adding a status filter or a data cleanup script.
+- **Multiple frontend changes are NOT yet deployed.** Features like manual quantity input and UI fixes for standing orders are in the code but require a new build to reach users. Be prepared to initiate a new build after fixing the current bug.
+- **The backend is now highly configurable.** Force updates and other settings are controlled via the  collection in the database, accessible through the admin panel. Do not hardcode these values.
+- **Timezones are critical.** Many previous bugs were related to UTC vs. IST mismatches. Ensure all new date-related logic on the backend correctly uses IST.
 
 **documents created in this job**
 - 
 - 
 
 **Last 10 User Messages and any pending user messages**
-1.  **User (853):** Remove 'Debug info' pop-up from admin products page. (COMPLETED)
-2.  **User (864):** Critical Bug: When paying with Razorpay, minimizing the app for OTP and returning resets the checkout page and clears the cart. (IN PROGRESS)
-3.  **User (809):** Change 'UPI payment' button to 'Instant Payment'. (COMPLETED)
-4.  **User (821):** Go ahead with a new build including the 'include admin parameter' fix. (STARTED, BUT INTERRUPTED)
-5.  **User (834):** Getting a  when clicking the payment button. (INVESTIGATED, PARTIALLY ADDRESSED)
-6.  **User (804):** Some customers still have old order number formats and wrong order types. (DIAGNOSED as app version issue)
-7.  **User (769):** Remove debug page and icon from customer login. (COMPLETED)
-8.  **User (745):** Can you confirm if auto-commit is scheduled for Render? (INVESTIGATED and CONFIRMED)
-9.  **User (743):** The debug pop-up is not appearing on the manage products page. (DIAGNOSED as app version issue)
-10. **User (734):** How do I see console logs on the Play Store app? (CLARIFIED, led to popup implementation)
+1.  **User:** regenerate button in standing orders doesn't work. (RESOLVED - Agent fixed the  call, but the fix needs a new build).
+2.  **User:** Preparation list is not working correctly, showing same list every day. (RESOLVED - Agent fixed backend timezone logic, fix is live).
+3.  **User:** Standing order items are appearing in prep list every day, regardless of schedule. (IN PROGRESS - This is the current P0 issue).
+4.  **User:** Confirms agent's investigation into the standing order item issue.
+5.  **User:** Asks if a new build is needed for the delivery date fix. (RESOLVED - Agent confirmed no new build needed as it was a backend fix).
+6.  **User:** Reports the delivery date is not being calculated with the  logic. (RESOLVED - Agent found and fixed the frontend timezone bug).
+7.  **User:** Confirms Build 99 is finished and asks if it's complete. (RESOLVED - Agent provided details of the successful build).
+8.  **User:** Reports the product list in the admin standing order page is incomplete. (RESOLVED - Agent fixed the code, but the fix needs a new build).
+9.  **User:** Asks if standing orders auto-regenerate after 10 occurrences. (RESOLVED - Agent confirmed it did not and implemented a backend endpoint for it).
+10. **User:** Reports the regenerate button is not visible on the standing orders page. (RESOLVED - Agent added the UI, but the fix needs a new build).
 
 **Project Health Check:**
-- Broken: The Razorpay payment flow is critically broken when the app is minimized.
+- Broken: The Preparation List feature is currently unreliable due to the standing order bug, which impacts production. The Standing Orders admin page has a broken product filter and a non-functional regenerate button in the currently deployed version (pre-Build 99) and the web preview (until the code is fixed).
 - Mocked: None.
 
 **3rd Party Integrations**
-- Razorpay (Payments) — requires User API Key. Was the source of a .
-- Pillow (Image Processing) - Python library, integrated.
+- **Razorpay (Payments):** Requires User API Key. Integrated via Payment Links with .
+- **MongoDB Atlas (Database):** Live production database.
+- **Render.com (Hosting):** For the backend service, with auto-deploys from the  GitHub branch.
+- **EAS (Build Service):** For building the Android app.
 
 **Testing status**
 - Testing agent used after significant changes: NO
-- Troubleshoot agent used after agent stuck in loop: YES, multiple times. It was crucial for identifying the root causes of the favorites page bug.
-- Test files created: None. Agent used ad-hoc scripts (, ) for testing.
-- Known regressions: None.
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: []
+- Known regressions: None in this session, but the payment UX remains suboptimal due to not using the native Razorpay SDK.
 
 **Credentials to test flow:**
-Admin and customer credentials are required for testing. The agent has been able to find test user data from the database when needed. The user has also been able to log in and provide tokens/screenshots.
+- Admin and customer credentials can be found by querying the production database.
 
 **What agent forgot to execute**
-- The build for version 56 was initiated but was interrupted by the user reporting a new critical bug (). This build needs to be completed and delivered.
-- The complete fix for the Razorpay/OTP issue is pending. The agent only applied a partial fix (commenting out ) but did not implement the logic to clear the cart after a successful webhook confirmation.
+- The agent implemented the backend endpoint for standing order regeneration but initially forgot to add a corresponding button in the admin UI until prompted by the user.
 
 </analysis>

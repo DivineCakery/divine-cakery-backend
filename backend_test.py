@@ -24,7 +24,7 @@ import sys
 import os
 
 # Configuration
-BASE_URL = "https://shopbugfix.preview.emergentagent.com/api"
+BASE_URL = "https://fresh-fix-portal.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
