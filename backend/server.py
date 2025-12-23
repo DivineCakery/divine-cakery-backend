@@ -220,6 +220,58 @@ def calculate_delivery_date() -> datetime:
     return delivery_datetime_naive_utc
 
 
+def get_delivery_date_info() -> dict:
+    """
+    Get delivery date information for display to customers.
+    
+    Returns a dict with:
+    - delivery_date: The date string (YYYY-MM-DD)
+    - delivery_date_formatted: Human readable format (e.g., "Monday, December 23, 2025")
+    - day_name: Day of week (e.g., "Monday")
+    - is_same_day: Whether it's same day delivery
+    - order_cutoff_message: Message explaining the cutoff time
+    
+    Rules (all times in IST):
+    - Orders between 12 midnight to 4 AM: Same day delivery
+    - Orders between 4 AM to 12 midnight: Next day delivery
+    """
+    import pytz
+    
+    ist = pytz.timezone('Asia/Kolkata')
+    now_ist = datetime.now(ist)
+    current_hour = now_ist.hour
+    
+    # Calculate delivery date
+    if current_hour < 4:
+        # Before 4 AM IST - deliver same day
+        delivery_date = now_ist.date()
+        is_same_day = True
+    else:
+        # At or after 4 AM IST - deliver next day
+        delivery_date = (now_ist + timedelta(days=1)).date()
+        is_same_day = False
+    
+    # Format for display
+    delivery_datetime = datetime.combine(delivery_date, datetime.min.time())
+    formatted_date = delivery_datetime.strftime("%A, %B %d, %Y")
+    day_name = delivery_datetime.strftime("%A")
+    
+    # Create cutoff message
+    if is_same_day:
+        cutoff_message = "Order now for same day delivery!"
+    else:
+        cutoff_message = f"Orders placed after 4 AM are delivered the next day"
+    
+    return {
+        "delivery_date": delivery_date.strftime("%Y-%m-%d"),
+        "delivery_date_formatted": formatted_date,
+        "day_name": day_name,
+        "is_same_day": is_same_day,
+        "order_cutoff_message": cutoff_message,
+        "current_time_ist": now_ist.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+
 # Email Helper Function
 def send_email_notification(subject: str, body: str, to_email: str):
     """Send email notification using SMTP"""
