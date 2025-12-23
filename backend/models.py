@@ -205,6 +205,8 @@ class Order(BaseModel):
     delivery_address: Optional[str] = None
     delivery_date: Optional[datetime] = None  # Actual delivery date (can be edited by admin)
     notes: Optional[str] = None
+    standing_order_id: Optional[str] = None  # ID of the standing order that generated this order
+    is_standing_order: Optional[bool] = False  # Whether this order was auto-generated from a standing order
     created_at: datetime
     updated_at: datetime
 
