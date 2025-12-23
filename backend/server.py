@@ -848,6 +848,21 @@ async def update_app_version_settings(
     }
 
 
+# Delivery Date Endpoint (Public - for checkout page)
+@api_router.get("/delivery-date")
+async def get_expected_delivery_date():
+    """
+    Get the expected delivery date based on current IST time.
+    
+    Rules (all times in IST):
+    - Orders between 12 midnight to 4 AM: Same day delivery
+    - Orders between 4 AM to 12 midnight: Next day delivery
+    
+    This endpoint is public so customers can see the delivery date before logging in.
+    """
+    return get_delivery_date_info()
+
+
 # Category Routes
 @api_router.get("/categories", response_model=List[Category])
 async def get_all_categories(current_user: User = Depends(get_current_user_optional)):
