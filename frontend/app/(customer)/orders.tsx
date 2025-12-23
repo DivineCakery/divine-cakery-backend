@@ -159,11 +159,11 @@ export default function OrdersScreen() {
               </Text>
             </View>
 
-            {item.delivery_date && (
+            {(item.delivery_date_ist || item.delivery_date) && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Delivery Date:</Text>
                 <Text style={[styles.infoValue, { fontWeight: '600', color: '#8B4513' }]}>
-                  {new Date(item.delivery_date).toLocaleDateString('en-IN')}
+                  {item.delivery_date_formatted || item.delivery_date_ist || new Date(item.delivery_date).toLocaleDateString('en-IN')}
                 </Text>
               </View>
             )}
