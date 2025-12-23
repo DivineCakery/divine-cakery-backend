@@ -2143,6 +2143,8 @@ async def get_order(order_id: str, current_user: User = Depends(get_current_user
             delivery_ist = delivery_utc.astimezone(ist)
             order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
             order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
+            # Override delivery_date to show correct date in any timezone
+            order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
     
     return order_dict
 
