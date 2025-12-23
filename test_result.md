@@ -444,7 +444,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Standing Order Preparation List Bug Fix"
+    - "Delivery Date Calculation - IST Timezone Fix"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
