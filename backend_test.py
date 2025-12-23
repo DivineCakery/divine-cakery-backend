@@ -28,9 +28,15 @@ class StandingOrderTester:
         try:
             # Try common admin credentials
             admin_credentials = [
+                {"username": "Soman", "password": "admin123"},
+                {"username": "Soman", "password": "admin"},
+                {"username": "Soman", "password": "password"},
+                {"username": "Kitchen", "password": "admin123"},
+                {"username": "Kitchen", "password": "admin"},
+                {"username": "Office", "password": "admin123"},
+                {"username": "Office", "password": "admin"},
                 {"username": "admin", "password": "admin123"},
                 {"username": "admin", "password": "admin"},
-                {"username": "somann", "password": "admin123"},
             ]
             
             for creds in admin_credentials:
