@@ -2101,6 +2101,11 @@ async def get_orders(
                 # Add formatted IST date string for display
                 order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
                 order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
+                # CRITICAL: Override delivery_date to be the IST date at noon UTC
+                # This ensures that when any app parses this datetime in any timezone,
+                # the DATE portion will always show the correct IST delivery date
+                # (noon UTC gives a buffer so even UTC-12 to UTC+14 timezones show same date)
+                order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
         
         # Fetch user information (handle both user_id and customer_id fields)
         user_id = order_dict.get("user_id") or order_dict.get("customer_id")
