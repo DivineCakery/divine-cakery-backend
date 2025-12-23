@@ -417,6 +417,21 @@ frontend:
         - working: true
           agent: "main"
           comment: "ROOT CAUSE IDENTIFIED AND FIXED: 1) Found 10 orphaned orders from November - their parent standing order was deleted but the child orders remained. 2) Found 1 duplicate order for Dec 22 (same date but different times: 00:00:00 and 13:00:00). 3) The duplicate detection in generate_orders_for_standing_order() was checking exact datetime match instead of date-only match. FIXES: 1) Updated duplicate detection to use date range query ($gte start of day, $lt end of day) instead of exact datetime match. 2) Ran cleanup script to delete 10 orphaned November orders and 1 duplicate order. VERIFIED: Preparation list now correctly shows standing order items ONLY on Mon/Wed/Fri. Tuesday, Thursday, Saturday, Sunday show 0 standing order items as expected."
+
+  - task: "Delivery Date Calculation - IST Timezone Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/frontend/app/(customer)/checkout.tsx, /app/frontend/services/api.ts"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "user"
+          comment: "BUG: All orders from Play Store app showing same delivery date. Need delivery date logic: orders 4AM-12AM IST = next day, orders 12AM-4AM IST = same day. Delivery date should be shown on checkout page."
+        - working: true
+          agent: "main"
+          comment: "IMPLEMENTED: 1) Added GET /api/delivery-date endpoint that returns IST-based delivery date info 2) Added get_delivery_date_info() helper function with correct rules: 12AM-4AM IST = same day, 4AM-12AM IST = next day 3) Updated frontend checkout.tsx to fetch delivery date from backend 4) Added getExpectedDeliveryDate() to API service. Now customers see correct IST-based delivery date regardless of device timezone."
         - working: true
           agent: "testing"
           comment: "🎉 COMPREHENSIVE TESTING COMPLETE: All 4 critical test scenarios passed with 100% success rate! ✅ PREPARATION LIST DATE FILTERING (CRITICAL): Verified standing order items appear ONLY on configured days (Mon/Wed/Fri). Tuesday and Thursday correctly show 0 standing order items, while Monday, Wednesday, and Friday show standing order items as expected. ✅ STANDING ORDER REGENERATE ALL: No duplicates created when calling regenerate-all endpoint. Processed 1 active standing order, generated 0 new orders (existing orders already cover future dates). ✅ INDIVIDUAL STANDING ORDER REGENERATION: No duplicates created when regenerating specific standing order 70808275-7007-4fa2-952f-ee841d84c470. ✅ NO ORPHANED ORDERS: Verified all orders have valid standing_order_id references. Fixed Order model to include standing_order_id and is_standing_order fields for proper serialization. CRITICAL BUG FIX CONFIRMED: Standing order preparation list filtering now works correctly - items only appear on scheduled days (Mon=0, Wed=2, Fri=4) as configured in the standing order recurrence settings."
