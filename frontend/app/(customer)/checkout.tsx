@@ -33,6 +33,7 @@ export default function CheckoutScreen() {
   const [discount, setDiscount] = useState<any>(null);
   const [payLaterEnabled, setPayLaterEnabled] = useState(false);
   const [payLaterMaxLimit, setPayLaterMaxLimit] = useState(0);
+  const [deliveryDateInfo, setDeliveryDateInfo] = useState<any>(null);
 
   const subtotal = getTotalAmount();
   const appliedDeliveryCharge = orderType === 'delivery' && !user?.delivery_charge_waived ? deliveryCharge : 0;
@@ -47,10 +48,14 @@ export default function CheckoutScreen() {
   const canUsePayLater = payLaterEnabled && totalAmount <= payLaterMaxLimit;
   const payLaterExceedsLimit = payLaterEnabled && totalAmount > payLaterMaxLimit;
 
-  // Calculate delivery date based on order time
-  // Orders before 4 AM: same day delivery
-  // Orders after 4 AM: next day delivery
+  // Get delivery date from backend (IST timezone) or fallback to local calculation
   const getDeliveryDate = () => {
+    // Use backend-calculated delivery date if available
+    if (deliveryDateInfo?.delivery_date_formatted) {
+      return deliveryDateInfo.delivery_date_formatted;
+    }
+    
+    // Fallback: Calculate locally (may be inaccurate for non-IST timezones)
     const now = new Date();
     const currentHour = now.getHours();
     
@@ -70,11 +75,23 @@ export default function CheckoutScreen() {
     });
   };
 
+  // Fetch delivery date from backend
+  const fetchDeliveryDate = async () => {
+    try {
+      const data = await apiService.getExpectedDeliveryDate();
+      setDeliveryDateInfo(data);
+    } catch (error) {
+      console.error('Error fetching delivery date:', error);
+      // Will use fallback local calculation
+    }
+  };
+
   useEffect(() => {
     fetchWallet();
     fetchDeliveryCharge();
     fetchCustomerDiscount();
     fetchPayLaterStatus();
+    fetchDeliveryDate();
   }, []);
 
   // Refresh wallet balance when screen gains focus (real-time update)
