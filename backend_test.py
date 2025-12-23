@@ -493,14 +493,19 @@ def main():
     print("=" * 60)
     
     print(f"Overall Status: {'✅ PASS' if results['overall_status'] == 'PASS' else '❌ FAIL'}")
-    print(f"Tests Passed: {results['summary']['passed']}/{results['summary']['total_tests']}")
+    
+    if 'summary' in results:
+        print(f"Tests Passed: {results['summary']['passed']}/{results['summary']['total_tests']}")
+    elif 'error' in results:
+        print(f"Error: {results['error']}")
     
     print("\nDetailed Results:")
-    for test in results["tests"]:
-        status_icon = "✅" if test.get("status") == "PASS" else "❌"
-        print(f"  {status_icon} {test.get('test_name', 'Unknown Test')}: {test.get('status', 'UNKNOWN')}")
-        if test.get("error"):
-            print(f"     Error: {test['error']}")
+    if 'tests' in results:
+        for test in results["tests"]:
+            status_icon = "✅" if test.get("status") == "PASS" else "❌"
+            print(f"  {status_icon} {test.get('test_name', 'Unknown Test')}: {test.get('status', 'UNKNOWN')}")
+            if test.get("error"):
+                print(f"     Error: {test['error']}")
     
     # Return appropriate exit code
     return 0 if results['overall_status'] == 'PASS' else 1
