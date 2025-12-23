@@ -2095,8 +2095,8 @@ async def get_orders(
         # Convert delivery_date to IST date string for correct display on all app versions
         if order_dict.get("delivery_date"):
             delivery_dt = order_dict["delivery_date"]
-            # If stored as UTC (18:30 UTC = midnight IST next day)
-            if hasattr(delivery_dt, 'replace'):
+            # Check if it's a datetime object (not a string)
+            if isinstance(delivery_dt, datetime):
                 delivery_utc = delivery_dt.replace(tzinfo=pytz.UTC)
                 delivery_ist = delivery_utc.astimezone(ist)
                 # Add formatted IST date string for display
@@ -2107,6 +2107,25 @@ async def get_orders(
                 # the DATE portion will always show the correct IST delivery date
                 # (noon UTC gives a buffer so even UTC-12 to UTC+14 timezones show same date)
                 order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
+            elif isinstance(delivery_dt, str):
+                # If it's already a string, try to parse and convert
+                try:
+                    # Try to parse ISO format string
+                    if 'T' in delivery_dt:
+                        parsed_dt = datetime.fromisoformat(delivery_dt.replace('Z', '+00:00'))
+                    else:
+                        parsed_dt = datetime.strptime(delivery_dt[:10], '%Y-%m-%d')
+                    
+                    if parsed_dt.tzinfo is None:
+                        parsed_dt = parsed_dt.replace(tzinfo=pytz.UTC)
+                    delivery_ist = parsed_dt.astimezone(ist)
+                    order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
+                    order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
+                    order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
+                except:
+                    # If parsing fails, just use the string as-is
+                    order_dict["delivery_date_ist"] = delivery_dt[:10] if len(delivery_dt) >= 10 else delivery_dt
+                    order_dict["delivery_date_formatted"] = delivery_dt
         
         # Fetch user information (handle both user_id and customer_id fields)
         user_id = order_dict.get("user_id") or order_dict.get("customer_id")
