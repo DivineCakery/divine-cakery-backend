@@ -2116,7 +2116,7 @@ async def get_orders(
     return enriched_orders
 
 
-@api_router.get("/orders/{order_id}", response_model=Order)
+@api_router.get("/orders/{order_id}")
 async def get_order(order_id: str, current_user: User = Depends(get_current_user)):
     order = await db.orders.find_one({"id": order_id})
     if not order:
@@ -2125,7 +2125,21 @@ async def get_order(order_id: str, current_user: User = Depends(get_current_user
     if current_user.role != UserRole.ADMIN and order["user_id"] != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    return Order(**order)
+    # Remove MongoDB _id field
+    order.pop('_id', None)
+    order_dict = dict(order)
+    
+    # Convert delivery_date to IST date string for correct display
+    ist = pytz.timezone('Asia/Kolkata')
+    if order_dict.get("delivery_date"):
+        delivery_dt = order_dict["delivery_date"]
+        if hasattr(delivery_dt, 'replace'):
+            delivery_utc = delivery_dt.replace(tzinfo=pytz.UTC)
+            delivery_ist = delivery_utc.astimezone(ist)
+            order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
+            order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
+    
+    return order_dict
 
 
 @api_router.put("/orders/{order_id}", response_model=Order)
