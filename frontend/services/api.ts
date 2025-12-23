@@ -102,6 +102,12 @@ class ApiService {
     return response.data;
   }
 
+  // Delivery Date API (Public - for checkout page)
+  async getExpectedDeliveryDate() {
+    const response = await this.api.get('/delivery-date');
+    return response.data;
+  }
+
   // Admin App Version Settings
   async getAppVersionSettings() {
     const response = await this.api.get('/admin/settings/app-version');
