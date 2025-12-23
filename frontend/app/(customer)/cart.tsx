@@ -20,6 +20,21 @@ export default function CartScreen() {
   const { items, removeItem, updateQuantity, getTotalAmount, clearCart } = useCartStore();
   const { logout } = useAuthStore();
   const totalAmount = getTotalAmount();
+  const [deliveryDateInfo, setDeliveryDateInfo] = useState<any>(null);
+
+  // Fetch delivery date from backend on mount
+  useEffect(() => {
+    fetchDeliveryDate();
+  }, []);
+
+  const fetchDeliveryDate = async () => {
+    try {
+      const data = await apiService.getExpectedDeliveryDate();
+      setDeliveryDateInfo(data);
+    } catch (error) {
+      console.error('Error fetching delivery date:', error);
+    }
+  };
 
   const handleLogout = () => {
     showAlert(
