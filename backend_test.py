@@ -171,7 +171,7 @@ class StandingOrderTester:
         
         return {
             "test_name": "Preparation List Date Filtering",
-            "overall_status": "PASS" if all_passed else "FAIL",
+            "status": "PASS" if all_passed else "FAIL",
             "results": results
         }
     
