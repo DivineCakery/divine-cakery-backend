@@ -1228,6 +1228,9 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: '#ff9800',
   },
+  duplicateButton: {
+    backgroundColor: '#2196F3',
+  },
   deleteButton: {
     backgroundColor: '#f44336',
   },
