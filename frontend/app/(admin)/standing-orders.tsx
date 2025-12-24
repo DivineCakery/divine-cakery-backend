@@ -461,13 +461,22 @@ export default function StandingOrdersScreen() {
 
       <View style={styles.orderActions}>
         {item.status === 'active' && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.cancelButton]}
-            onPress={() => handleCancel(item.id)}
-          >
-            <Ionicons name="close-circle" size={18} color="#fff" />
-            <Text style={styles.actionButtonText}>Cancel</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.duplicateButton]}
+              onPress={() => handleDuplicate(item.id)}
+            >
+              <Ionicons name="copy" size={18} color="#fff" />
+              <Text style={styles.actionButtonText}>Duplicate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={() => handleCancel(item.id)}
+            >
+              <Ionicons name="close-circle" size={18} color="#fff" />
+              <Text style={styles.actionButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </>
         )}
         {item.status === 'cancelled' && (
           <TouchableOpacity
