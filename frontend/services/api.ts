@@ -487,6 +487,21 @@ class ApiService {
     return response.data;
   }
 
+  async duplicateStandingOrder(standingOrderId: string) {
+    const response = await this.api.post(`/admin/standing-orders/${standingOrderId}/duplicate`);
+    return response.data;
+  }
+
+  async deleteStandingOrderOccurrence(standingOrderId: string, orderId: string) {
+    const response = await this.api.delete(`/admin/standing-orders/${standingOrderId}/occurrences/${orderId}`);
+    return response.data;
+  }
+
+  async updateStandingOrderOccurrence(standingOrderId: string, orderId: string, updateData: any) {
+    const response = await this.api.put(`/admin/standing-orders/${standingOrderId}/occurrences/${orderId}`, updateData);
+    return response.data;
+  }
+
   // Stock Reset Methods
   async resetAllStock() {
     const response = await this.api.post('/admin/stock/reset-all');
