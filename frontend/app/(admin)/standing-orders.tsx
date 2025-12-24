@@ -343,6 +343,58 @@ export default function StandingOrdersScreen() {
     );
   };
 
+  const handleDuplicate = async (orderId: string) => {
+    showAlert(
+      'Duplicate Standing Order',
+      'This will create a copy of this standing order with the same settings. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Duplicate',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await apiService.duplicateStandingOrder(orderId);
+              await fetchData();
+              setLoading(false);
+              showAlert('Success', 'Standing order duplicated successfully');
+            } catch (error: any) {
+              setLoading(false);
+              console.error('Error duplicating standing order:', error);
+              showAlert('Error', error.response?.data?.detail || 'Failed to duplicate standing order');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteOccurrence = async (standingOrderId: string, orderId: string) => {
+    showAlert(
+      'Delete This Occurrence',
+      'Are you sure you want to delete this individual order? This won\'t affect other occurrences.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.deleteStandingOrderOccurrence(standingOrderId, orderId);
+              // Refresh generated orders
+              const orders = await apiService.getGeneratedOrders(standingOrderId);
+              setGeneratedOrders(orders);
+              showAlert('Success', 'Occurrence deleted successfully');
+            } catch (error: any) {
+              console.error('Error deleting occurrence:', error);
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete occurrence');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getRecurrenceText = (order: any) => {
     if (order.recurrence_type === 'weekly_days') {
       const days = order.recurrence_config.days.map((d: number) => dayNames[d]).join(', ');
