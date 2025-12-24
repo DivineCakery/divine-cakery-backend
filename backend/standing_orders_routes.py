@@ -308,6 +308,113 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         return {"message": "Standing order deleted successfully"}
     
     
+    @api_router.post("/admin/standing-orders/{standing_order_id}/duplicate")
+    async def duplicate_standing_order(
+        standing_order_id: str,
+        current_user: User = Depends(get_current_admin)
+    ):
+        """Duplicate an existing standing order"""
+        # Find the original standing order
+        original = await db.standing_orders.find_one({"id": standing_order_id})
+        if not original:
+            raise HTTPException(status_code=404, detail="Standing order not found")
+        
+        # Get customer info
+        customer = await db.users.find_one({"id": original["customer_id"]})
+        
+        # Create new standing order with same settings
+        new_standing_order = {
+            "id": str(uuid.uuid4()),
+            "customer_id": original["customer_id"],
+            "customer_name": original.get("customer_name", customer.get("name") if customer else "Unknown"),
+            "items": original["items"],
+            "recurrence_type": original["recurrence_type"],
+            "recurrence_config": original.get("recurrence_config", {}),
+            "duration_type": original.get("duration_type", "indefinite"),
+            "end_date": None,  # Reset end date for new order
+            "notes": f"[Copy] {original.get('notes', '')}".strip(),
+            "status": StandingOrderStatus.ACTIVE,
+            "created_at": datetime.utcnow(),
+            "created_by": current_user.username,
+            "next_delivery_date": datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        }
+        
+        await db.standing_orders.insert_one(new_standing_order)
+        
+        # Generate orders for next 10 days
+        await generate_orders_for_standing_order(db, new_standing_order, days_ahead=10)
+        
+        return {
+            "message": "Standing order duplicated successfully",
+            "new_standing_order_id": new_standing_order["id"]
+        }
+    
+    
+    @api_router.delete("/admin/standing-orders/{standing_order_id}/occurrences/{order_id}")
+    async def delete_standing_order_occurrence(
+        standing_order_id: str,
+        order_id: str,
+        current_user: User = Depends(get_current_admin)
+    ):
+        """Delete a single occurrence (generated order) from a standing order"""
+        # Verify the order exists and belongs to this standing order
+        order = await db.orders.find_one({
+            "id": order_id,
+            "standing_order_id": standing_order_id
+        })
+        
+        if not order:
+            raise HTTPException(status_code=404, detail="Order occurrence not found")
+        
+        # Delete the order
+        await db.orders.delete_one({"id": order_id})
+        
+        return {"message": "Order occurrence deleted successfully"}
+    
+    
+    @api_router.put("/admin/standing-orders/{standing_order_id}/occurrences/{order_id}")
+    async def update_standing_order_occurrence(
+        standing_order_id: str,
+        order_id: str,
+        update_data: dict,
+        current_user: User = Depends(get_current_admin)
+    ):
+        """Update a single occurrence (generated order) from a standing order"""
+        # Verify the order exists and belongs to this standing order
+        order = await db.orders.find_one({
+            "id": order_id,
+            "standing_order_id": standing_order_id
+        })
+        
+        if not order:
+            raise HTTPException(status_code=404, detail="Order occurrence not found")
+        
+        # Only allow updating certain fields
+        allowed_fields = ["items", "notes", "delivery_date", "order_status"]
+        filtered_update = {k: v for k, v in update_data.items() if k in allowed_fields}
+        
+        if not filtered_update:
+            raise HTTPException(status_code=400, detail="No valid fields to update")
+        
+        # Recalculate totals if items changed
+        if "items" in filtered_update:
+            items = filtered_update["items"]
+            for item in items:
+                item["subtotal"] = item["price"] * item["quantity"]
+            filtered_update["total_amount"] = sum(item["subtotal"] for item in items)
+            filtered_update["final_amount"] = filtered_update["total_amount"]
+        
+        filtered_update["updated_at"] = datetime.utcnow()
+        
+        await db.orders.update_one(
+            {"id": order_id},
+            {"$set": filtered_update}
+        )
+        
+        updated_order = await db.orders.find_one({"id": order_id})
+        return updated_order
+    
+    
     @api_router.post("/admin/standing-orders/regenerate-all")
     async def regenerate_all_standing_orders(
         days_ahead: int = 10,
