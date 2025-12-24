@@ -1052,17 +1052,34 @@ export default function StandingOrdersScreen() {
 
                 <View style={styles.detailsSection}>
                   <Text style={styles.detailsSectionTitle}>Generated Orders ({generatedOrders.length})</Text>
+                  <Text style={styles.detailsSectionSubtext}>
+                    Tap delete to remove individual occurrences. This won't affect other days.
+                  </Text>
                   {generatedOrders.length === 0 ? (
                     <Text style={styles.detailsSectionText}>No orders generated yet</Text>
                   ) : (
                     generatedOrders.map((order: any, index: number) => (
                       <View key={order.id} style={styles.generatedOrderCard}>
-                        <Text style={styles.generatedOrderDate}>
-                          {new Date(order.delivery_date).toDateString()}
-                        </Text>
-                        <Text style={styles.generatedOrderStatus}>
-                          Status: {order.order_status}
-                        </Text>
+                        <View style={styles.generatedOrderInfo}>
+                          <Text style={styles.generatedOrderNumber}>
+                            Order #{order.order_number}
+                          </Text>
+                          <Text style={styles.generatedOrderDate}>
+                            {new Date(order.delivery_date).toDateString()}
+                          </Text>
+                          <Text style={styles.generatedOrderStatus}>
+                            Status: {order.order_status}
+                          </Text>
+                          <Text style={styles.generatedOrderAmount}>
+                            ₹{order.total_amount?.toFixed(2) || '0.00'}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.deleteOccurrenceButton}
+                          onPress={() => handleDeleteOccurrence(selectedOrder?.id, order.id)}
+                        >
+                          <Ionicons name="trash-outline" size={20} color="#f44336" />
+                        </TouchableOpacity>
                       </View>
                     ))
                   )}
