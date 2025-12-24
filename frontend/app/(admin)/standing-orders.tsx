@@ -1579,6 +1579,18 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderLeftWidth: 4,
     borderLeftColor: '#8B4513',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  generatedOrderInfo: {
+    flex: 1,
+  },
+  generatedOrderNumber: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#8B4513',
+    marginBottom: 2,
   },
   generatedOrderDate: {
     fontSize: 14,
@@ -1589,5 +1601,21 @@ const styles = StyleSheet.create({
   generatedOrderStatus: {
     fontSize: 12,
     color: '#666',
+  },
+  generatedOrderAmount: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2e7d32',
+    marginTop: 4,
+  },
+  deleteOccurrenceButton: {
+    padding: 8,
+    marginLeft: 12,
+  },
+  detailsSectionSubtext: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 8,
+    fontStyle: 'italic',
   },
 });
