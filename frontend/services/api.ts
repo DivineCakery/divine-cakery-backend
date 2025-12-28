@@ -380,14 +380,18 @@ class ApiService {
   }
 
   // Reports
-  async getDailyItemsReport(date?: string) {
-    const params = date ? { date } : {};
+  async getDailyItemsReport(date?: string, doughTypeId?: string) {
+    const params: any = {};
+    if (date) params.date = date;
+    if (doughTypeId) params.dough_type_id = doughTypeId;
     const response = await this.api.get('/admin/reports/daily-items', { params });
     return response.data;
   }
 
-  async getPreparationListReport(date?: string) {
-    const params = date ? { date } : {};
+  async getPreparationListReport(date?: string, doughTypeId?: string) {
+    const params: any = {};
+    if (date) params.date = date;
+    if (doughTypeId) params.dough_type_id = doughTypeId;
     const response = await this.api.get('/admin/reports/preparation-list', { params });
     return response.data;
   }
