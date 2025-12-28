@@ -11,7 +11,7 @@ import pytz
 import uuid
 
 # Configuration
-BACKEND_URL = "https://fresh-fix-portal.preview.emergentagent.com/api"
+BACKEND_URL = "https://doughtype-admin.preview.emergentagent.com/api"
 
 def create_test_customer():
     """Create a test customer account"""

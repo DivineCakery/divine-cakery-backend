@@ -44,7 +44,7 @@ You'll see a deployment configuration screen with:
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=divine_cakery
 RAZORPAY_KEY_ID=rzp_test_RWMdSO0IeFPkBy
-EXPO_PUBLIC_BACKEND_URL=https://fresh-fix-portal.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://doughtype-admin.preview.emergentagent.com
 ```
 
 ⚠️ **IMPORTANT**: 
@@ -120,7 +120,7 @@ After deployment, update your frontend environment variable:
 ### **Option A: Keep Current URL (Recommended for First Launch)**
 ```bash
 # No change needed - your current URL already works
-EXPO_PUBLIC_BACKEND_URL=https://fresh-fix-portal.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://doughtype-admin.preview.emergentagent.com
 ```
 
 ### **Option B: Use New Production URL**

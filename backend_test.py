@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import pytz
 
 # Configuration
-BACKEND_URL = "https://fresh-fix-portal.preview.emergentagent.com/api"
+BACKEND_URL = "https://doughtype-admin.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_CREDENTIALS = {

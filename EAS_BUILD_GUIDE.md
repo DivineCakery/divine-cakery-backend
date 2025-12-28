@@ -104,7 +104,7 @@ npx eas build --platform android --profile production
 
 Your app currently uses:
 ```
-EXPO_PUBLIC_BACKEND_URL=https://fresh-fix-portal.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://doughtype-admin.preview.emergentagent.com
 ```
 
 **For Production Build:**
