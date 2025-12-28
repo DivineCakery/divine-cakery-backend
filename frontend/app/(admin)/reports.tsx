@@ -19,6 +19,8 @@ export default function ReportsScreen() {
   const router = useRouter();
   const [report, setReport] = useState<any>(null);
   const [preparationList, setPreparationList] = useState<any>(null);
+  const [doughTypes, setDoughTypes] = useState<any[]>([]);
+  const [selectedDoughType, setSelectedDoughType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -26,15 +28,30 @@ export default function ReportsScreen() {
   const { logout } = useAuthStore();
   const isFetchingRef = React.useRef(false);
 
-  // Refresh data when screen comes into focus
+  // Fetch dough types on mount
+  useEffect(() => {
+    fetchDoughTypes();
+  }, []);
+
+  // Refresh data when screen comes into focus or when filters change
   useFocusEffect(
     React.useCallback(() => {
       console.log('Reports screen focused, refreshing data...');
       setLoading(true);
       fetchReports();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTab, selectedDate])
+    }, [activeTab, selectedDate, selectedDoughType])
   );
+
+  const fetchDoughTypes = async () => {
+    try {
+      const data = await apiService.getDoughTypes();
+      setDoughTypes(data);
+    } catch (error) {
+      console.error('Error fetching dough types:', error);
+      // Don't show error - dough types are optional
+    }
+  };
 
   const fetchReports = async () => {
     // Prevent multiple simultaneous calls
@@ -46,13 +63,13 @@ export default function ReportsScreen() {
     try {
       isFetchingRef.current = true;
       const dateStr = selectedDate.toISOString().split('T')[0];
-      console.log(`🔄 Fetching reports for date: ${dateStr}, activeTab: ${activeTab}`);
+      console.log(`🔄 Fetching reports for date: ${dateStr}, activeTab: ${activeTab}, doughType: ${selectedDoughType}`);
       if (activeTab === 'daily') {
-        const data = await apiService.getDailyItemsReport(dateStr);
+        const data = await apiService.getDailyItemsReport(dateStr, selectedDoughType || undefined);
         console.log('✅ Daily report data:', JSON.stringify(data, null, 2));
         setReport(data);
       } else {
-        const data = await apiService.getPreparationListReport(dateStr);
+        const data = await apiService.getPreparationListReport(dateStr, selectedDoughType || undefined);
         console.log('✅ Preparation List Data:', JSON.stringify(data, null, 2));
         setPreparationList(data);
       }
@@ -173,6 +190,55 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Dough Type Filter */}
+      {doughTypes.length > 0 && (
+        <View style={styles.filterContainer}>
+          <View style={styles.filterHeader}>
+            <Ionicons name="disc" size={18} color="#FF9800" />
+            <Text style={styles.filterLabel}>Filter by Dough Type:</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+            <TouchableOpacity
+              style={[
+                styles.filterChip,
+                !selectedDoughType && styles.filterChipActive
+              ]}
+              onPress={() => {
+                setSelectedDoughType(null);
+                setLoading(true);
+              }}
+            >
+              <Text style={[
+                styles.filterChipText,
+                !selectedDoughType && styles.filterChipTextActive
+              ]}>
+                All Types
+              </Text>
+            </TouchableOpacity>
+            {doughTypes.map((dt: any) => (
+              <TouchableOpacity
+                key={dt.id}
+                style={[
+                  styles.filterChip,
+                  selectedDoughType === dt.id && styles.filterChipActive
+                ]}
+                onPress={() => {
+                  setSelectedDoughType(selectedDoughType === dt.id ? null : dt.id);
+                  setLoading(true);
+                }}
+              >
+                <Text style={[
+                  styles.filterChipText,
+                  selectedDoughType === dt.id && styles.filterChipTextActive
+                ]}>
+                  {dt.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       <View style={styles.content}>
         {activeTab === 'daily' ? (
           <>
@@ -215,6 +281,22 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             )}
 
+            {/* Show active filter */}
+            {selectedDoughType && (
+              <View style={styles.activeFilterBadge}>
+                <Ionicons name="disc" size={16} color="#FF9800" />
+                <Text style={styles.activeFilterText}>
+                  Filtered: {doughTypes.find(dt => dt.id === selectedDoughType)?.name}
+                </Text>
+                <TouchableOpacity onPress={() => {
+                  setSelectedDoughType(null);
+                  setLoading(true);
+                }}>
+                  <Ionicons name="close-circle" size={20} color="#FF9800" />
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Summary Cards */}
             <View style={styles.summaryContainer}>
               <View style={styles.summaryCard}>
@@ -241,6 +323,12 @@ export default function ReportsScreen() {
                     </View>
                     <View style={styles.itemDetails}>
                       <Text style={styles.itemName}>{item.product_name}</Text>
+                      {item.dough_type_name && (
+                        <View style={styles.doughTypeBadge}>
+                          <Ionicons name="disc" size={12} color="#FF9800" />
+                          <Text style={styles.doughTypeBadgeText}>{item.dough_type_name}</Text>
+                        </View>
+                      )}
                       <View style={styles.itemStats}>
                         <View style={styles.statItem}>
                           <Ionicons name="cube" size={16} color="#666" />
@@ -262,6 +350,9 @@ export default function ReportsScreen() {
                 <View style={styles.emptyState}>
                   <Ionicons name="document-text-outline" size={64} color="#ccc" />
                   <Text style={styles.emptyText}>No items ordered on this date</Text>
+                  {selectedDoughType && (
+                    <Text style={styles.emptySubtext}>Try removing the dough type filter</Text>
+                  )}
                 </View>
               )}
             </View>
@@ -308,6 +399,22 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             )}
 
+            {/* Show active filter */}
+            {selectedDoughType && (
+              <View style={styles.activeFilterBadge}>
+                <Ionicons name="disc" size={16} color="#FF9800" />
+                <Text style={styles.activeFilterText}>
+                  Filtered: {doughTypes.find(dt => dt.id === selectedDoughType)?.name}
+                </Text>
+                <TouchableOpacity onPress={() => {
+                  setSelectedDoughType(null);
+                  setLoading(true);
+                }}>
+                  <Ionicons name="close-circle" size={20} color="#FF9800" />
+                </TouchableOpacity>
+              </View>
+            )}
+
             <View style={styles.preparationHeader}>
               <Ionicons name="restaurant" size={28} color="#8B4513" />
               <Text style={styles.preparationTitle}>Items to Prepare</Text>
@@ -339,6 +446,12 @@ export default function ReportsScreen() {
                     </View>
                     <View style={styles.preparationDetails}>
                       <Text style={styles.preparationProductName}>{item.product_name}</Text>
+                      {item.dough_type_name && (
+                        <View style={styles.doughTypeBadge}>
+                          <Ionicons name="disc" size={12} color="#FF9800" />
+                          <Text style={styles.doughTypeBadgeText}>{item.dough_type_name}</Text>
+                        </View>
+                      )}
                       <View style={styles.preparationStats}>
                         <View style={styles.preparationStat}>
                           <Text style={styles.preparationStatLabel}>Last Closing Stock:</Text>
@@ -373,6 +486,9 @@ export default function ReportsScreen() {
                 <Ionicons name="checkmark-circle-outline" size={64} color="#4CAF50" />
                 <Text style={styles.emptyText}>All stock is sufficient!</Text>
                 <Text style={styles.emptySubtext}>No items need preparation</Text>
+                {selectedDoughType && (
+                  <Text style={styles.emptySubtext}>Try removing the dough type filter</Text>
+                )}
               </View>
             )}
           </View>
@@ -539,7 +655,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  doughTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    gap: 4,
+  },
+  doughTypeBadgeText: {
+    fontSize: 11,
+    color: '#FF9800',
+    fontWeight: '600',
   },
   itemStats: {
     flexDirection: 'row',
@@ -609,6 +741,67 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#fff',
+  },
+  filterContainer: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  filterScroll: {
+    flexDirection: 'row',
+  },
+  filterChip: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#FF9800',
+  },
+  filterChipActive: {
+    backgroundColor: '#FF9800',
+  },
+  filterChipText: {
+    fontSize: 13,
+    color: '#FF9800',
+    fontWeight: '500',
+  },
+  filterChipTextActive: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  activeFilterBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+    marginBottom: 15,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#FF9800',
+  },
+  activeFilterText: {
+    fontSize: 13,
+    color: '#FF9800',
+    fontWeight: '600',
   },
   preparationSection: {
     marginTop: 10,
@@ -681,7 +874,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   preparationStats: {
     gap: 6,
