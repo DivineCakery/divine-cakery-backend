@@ -359,7 +359,7 @@ class DoughTypesTestSuite:
                     "dough_type_id": self.created_dough_type_id
                 }
                 
-                response = self.session.put(f"{BASE_URL}/admin/products/{self.test_product_id}", json=update_data)
+                response = self.session.put(f"{BASE_URL}/products/{self.test_product_id}", json=update_data)
                 
                 if response.status_code == 200:
                     updated_product = response.json()
@@ -466,7 +466,7 @@ class DoughTypesTestSuite:
         if self.test_product_id:
             try:
                 update_data = {"dough_type_id": None}
-                response = self.session.put(f"{BASE_URL}/admin/products/{self.test_product_id}", json=update_data)
+                response = self.session.put(f"{BASE_URL}/products/{self.test_product_id}", json=update_data)
                 
                 if response.status_code == 200:
                     self.log_test("Cleanup Product Dough Type", True, "Removed dough_type_id from test product")
