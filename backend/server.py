@@ -3039,9 +3039,12 @@ async def get_daily_items_report(
 @api_router.get("/admin/reports/preparation-list")
 async def get_preparation_list_report(
     date: str = None,
+    dough_type_id: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Get preparation list report: Shows products with orders for today and/or tomorrow"""
+    """Get preparation list report: Shows products with orders for today and/or tomorrow
+    Optional filter by dough_type_id
+    """
     import pytz
     from datetime import datetime as dt
     from datetime import timedelta
@@ -3063,8 +3066,16 @@ async def get_preparation_list_report(
         report_date = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
     
     # Get all products (exclude images for performance)
-    products_cursor = db.products.find({}, {"image_base64": 0})
+    product_query = {}
+    if dough_type_id:
+        product_query["dough_type_id"] = dough_type_id
+    
+    products_cursor = db.products.find(product_query, {"image_base64": 0})
     products = await products_cursor.to_list(10000)
+    
+    # Get dough types for enrichment
+    dough_types = await db.categories.find({"category_type": "dough_type"}).to_list(100)
+    dough_type_map = {dt["id"]: dt["name"] for dt in dough_types}
     
     # Set date ranges for today and tomorrow (in IST, then convert to UTC for DB query)
     today_start_ist = report_date.replace(hour=0, minute=0, second=0, microsecond=0)
