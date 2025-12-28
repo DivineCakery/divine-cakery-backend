@@ -573,4 +573,89 @@ agent_communication:
     - agent: "testing"
       message: "🎉 DELIVERY DATE CALCULATION - IST TIMEZONE FIX TESTING COMPLETE: All 6 comprehensive test scenarios passed with 100% success rate! ✅ PUBLIC ENDPOINT ACCESS: GET /api/delivery-date endpoint is publicly accessible (no authentication required) and returns all required fields correctly ✅ RESPONSE FORMAT VALIDATION: All data types and formats verified - YYYY-MM-DD date format, readable formatted date, valid day names, boolean is_same_day, proper IST time format ✅ DELIVERY DATE LOGIC VERIFICATION: IST timezone logic working perfectly - Current time 11:02 AM IST (after 4 AM) correctly returns next day delivery (2025-12-24), is_same_day=false as expected ✅ ORDER CUTOFF MESSAGE: Appropriate message displayed based on delivery type - 'Orders placed after 4 AM are delivered the next day' ✅ ORDER CREATION INTEGRATION: Order creation endpoint uses same delivery date calculation logic (verified via admin authentication) ✅ ENDPOINT CONSISTENCY: Multiple calls return consistent results within same time period. CRITICAL FEATURE CONFIRMED: IST-based delivery date calculation working perfectly - customers will see correct delivery dates regardless of device timezone. Rules verified: 12AM-4AM IST = same day delivery, 4AM-12AM IST = next day delivery. Feature is production-ready and fully functional."
     - agent: "testing"
-      message: "🎉 DELIVERY DATE DISPLAY FIX VERIFICATION COMPLETE: Successfully tested the noon-UTC conversion fix for all app versions compatibility. ✅ CRITICAL FIX CONFIRMED: Backend now converts delivery_date in API responses to noon-UTC format (e.g., '2025-12-24T12:00:00.000Z') ensuring ANY app shows correct IST delivery date regardless of device timezone ✅ NEW FIELDS VERIFIED: Orders now include delivery_date_ist ('2025-12-24') and delivery_date_formatted ('Wednesday, December 24, 2025') fields for enhanced display ✅ TIMEZONE CONSISTENCY TESTED: Verified noon-UTC datetime shows same date across all global timezones (UTC, US/Eastern, Europe/London, Asia/Tokyo, Australia/Sydney, Asia/Kolkata) ✅ OLD APP COMPATIBILITY: The fix ensures old apps using new Date(delivery_date).toLocaleDateString() will display correct IST delivery date ✅ PUBLIC ENDPOINT WORKING: GET /api/delivery-date returns correct IST-based delivery info with proper logic (before 4AM IST = same day, after 4AM IST = next day). Current test at 11:29 IST correctly shows next day delivery (2025-12-24). The delivery date display fix is fully functional and production-ready for all app versions. Old apps will now show correct dates, new apps can use formatted fields for better UX."
+      message: "🎉 DELIVERY DATE DISPLAY FIX VERIFICATION COMPLETE: Successfully tested the noon-UTC conversion fix for all app versions compatibility. ✅ CRITICAL FIX CONFIRMED: Backend now converts delivery_date in API responses to noon-UTC format (e.g., '2025-12-24T12:00:00.000Z') ensuring ANY app shows correct IST delivery date regardless of device timezone ✅ NEW FIELDS VERIFIED: Orders now include delivery_date_ist ('2025-12-24') and delivery_date_formatted ('Wednesday, December 24, 2025') fields for enhanced display ✅ TIMEZONE CONSISTENCY TESTED: Verified noon-UTC datetime shows same date across all global timezones (UTC, US/Eastern, Europe/London, Asia/Tokyo, Australia/Sydney, Asia/Kolkata) ✅ OLD APP COMPATIBILITY: The fix ensures old apps using new Date(delivery_date).toLocaleDateString() will display correct IST delivery date ✅ PUBLIC ENDPOINT WORKING: GET /api/delivery-date returns correct IST-based delivery info with proper logic (before 4AM IST = same day, after 4AM IST = next day). Current test at 11:29 IST correctly shows next day delivery (2025-12-24). The delivery date display fix is fully functional and production-ready for all app versions. Old apps will now show correct dates, new apps can use formatted fields for better UX."    - agent: "main"
+      message: "🎯 DOUGH TYPES FEATURE IMPLEMENTATION: Implemented complete Dough Types feature for product categorization and report filtering. BACKEND CHANGES: 1) Updated GET /api/categories endpoint to support category_type filter with backward compatibility (legacy categories without category_type field are treated as product_category) 2) Added dough_type_id filter to GET /api/admin/reports/daily-items endpoint - filters items by dough type 3) GET /api/admin/reports/preparation-list already had dough_type_id filter 4) All report endpoints now return dough_type_name and dough_type_id in item responses. FRONTEND CHANGES: 1) manage-categories.tsx: Added tab selector for Product Categories vs Dough Types with separate views, icons, and descriptions 2) product-form.tsx: Added dough type selector with orange-themed chips (separate from category selection) 3) reports.tsx: Added dough type filter dropdown that persists across Daily Items and Preparation List tabs 4) api.ts: Updated getCategories() to accept categoryType filter, added getDoughTypes(), updated report methods to accept doughTypeId parameter. Ready for backend testing."
+
+backend:
+  - task: "Dough Types - Category type filtering"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented GET /api/categories?category_type= filter. For product_category, returns categories where category_type is 'product_category' OR not set (legacy backward compatibility). For dough_type, returns only categories with category_type='dough_type'. GET /api/dough-types endpoint also available for direct dough type access."
+
+  - task: "Dough Types - Daily items report filter"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added dough_type_id query parameter to GET /api/admin/reports/daily-items endpoint. When provided, filters items to only show products with matching dough_type_id. Response includes dough_type_name and dough_type_id for each item. Also returns filter_dough_type_id and filter_dough_type_name in response."
+
+  - task: "Dough Types - Preparation list report filter"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Already implemented dough_type_id filter for preparation list. Verified to work with products that have dough_type_id assigned. Response includes dough_type_name for each item."
+
+frontend:
+  - task: "Dough Types - Manage categories UI with tabs"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/manage-categories.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Completely rewrote manage-categories page with tab selector (Product Categories / Dough Types). Each tab shows appropriate icon, description, and list. Create/edit modal adapts labels and placeholders based on active tab. Categories created under Dough Types tab automatically get category_type='dough_type'."
+
+  - task: "Dough Types - Product form dough type selector"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/product-form.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added dough type selector below category selector with orange-themed chips. Products can optionally have a dough type assigned. 'None' option available to clear dough type. Selection saved as dough_type_id field on product. Dough types fetched from getDoughTypes() API."
+
+  - task: "Dough Types - Reports page filter"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/(admin)/reports.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added horizontal scrollable dough type filter chips below tab selector. 'All Types' option clears filter. Selected filter persists when switching between Daily Items and Preparation List tabs. Active filter badge shows below date selector with clear button. Report items show dough type badges when available."
+
+test_plan:
+  current_focus: "Dough Types Feature - Complete backend testing for category filtering, daily items report filter, and preparation list report filter"
+  next_actions:
+    - "Test GET /api/categories?category_type=product_category returns legacy categories"
+    - "Test GET /api/categories?category_type=dough_type returns only dough type categories"
+    - "Test POST /api/admin/categories with category_type=dough_type creates dough type"
+    - "Test GET /api/admin/reports/daily-items?dough_type_id= filters correctly"
+    - "Test GET /api/admin/reports/preparation-list?dough_type_id= filters correctly"
+    - "Verify dough_type_name appears in report item responses"
