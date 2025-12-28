@@ -711,6 +711,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  doughTypeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    marginRight: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#FF9800',
+  },
+  doughTypeChipActive: {
+    backgroundColor: '#FF9800',
+  },
   selectedCategoriesText: {
     fontSize: 13,
     color: '#4CAF50',
