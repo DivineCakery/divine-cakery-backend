@@ -206,17 +206,28 @@ class ApiService {
   }
 
   // Category APIs
-  async getCategories() {
-    const response = await this.api.get('/categories');
+  async getCategories(categoryType?: string) {
+    const params: any = {};
+    if (categoryType) params.category_type = categoryType;
+    const response = await this.api.get('/categories', { params });
     return response.data;
   }
 
-  async createCategory(data: { name: string; display_order: number }) {
+  async getProductCategories() {
+    return this.getCategories('product_category');
+  }
+
+  async getDoughTypes() {
+    const response = await this.api.get('/dough-types');
+    return response.data;
+  }
+
+  async createCategory(data: { name: string; display_order: number; description?: string; is_admin_only?: boolean; category_type?: string }) {
     const response = await this.api.post('/admin/categories', data);
     return response.data;
   }
 
-  async updateCategory(id: string, data: { name?: string; display_order?: number }) {
+  async updateCategory(id: string, data: { name?: string; display_order?: number; description?: string; is_admin_only?: boolean; category_type?: string }) {
     const response = await this.api.put(`/admin/categories/${id}`, data);
     return response.data;
   }
