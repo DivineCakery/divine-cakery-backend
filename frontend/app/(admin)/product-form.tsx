@@ -218,7 +218,7 @@ export default function ProductFormScreen() {
 
     setLoading(true);
     try {
-      const productData = {
+      const productData: any = {
         name: formData.name,
         category: selectedCategories[0], // Primary category for backward compatibility
         categories: selectedCategories, // New multi-category support
@@ -234,12 +234,14 @@ export default function ProductFormScreen() {
         food_type: formData.food_type,
         ingredients: formData.ingredients || undefined,
         allergen_info: formData.allergen_info || undefined,
+        dough_type_id: selectedDoughType || null, // Include dough type
       };
 
       console.log('Submitting product with categories:', {
         category: productData.category,
         categories: productData.categories,
         selectedCategories: selectedCategories,
+        dough_type_id: selectedDoughType,
         isDuplicate: isDuplicate,
         isEdit: isEdit
       });
