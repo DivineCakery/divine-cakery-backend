@@ -188,6 +188,9 @@ class OrderUpdate(BaseModel):
     payment_status: Optional[str] = None
     delivery_date: Optional[datetime] = None
     notes: Optional[str] = None
+    items: Optional[List[OrderItem]] = None
+    total_amount: Optional[float] = None
+    final_amount: Optional[float] = None
 
 
 class Order(BaseModel):
