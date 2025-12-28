@@ -866,20 +866,37 @@ async def get_expected_delivery_date():
 
 # Category Routes
 @api_router.get("/categories", response_model=List[Category])
-async def get_all_categories(current_user: User = Depends(get_current_user_optional)):
+async def get_all_categories(
+    category_type: Optional[str] = None,
+    current_user: User = Depends(get_current_user_optional)
+):
     """
     Get all categories. 
     - For customers: Returns only non-admin categories
     - For admins: Returns all categories including admin-only ones
+    - category_type: Optional filter for "product_category" or "dough_type"
     """
+    query = {}
+    
+    if category_type:
+        query["category_type"] = category_type
+    
     if current_user and current_user.role == UserRole.ADMIN:
         # Admin users see all categories
-        categories = await db.categories.find().sort("display_order", 1).to_list(1000)
+        categories = await db.categories.find(query).sort("display_order", 1).to_list(1000)
     else:
         # Customer users only see non-admin categories
-        categories = await db.categories.find({"is_admin_only": {"$ne": True}}).sort("display_order", 1).to_list(1000)
+        query["is_admin_only"] = {"$ne": True}
+        categories = await db.categories.find(query).sort("display_order", 1).to_list(1000)
     
     return [Category(**cat) for cat in categories]
+
+
+@api_router.get("/dough-types", response_model=List[Category])
+async def get_dough_types(current_user: User = Depends(get_current_admin)):
+    """Get all dough types (admin only)"""
+    dough_types = await db.categories.find({"category_type": "dough_type"}).sort("display_order", 1).to_list(1000)
+    return [Category(**dt) for dt in dough_types]
 
 @api_router.post("/admin/categories", response_model=Category)
 async def create_category(
