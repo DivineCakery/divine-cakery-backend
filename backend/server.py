@@ -875,11 +875,21 @@ async def get_all_categories(
     - For customers: Returns only non-admin categories
     - For admins: Returns all categories including admin-only ones
     - category_type: Optional filter for "product_category" or "dough_type"
+      - If "product_category": Returns categories where category_type is "product_category" OR not set (legacy)
+      - If "dough_type": Returns only categories with category_type="dough_type"
     """
     query = {}
     
     if category_type:
-        query["category_type"] = category_type
+        if category_type == "product_category":
+            # Include categories without category_type (legacy) and those explicitly set to product_category
+            query["$or"] = [
+                {"category_type": "product_category"},
+                {"category_type": {"$exists": False}},
+                {"category_type": None}
+            ]
+        else:
+            query["category_type"] = category_type
     
     if current_user and current_user.role == UserRole.ADMIN:
         # Admin users see all categories
