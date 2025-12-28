@@ -533,6 +533,15 @@ export default function ManageOrdersScreen() {
         <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.order_status || item.status || 'pending'] || '#999' }]}>
           <Text style={styles.statusText}>{(item.order_status || item.status || 'pending').toUpperCase()}</Text>
         </View>
+        {item.standing_order_id && (
+          <TouchableOpacity
+            style={styles.deleteOccurrenceBtn}
+            onPress={() => handleDeleteStandingOrderOccurrence(item)}
+          >
+            <Ionicons name="trash-outline" size={18} color="#f44336" />
+            <Text style={styles.deleteOccurrenceText}>Delete</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.actionButtons}>
