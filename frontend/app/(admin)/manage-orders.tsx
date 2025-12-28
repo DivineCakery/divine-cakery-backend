@@ -1118,9 +1118,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#8B4513',
   },
-  statusContainer: { marginBottom: 10 },
+  statusContainer: { marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, alignSelf: 'flex-start' },
   statusText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  deleteOccurrenceBtn: { flexDirection: 'row', alignItems: 'center', padding: 8, gap: 4 },
+  deleteOccurrenceText: { color: '#f44336', fontSize: 12, fontWeight: '600' },
   actionButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   actionButton: {
     flexDirection: 'row',
