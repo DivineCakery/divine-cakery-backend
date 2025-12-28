@@ -2184,7 +2184,7 @@ async def get_order(order_id: str, current_user: User = Depends(get_current_user
     return order_dict
 
 
-@api_router.put("/orders/{order_id}", response_model=Order)
+@api_router.put("/orders/{order_id}")
 async def update_order(
     order_id: str,
     order_update: OrderUpdate,
@@ -2195,15 +2195,37 @@ async def update_order(
         raise HTTPException(status_code=404, detail="Order not found")
     
     update_data = {k: v for k, v in order_update.dict().items() if v is not None}
+    
     # Map 'status' field to 'order_status' for database
     if 'status' in update_data:
         update_data['order_status'] = update_data.pop('status')
+    
+    # Handle items update - recalculate totals
+    if 'items' in update_data and update_data['items']:
+        items = update_data['items']
+        # Convert Pydantic models to dicts and calculate subtotals
+        items_list = []
+        for item in items:
+            item_dict = item.dict() if hasattr(item, 'dict') else item
+            item_dict['subtotal'] = item_dict['price'] * item_dict['quantity']
+            items_list.append(item_dict)
+        update_data['items'] = items_list
+        
+        # Recalculate totals
+        total_amount = sum(item['subtotal'] for item in items_list)
+        update_data['total_amount'] = total_amount
+        
+        # Keep discount if it exists, otherwise set final_amount = total_amount
+        discount_amount = order.get('discount_amount', 0)
+        update_data['final_amount'] = total_amount - discount_amount
+    
     update_data["updated_at"] = datetime.utcnow()
     
     await db.orders.update_one({"id": order_id}, {"$set": update_data})
     
     updated_order = await db.orders.find_one({"id": order_id})
-    return Order(**updated_order)
+    updated_order.pop('_id', None)
+    return updated_order
 
 
 # Transaction Routes
