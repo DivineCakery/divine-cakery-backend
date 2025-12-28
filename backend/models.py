@@ -122,6 +122,7 @@ class ProductBase(BaseModel):
     description: Optional[str] = None
     category: str  # Keep for backward compatibility
     categories: List[str] = []  # New field for multiple categories
+    dough_type_id: Optional[str] = None  # Reference to dough type category
     mrp: float
     price: float
     packet_size: Optional[str] = None
@@ -146,6 +147,7 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     categories: Optional[List[str]] = None  # MISSING FIELD - Added for multi-category support
+    dough_type_id: Optional[str] = None  # Reference to dough type category
     mrp: Optional[float] = None
     price: Optional[float] = None
     packet_size: Optional[str] = None
