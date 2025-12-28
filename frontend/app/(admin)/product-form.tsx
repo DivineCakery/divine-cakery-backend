@@ -27,7 +27,9 @@ export default function ProductFormScreen() {
 
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [doughTypes, setDoughTypes] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedDoughType, setSelectedDoughType] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -46,6 +48,7 @@ export default function ProductFormScreen() {
 
   useEffect(() => {
     fetchCategories();
+    fetchDoughTypes();
     if (isEdit) {
       fetchProduct();
     } else if (isDuplicate) {
@@ -57,6 +60,7 @@ export default function ProductFormScreen() {
   useFocusEffect(
     React.useCallback(() => {
       fetchCategories();
+      fetchDoughTypes();
     }, [])
   );
 
