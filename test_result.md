@@ -447,7 +447,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Delivery Date Calculation - IST Timezone Fix"
+    - "Dough Types feature implementation - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
