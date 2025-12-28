@@ -66,7 +66,7 @@ export default function ProductFormScreen() {
 
   const fetchCategories = async () => {
     try {
-      const data = await apiService.getCategories();
+      const data = await apiService.getCategories('product_category');
       setCategories(data);
       // Set first category as default if creating new product
       if (!isEdit && data.length > 0) {
@@ -75,6 +75,16 @@ export default function ProductFormScreen() {
     } catch (error) {
       console.error('Error fetching categories:', error);
       showAlert('Error', 'Failed to load categories');
+    }
+  };
+
+  const fetchDoughTypes = async () => {
+    try {
+      const data = await apiService.getDoughTypes();
+      setDoughTypes(data);
+    } catch (error) {
+      console.error('Error fetching dough types:', error);
+      // Don't show alert - dough types are optional
     }
   };
 
@@ -103,6 +113,10 @@ export default function ProductFormScreen() {
       } else if (product.category) {
         // Backward compatibility: if no categories array, use category field
         setSelectedCategories([product.category]);
+      }
+      // Set dough type
+      if (product.dough_type_id) {
+        setSelectedDoughType(product.dough_type_id);
       }
     } catch (error) {
       showAlert('Error', 'Failed to load product');
@@ -136,6 +150,10 @@ export default function ProductFormScreen() {
         setSelectedCategories(product.categories);
       } else if (product.category) {
         setSelectedCategories([product.category]);
+      }
+      // Set dough type
+      if (product.dough_type_id) {
+        setSelectedDoughType(product.dough_type_id);
       }
     } catch (error) {
       showAlert('Error', 'Failed to load product for duplication');
