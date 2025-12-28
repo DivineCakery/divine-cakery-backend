@@ -36,11 +36,16 @@ class TransactionStatus(str, Enum):
 
 
 # Category Models
+class CategoryType(str, Enum):
+    PRODUCT_CATEGORY = "product_category"
+    DOUGH_TYPE = "dough_type"
+
 class CategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
     display_order: int = 0
     is_admin_only: bool = False  # True for categories only visible to admins
+    category_type: CategoryType = CategoryType.PRODUCT_CATEGORY  # Distinguish between product categories and dough types
 
 class CategoryCreate(CategoryBase):
     pass
@@ -50,6 +55,7 @@ class CategoryUpdate(BaseModel):
     description: Optional[str] = None
     display_order: Optional[int] = None
     is_admin_only: Optional[bool] = None
+    category_type: Optional[CategoryType] = None
 
 class Category(CategoryBase):
     id: str
