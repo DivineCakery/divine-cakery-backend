@@ -13,8 +13,8 @@ from typing import Dict, List, Optional
 
 # Configuration
 BASE_URL = "https://doughtype-admin.preview.emergentagent.com/api"
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "Admin@123"
+ADMIN_USERNAME = "Kitchen"
+ADMIN_PASSWORD = "kitchen123"
 
 class DoughTypesTestSuite:
     def __init__(self):
