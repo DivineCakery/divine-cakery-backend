@@ -2968,9 +2968,12 @@ async def get_customer_delivery_notes():
 @api_router.get("/admin/reports/daily-items")
 async def get_daily_items_report(
     date: str = None,
+    dough_type_id: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Get daily report of items ordered by delivery date"""
+    """Get daily report of items ordered by delivery date
+    Optional filter by dough_type_id to show only products of a specific dough type
+    """
     from datetime import datetime as dt, timedelta
     
     # Parse date or use today
@@ -2992,6 +2995,19 @@ async def get_daily_items_report(
         "order_status": {"$ne": OrderStatus.CANCELLED}
     }).to_list(10000)
     
+    # If filtering by dough_type_id, get the list of product_ids that match
+    product_dough_type_map = {}
+    if dough_type_id:
+        products_with_dough_type = await db.products.find(
+            {"dough_type_id": dough_type_id}, 
+            {"id": 1, "dough_type_id": 1}
+        ).to_list(10000)
+        product_dough_type_map = {p["id"]: p["dough_type_id"] for p in products_with_dough_type}
+    
+    # Get dough types for enrichment
+    dough_types = await db.categories.find({"category_type": "dough_type"}).to_list(100)
+    dough_type_name_map = {dt_item["id"]: dt_item["name"] for dt_item in dough_types}
+    
     # Aggregate items
     item_summary = {}
     total_orders = len(orders)
@@ -3006,18 +3022,28 @@ async def get_daily_items_report(
             price = item.get("price", 0)
             subtotal = item.get("subtotal", 0)
             
+            # If filtering by dough_type, skip products that don't match
+            if dough_type_id and product_id not in product_dough_type_map:
+                continue
+            
             if product_id in item_summary:
                 item_summary[product_id]["quantity"] += quantity
                 item_summary[product_id]["revenue"] += subtotal
                 item_summary[product_id]["order_count"] += 1
             else:
+                # Get dough type for this product
+                product_data = await db.products.find_one({"id": product_id}, {"dough_type_id": 1})
+                product_dough_type_id = product_data.get("dough_type_id") if product_data else None
+                
                 item_summary[product_id] = {
                     "product_id": product_id,
                     "product_name": product_name,
                     "quantity": quantity,
                     "price": price,
                     "revenue": subtotal,
-                    "order_count": 1
+                    "order_count": 1,
+                    "dough_type_id": product_dough_type_id,
+                    "dough_type_name": dough_type_name_map.get(product_dough_type_id) if product_dough_type_id else None
                 }
     
     # Convert to list and sort by quantity
@@ -3032,7 +3058,9 @@ async def get_daily_items_report(
         "day_name": delivery_date.strftime("%A"),
         "total_orders": total_orders,
         "total_revenue": total_revenue,
-        "items": items_list
+        "items": items_list,
+        "filter_dough_type_id": dough_type_id,
+        "filter_dough_type_name": dough_type_name_map.get(dough_type_id) if dough_type_id else None
     }
 
 
