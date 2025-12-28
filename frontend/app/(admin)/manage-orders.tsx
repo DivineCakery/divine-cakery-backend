@@ -163,6 +163,32 @@ export default function ManageOrdersScreen() {
     }
   };
 
+  const handleDeleteStandingOrderOccurrence = async (order: any) => {
+    if (!order.standing_order_id) return;
+    
+    showAlert(
+      'Delete This Order',
+      'This will delete only this single occurrence of the standing order. Other scheduled orders will not be affected. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.deleteStandingOrderOccurrence(order.standing_order_id, order.id);
+              await fetchOrders();
+              showAlert('Success', 'Order occurrence deleted successfully');
+            } catch (error: any) {
+              console.error('Error deleting occurrence:', error);
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete order');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const openDeliveryDateEditor = (order: any) => {
     setEditingOrderId(order.id);
     // Use existing delivery_date or default to current date
