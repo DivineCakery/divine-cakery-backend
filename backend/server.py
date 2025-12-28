@@ -3172,6 +3172,8 @@ async def get_preparation_list_report(
         preparation_list.append({
             "product_id": product_id,
             "product_name": product_name,
+            "dough_type_id": product.get("dough_type_id"),
+            "dough_type_name": dough_type_map.get(product.get("dough_type_id"), None),
             "previous_closing_stock": previous_closing_stock,
             "orders_today": ordered_today,
             "orders_tomorrow": ordered_tomorrow,
