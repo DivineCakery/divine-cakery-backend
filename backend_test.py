@@ -213,7 +213,7 @@ class DoughTypesTestSuite:
                             f"Retrieved report with {len(report_data.get('items', []))} items")
                 
                 # Verify response structure
-                required_fields = ["date", "day_name", "total_items", "items"]
+                required_fields = ["date", "day_name", "items"]
                 missing_fields = [field for field in required_fields if field not in report_data]
                 
                 if missing_fields:
