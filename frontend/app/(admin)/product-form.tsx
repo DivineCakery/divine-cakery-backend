@@ -379,6 +379,66 @@ export default function ProductFormScreen() {
             </Text>
           )}
 
+          <Text style={styles.label}>Dough Type (for preparation planning)</Text>
+          {doughTypes.length === 0 ? (
+            <Text style={styles.noCategoriesText}>No dough types available. Create them in Manage Categories.</Text>
+          ) : (
+            <View style={styles.categoryContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.doughTypeChip,
+                  !selectedDoughType && styles.doughTypeChipActive,
+                ]}
+                onPress={() => setSelectedDoughType(null)}
+                disabled={loading}
+              >
+                <Text
+                  style={[
+                    styles.categoryText,
+                    !selectedDoughType && styles.categoryTextActive,
+                  ]}
+                >
+                  None
+                </Text>
+              </TouchableOpacity>
+              {doughTypes.map((dt: any) => {
+                const isSelected = selectedDoughType === dt.id;
+                return (
+                  <TouchableOpacity
+                    key={dt.id}
+                    style={[
+                      styles.doughTypeChip,
+                      isSelected && styles.doughTypeChipActive,
+                    ]}
+                    onPress={() => setSelectedDoughType(isSelected ? null : dt.id)}
+                    disabled={loading}
+                  >
+                    <Ionicons 
+                      name={isSelected ? "disc" : "disc-outline"} 
+                      size={18} 
+                      color={isSelected ? "#fff" : "#FF9800"} 
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        isSelected && styles.categoryTextActive,
+                        { color: isSelected ? '#fff' : '#FF9800' }
+                      ]}
+                    >
+                      {dt.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+          {selectedDoughType && (
+            <Text style={[styles.selectedCategoriesText, { color: '#FF9800' }]}>
+              Dough Type: {doughTypes.find((dt: any) => dt.id === selectedDoughType)?.name || 'Selected'}
+            </Text>
+          )}
+
           <Text style={styles.label}>MRP (₹) *</Text>
           <TextInput
             style={styles.input}
