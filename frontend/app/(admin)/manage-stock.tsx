@@ -88,7 +88,8 @@ export default function ManageStockScreen() {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiService.getProducts();
+      // Use include_admin=true to get ALL products including those with only admin categories
+      const data = await apiService.getProducts(undefined, undefined, true);
       setProducts(data);
       filterProducts(data, selectedCategory);
     } catch (error) {
