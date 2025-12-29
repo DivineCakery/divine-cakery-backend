@@ -46,21 +46,27 @@ export default function ManageStockScreen() {
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
-      // Get admin-only categories OR categories used for stock management
-      // Include both is_admin_only categories and legacy Packing/Slicing/Prep
-      const adminCategories = data.filter((cat: any) => 
-        cat.is_admin_only === true || ['Packing', 'Slicing', 'Prep'].includes(cat.name)
+      console.log('Stock page - All categories fetched:', data.map((c: any) => ({ name: c.name, is_admin_only: c.is_admin_only })));
+      
+      // For stock management, we need admin-only categories (Packing, Slicing, Prep, Fixed Orders)
+      // These are the operational categories used for stock tracking
+      const stockCategories = data.filter((cat: any) => 
+        cat.is_admin_only === true || 
+        ['Packing', 'Slicing', 'Prep', 'Fixed Orders'].includes(cat.name)
       );
       
-      // If no admin categories found, show all product categories for stock management
-      if (adminCategories.length === 0) {
-        // Use all product categories (not dough types)
+      console.log('Stock page - Filtered stock categories:', stockCategories.map((c: any) => c.name));
+      
+      if (stockCategories.length > 0) {
+        setCategories(stockCategories);
+      } else {
+        // If no admin categories found (user might not be authenticated properly),
+        // show all product categories for stock management as fallback
         const productCategories = data.filter((cat: any) => 
           cat.category_type !== 'dough_type'
         );
+        console.log('Stock page - Using fallback product categories:', productCategories.map((c: any) => c.name));
         setCategories(productCategories);
-      } else {
-        setCategories(adminCategories);
       }
     } catch (error) {
       console.error('Error fetching categories:', error);
