@@ -45,32 +45,44 @@ export default function ManageStockScreen() {
 
   const fetchCategories = async () => {
     try {
-      const data = await apiService.getCategories();
-      console.log('Stock page - All categories fetched:', data.length);
-      
-      // For stock management, filter to show admin-only categories (Packing, Slicing, Prep, Fixed Orders)
-      // These are the operational categories used for stock tracking
-      // Note: If auth isn't working, is_admin_only categories won't be returned,
-      // so we also check by name as fallback
+      // For stock management, we use specific admin operational categories
+      // These are hardcoded to ensure they always appear regardless of API auth state
       const stockCategoryNames = ['Packing', 'Slicing', 'Prep', 'Fixed Orders'];
-      const stockCategories = data.filter((cat: any) => 
+      
+      const data = await apiService.getCategories();
+      console.log('Stock page - Categories from API:', data.length);
+      
+      // First, try to find the stock categories from the API response
+      let stockCategories = data.filter((cat: any) => 
         cat.is_admin_only === true || stockCategoryNames.includes(cat.name)
       );
       
-      if (stockCategories.length > 0) {
-        // Sort by display_order
-        stockCategories.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
-        setCategories(stockCategories);
-      } else {
-        // Fallback: show all product categories (not dough types) for stock management
-        const productCategories = data.filter((cat: any) => 
-          cat.category_type !== 'dough_type'
-        );
-        productCategories.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
-        setCategories(productCategories);
+      // If no stock categories found in API (auth issue), create them manually for display
+      // This ensures the stock page always shows the correct filter options
+      if (stockCategories.length === 0) {
+        console.log('Stock page - No admin categories from API, using hardcoded list');
+        stockCategories = stockCategoryNames.map((name, index) => ({
+          id: name.toLowerCase().replace(' ', '-'),
+          name: name,
+          display_order: index,
+          is_admin_only: true
+        }));
       }
+      
+      // Sort by display_order
+      stockCategories.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
+      setCategories(stockCategories);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      // Even on error, show the hardcoded stock categories
+      const stockCategoryNames = ['Packing', 'Slicing', 'Prep', 'Fixed Orders'];
+      const fallbackCategories = stockCategoryNames.map((name, index) => ({
+        id: name.toLowerCase().replace(' ', '-'),
+        name: name,
+        display_order: index,
+        is_admin_only: true
+      }));
+      setCategories(fallbackCategories);
     }
   };
 
