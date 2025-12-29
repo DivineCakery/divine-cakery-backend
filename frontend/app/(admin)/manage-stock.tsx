@@ -46,11 +46,22 @@ export default function ManageStockScreen() {
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
-      // Filter only admin categories
+      // Get admin-only categories OR categories used for stock management
+      // Include both is_admin_only categories and legacy Packing/Slicing/Prep
       const adminCategories = data.filter((cat: any) => 
-        ['Packing', 'Slicing', 'Prep'].includes(cat.name)
+        cat.is_admin_only === true || ['Packing', 'Slicing', 'Prep'].includes(cat.name)
       );
-      setCategories(adminCategories);
+      
+      // If no admin categories found, show all product categories for stock management
+      if (adminCategories.length === 0) {
+        // Use all product categories (not dough types)
+        const productCategories = data.filter((cat: any) => 
+          cat.category_type !== 'dough_type'
+        );
+        setCategories(productCategories);
+      } else {
+        setCategories(adminCategories);
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
