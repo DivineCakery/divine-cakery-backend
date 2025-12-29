@@ -46,26 +46,27 @@ export default function ManageStockScreen() {
   const fetchCategories = async () => {
     try {
       const data = await apiService.getCategories();
-      console.log('Stock page - All categories fetched:', data.map((c: any) => ({ name: c.name, is_admin_only: c.is_admin_only })));
+      console.log('Stock page - All categories fetched:', data.length);
       
-      // For stock management, we need admin-only categories (Packing, Slicing, Prep, Fixed Orders)
+      // For stock management, filter to show admin-only categories (Packing, Slicing, Prep, Fixed Orders)
       // These are the operational categories used for stock tracking
+      // Note: If auth isn't working, is_admin_only categories won't be returned,
+      // so we also check by name as fallback
+      const stockCategoryNames = ['Packing', 'Slicing', 'Prep', 'Fixed Orders'];
       const stockCategories = data.filter((cat: any) => 
-        cat.is_admin_only === true || 
-        ['Packing', 'Slicing', 'Prep', 'Fixed Orders'].includes(cat.name)
+        cat.is_admin_only === true || stockCategoryNames.includes(cat.name)
       );
       
-      console.log('Stock page - Filtered stock categories:', stockCategories.map((c: any) => c.name));
-      
       if (stockCategories.length > 0) {
+        // Sort by display_order
+        stockCategories.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
         setCategories(stockCategories);
       } else {
-        // If no admin categories found (user might not be authenticated properly),
-        // show all product categories for stock management as fallback
+        // Fallback: show all product categories (not dough types) for stock management
         const productCategories = data.filter((cat: any) => 
           cat.category_type !== 'dough_type'
         );
-        console.log('Stock page - Using fallback product categories:', productCategories.map((c: any) => c.name));
+        productCategories.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
         setCategories(productCategories);
       }
     } catch (error) {
