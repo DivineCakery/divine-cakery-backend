@@ -305,11 +305,62 @@ export default function ManageOrdersScreen() {
     setEditingCustomer(null);
   };
 
-  const openOrderEditor = (order: any) => {
+  const openOrderEditor = async (order: any) => {
     setEditingOrder(order);
     setEditingOrderItems(JSON.parse(JSON.stringify(order.items))); // Deep copy
     setEditingOrderDate(order.delivery_date ? new Date(order.delivery_date) : new Date());
     setShowOrderEditModal(true);
+    
+    // Fetch all products for adding items (only fetch once)
+    if (allProducts.length === 0) {
+      try {
+        const products = await apiService.getProducts(undefined, undefined, true);
+        setAllProducts(products);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    }
+  };
+
+  const openProductPicker = () => {
+    setProductSearchQuery('');
+    setShowProductPicker(true);
+  };
+
+  const addProductToOrder = (product: any) => {
+    // Check if product already exists in order
+    const existingIndex = editingOrderItems.findIndex(item => item.product_id === product.id);
+    
+    if (existingIndex >= 0) {
+      // Increment quantity if already exists
+      const updatedItems = [...editingOrderItems];
+      updatedItems[existingIndex].quantity += 1;
+      updatedItems[existingIndex].subtotal = updatedItems[existingIndex].price * updatedItems[existingIndex].quantity;
+      setEditingOrderItems(updatedItems);
+    } else {
+      // Add new item
+      const newItem = {
+        product_id: product.id,
+        product_name: product.name,
+        quantity: 1,
+        price: product.price,
+        unit: product.unit || 'piece',
+        subtotal: product.price,
+      };
+      setEditingOrderItems([...editingOrderItems, newItem]);
+    }
+    
+    setShowProductPicker(false);
+    setProductSearchQuery('');
+  };
+
+  const getFilteredProducts = () => {
+    if (!productSearchQuery.trim()) {
+      return allProducts.slice(0, 20); // Show first 20 products when no search
+    }
+    return allProducts.filter(product => 
+      product.name.toLowerCase().includes(productSearchQuery.toLowerCase())
+    ).slice(0, 20);
   };
 
   const updateItemQuantity = (index: number, newQuantity: number) => {
