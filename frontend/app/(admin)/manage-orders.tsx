@@ -1004,6 +1004,67 @@ export default function ManageOrdersScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Product Picker Modal */}
+      <Modal
+        visible={showProductPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowProductPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
+            <View style={styles.productPickerHeader}>
+              <Text style={styles.modalTitle}>Add Product</Text>
+              <TouchableOpacity onPress={() => setShowProductPicker(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <TextInput
+              style={styles.productSearchInput}
+              placeholder="Search products..."
+              value={productSearchQuery}
+              onChangeText={setProductSearchQuery}
+              autoFocus={true}
+            />
+            
+            <ScrollView style={styles.productList}>
+              {getFilteredProducts().map((product) => {
+                const isInOrder = editingOrderItems.some(item => item.product_id === product.id);
+                return (
+                  <TouchableOpacity
+                    key={product.id}
+                    style={[styles.productPickerItem, isInOrder && styles.productPickerItemInOrder]}
+                    onPress={() => addProductToOrder(product)}
+                  >
+                    <View style={styles.productPickerInfo}>
+                      <Text style={styles.productPickerName}>{product.name}</Text>
+                      <Text style={styles.productPickerPrice}>₹{product.price.toFixed(2)} / {product.unit || 'piece'}</Text>
+                    </View>
+                    <View style={styles.productPickerAction}>
+                      {isInOrder ? (
+                        <View style={styles.inOrderBadge}>
+                          <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                          <Text style={styles.inOrderText}>In Order</Text>
+                        </View>
+                      ) : (
+                        <Ionicons name="add-circle" size={28} color="#8B4513" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+              {getFilteredProducts().length === 0 && (
+                <View style={styles.noProductsFound}>
+                  <Ionicons name="search" size={48} color="#ccc" />
+                  <Text style={styles.noProductsText}>No products found</Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 
