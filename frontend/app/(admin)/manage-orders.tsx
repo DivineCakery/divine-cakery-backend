@@ -934,7 +934,17 @@ export default function ManageOrdersScreen() {
               <Text style={styles.dateHint}>Use arrows to change delivery date</Text>
 
               {/* Order Items */}
-              <Text style={[styles.inputLabel, {marginTop: 15}]}>Order Items</Text>
+              <View style={styles.orderItemsHeader}>
+                <Text style={[styles.inputLabel, {marginTop: 15, marginBottom: 0}]}>Order Items</Text>
+                <TouchableOpacity
+                  style={styles.addItemButton}
+                  onPress={openProductPicker}
+                >
+                  <Ionicons name="add-circle" size={20} color="#fff" />
+                  <Text style={styles.addItemButtonText}>Add Item</Text>
+                </TouchableOpacity>
+              </View>
+              
               {editingOrderItems.map((item, index) => (
                 <View key={index} style={styles.editItemCard}>
                   <View style={styles.editItemHeader}>
