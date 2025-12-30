@@ -1604,4 +1604,90 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#8B4513',
   },
+  // Add Item styles
+  orderItemsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  addItemButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  addItemButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  productPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  productSearchInput: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#F8F8F8',
+    marginBottom: 15,
+  },
+  productList: {
+    maxHeight: 400,
+  },
+  productPickerItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    backgroundColor: '#fff',
+  },
+  productPickerItemInOrder: {
+    backgroundColor: '#E8F5E9',
+  },
+  productPickerInfo: {
+    flex: 1,
+  },
+  productPickerName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  productPickerPrice: {
+    fontSize: 13,
+    color: '#666',
+  },
+  productPickerAction: {
+    marginLeft: 10,
+  },
+  inOrderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  inOrderText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  noProductsFound: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  noProductsText: {
+    fontSize: 16,
+    color: '#999',
+    marginTop: 10,
+  },
 });
