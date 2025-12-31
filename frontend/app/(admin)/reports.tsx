@@ -360,92 +360,64 @@ export default function ReportsScreen() {
             </View>
           </>
         ) : (
-          /* Preparation List View */
+          /* Preparation List View - Compact */
           <View style={styles.preparationSection}>
-            {/* Date Selector - Same as Daily Items */}
-            <View style={styles.dateSelector} key="prep-date-selector">
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => changeDate(-1)}
-              >
-                <Ionicons name="chevron-back" size={24} color="#8B4513" />
-              </TouchableOpacity>
-              
-              <View style={styles.dateDisplay}>
-                <Text style={styles.dateText}>{preparationList?.day_name}</Text>
-                <Text style={styles.dateSubtext}>
-                  {new Date(selectedDate).toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
-              </View>
+            {/* Compact Date + Filter Row */}
+            <View style={styles.compactControlsRow}>
+              {/* Compact Date Selector */}
+              <View style={styles.compactDateSelector}>
+                <TouchableOpacity
+                  style={styles.compactDateButton}
+                  onPress={() => changeDate(-1)}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#8B4513" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.compactDateDisplay}
+                  onPress={goToToday}
+                >
+                  <Text style={styles.compactDateText}>
+                    {new Date(selectedDate).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </Text>
+                  <Text style={styles.compactDayText}>{preparationList?.day_name}</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => changeDate(1)}
-              >
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={'#8B4513'}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {selectedDate.toDateString() !== new Date().toDateString() && (
-              <TouchableOpacity style={styles.todayButton} onPress={goToToday}>
-                <Ionicons name="today" size={16} color="#8B4513" />
-                <Text style={styles.todayButtonText}>Go to Today</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Show active filter */}
-            {selectedDoughType && (
-              <View style={styles.activeFilterBadge}>
-                <Ionicons name="disc" size={16} color="#FF9800" />
-                <Text style={styles.activeFilterText}>
-                  Filtered: {doughTypes.find(dt => dt.id === selectedDoughType)?.name}
-                </Text>
-                <TouchableOpacity onPress={() => {
-                  setSelectedDoughType(null);
-                  setLoading(true);
-                }}>
-                  <Ionicons name="close-circle" size={20} color="#FF9800" />
+                <TouchableOpacity
+                  style={styles.compactDateButton}
+                  onPress={() => changeDate(1)}
+                >
+                  <Ionicons name="chevron-forward" size={20} color="#8B4513" />
                 </TouchableOpacity>
               </View>
-            )}
 
-            <View style={styles.preparationHeader}>
-              <Ionicons name="restaurant" size={28} color="#8B4513" />
-              <Text style={styles.preparationTitle}>Items to Prepare</Text>
-              <TouchableOpacity 
-                style={styles.refreshButton}
-                onPress={() => {
-                  setLoading(true);
-                  fetchReports();
-                }}
-              >
-                <Ionicons name="refresh" size={24} color="#8B4513" />
-              </TouchableOpacity>
+              {/* Dough Type Dropdown */}
+              {doughTypes.length > 0 && (
+                <TouchableOpacity
+                  style={styles.doughTypeDropdown}
+                  onPress={() => setShowDoughTypeDropdown(true)}
+                >
+                  <Ionicons name="disc" size={16} color="#FF9800" />
+                  <Text style={styles.doughTypeDropdownText} numberOfLines={1}>
+                    {selectedDoughType 
+                      ? doughTypes.find(dt => dt.id === selectedDoughType)?.name || 'Selected'
+                      : 'All Dough'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="#666" />
+                </TouchableOpacity>
+              )}
             </View>
-            <Text style={styles.preparationSubtitle}>
-              Based on closing stock and confirmed orders
-            </Text>
 
+            {/* Preparation List Items */}
             {preparationList?.items && preparationList.items.length > 0 ? (
               <>
-                <View style={styles.preparationSummary}>
-                  <Text style={styles.preparationSummaryText}>
-                    Total Items: {preparationList.total_items}
-                  </Text>
-                </View>
                 {preparationList.items.map((item: any, index: number) => {
                   // Calculate Today's preparation: orders_today - last_closing_stock (min 0)
                   const todayPrep = Math.max(0, item.orders_today - item.previous_closing_stock);
                   // Calculate Tomorrow's preparation: orders_tomorrow - remaining after today
-                  // Remaining after today = last_closing_stock - orders_today (can be negative meaning deficit)
                   const remainingAfterToday = item.previous_closing_stock - item.orders_today;
                   const tomorrowPrep = Math.max(0, item.orders_tomorrow - Math.max(0, remainingAfterToday));
                   
@@ -461,15 +433,15 @@ export default function ReportsScreen() {
                         )}
                         <View style={styles.preparationStatsRow}>
                           <View style={styles.preparationStatItem}>
-                            <Text style={styles.preparationStatLabel}>Closing Stock:</Text>
+                            <Text style={styles.preparationStatLabel}>Stock:</Text>
                             <Text style={styles.preparationStatValue}>{item.previous_closing_stock}</Text>
                           </View>
                           <View style={styles.preparationStatItem}>
-                            <Text style={styles.preparationStatLabel}>Today Orders:</Text>
+                            <Text style={styles.preparationStatLabel}>Today:</Text>
                             <Text style={styles.preparationStatValue}>{item.orders_today}</Text>
                           </View>
                           <View style={styles.preparationStatItem}>
-                            <Text style={styles.preparationStatLabel}>Tomorrow Orders:</Text>
+                            <Text style={styles.preparationStatLabel}>Tmrw:</Text>
                             <Text style={styles.preparationStatValue}>{item.orders_tomorrow}</Text>
                           </View>
                         </View>
@@ -481,7 +453,7 @@ export default function ReportsScreen() {
                           <Text style={styles.preparationBoxUnit}>{item.unit}</Text>
                         </View>
                         <View style={[styles.preparationBox, styles.preparationBoxTomorrow]}>
-                          <Text style={styles.preparationBoxLabel}>Tomorrow</Text>
+                          <Text style={styles.preparationBoxLabel}>Tmrw</Text>
                           <Text style={styles.preparationBoxValue}>{tomorrowPrep}</Text>
                           <Text style={styles.preparationBoxUnit}>{item.unit}</Text>
                         </View>
@@ -503,6 +475,53 @@ export default function ReportsScreen() {
           </View>
         )}
       </View>
+
+      {/* Dough Type Dropdown Modal */}
+      <Modal
+        visible={showDoughTypeDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDoughTypeDropdown(false)}
+      >
+        <TouchableOpacity 
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDoughTypeDropdown(false)}
+        >
+          <View style={styles.dropdownContent}>
+            <Text style={styles.dropdownTitle}>Select Dough Type</Text>
+            <TouchableOpacity
+              style={[styles.dropdownItem, !selectedDoughType && styles.dropdownItemActive]}
+              onPress={() => {
+                setSelectedDoughType(null);
+                setShowDoughTypeDropdown(false);
+                setLoading(true);
+              }}
+            >
+              <Text style={[styles.dropdownItemText, !selectedDoughType && styles.dropdownItemTextActive]}>
+                All Dough Types
+              </Text>
+              {!selectedDoughType && <Ionicons name="checkmark" size={20} color="#8B4513" />}
+            </TouchableOpacity>
+            {doughTypes.map((dt) => (
+              <TouchableOpacity
+                key={dt.id}
+                style={[styles.dropdownItem, selectedDoughType === dt.id && styles.dropdownItemActive]}
+                onPress={() => {
+                  setSelectedDoughType(dt.id);
+                  setShowDoughTypeDropdown(false);
+                  setLoading(true);
+                }}
+              >
+                <Text style={[styles.dropdownItemText, selectedDoughType === dt.id && styles.dropdownItemTextActive]}>
+                  {dt.name}
+                </Text>
+                {selectedDoughType === dt.id && <Ionicons name="checkmark" size={20} color="#8B4513" />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
