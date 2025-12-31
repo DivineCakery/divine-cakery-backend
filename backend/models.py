@@ -81,6 +81,7 @@ class UserBase(BaseModel):
     allowed_product_ids: Optional[List[str]] = None  # Product whitelist - None/empty means all products allowed
     pay_later_enabled: bool = False  # Admin enables this per user
     pay_later_max_limit: float = 0  # Maximum order value for Pay Later
+    is_superadmin: bool = False  # Superadmin can create other admin users
 
 
 class UserCreate(BaseModel):
@@ -96,6 +97,24 @@ class UserCreate(BaseModel):
     admin_access_level: Optional[AdminAccessLevel] = AdminAccessLevel.FULL
     user_type: str = "owner"
     linked_owner_id: Optional[str] = None
+    role: Optional[UserRole] = UserRole.CUSTOMER  # Allow specifying role when creating
+
+
+class UserUpdate(BaseModel):
+    """Model for updating user by admin"""
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    business_name: Optional[str] = None
+    address: Optional[str] = None
+    can_topup_wallet: Optional[bool] = None
+    onsite_pickup_only: Optional[bool] = None
+    delivery_charge_waived: Optional[bool] = None
+    is_active: Optional[bool] = None
+    role: Optional[UserRole] = None
+    admin_access_level: Optional[AdminAccessLevel] = None
+    user_type: Optional[str] = None
+    new_password: Optional[str] = None  # For password change
 
 
 class UserLogin(BaseModel):
