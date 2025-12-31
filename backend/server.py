@@ -2351,6 +2351,13 @@ async def create_user_by_admin(
     if existing_user:
         raise HTTPException(status_code=400, detail="Username already exists")
     
+    # Determine role - only superadmin can create admin users
+    role = user_data.role if user_data.role else UserRole.CUSTOMER
+    if role == UserRole.ADMIN:
+        # Check if current user is superadmin
+        if not current_user.is_superadmin:
+            raise HTTPException(status_code=403, detail="Only superadmin can create admin users")
+    
     # Create user
     user_id = str(uuid.uuid4())
     hashed_password = get_password_hash(user_data.password)
@@ -2360,7 +2367,7 @@ async def create_user_by_admin(
         "username": user_data.username,
         "email": user_data.email,
         "phone": normalize_phone_number(user_data.phone) if user_data.phone else None,
-        "role": UserRole.CUSTOMER,
+        "role": role,
         "business_name": user_data.business_name,
         "address": user_data.address,
         "wallet_balance": 0.0,
@@ -2373,7 +2380,9 @@ async def create_user_by_admin(
         "user_type": user_data.user_type if hasattr(user_data, 'user_type') else "owner",
         "linked_owner_id": user_data.linked_owner_id if hasattr(user_data, 'linked_owner_id') else None,
         "onsite_pickup_only": user_data.onsite_pickup_only if hasattr(user_data, 'onsite_pickup_only') else False,
-        "delivery_charge_waived": user_data.delivery_charge_waived if hasattr(user_data, 'delivery_charge_waived') else False
+        "delivery_charge_waived": user_data.delivery_charge_waived if hasattr(user_data, 'delivery_charge_waived') else False,
+        "admin_access_level": user_data.admin_access_level if role == UserRole.ADMIN else None,
+        "is_superadmin": False  # Only manually set in DB
     }
     
     await db.users.insert_one(user_dict)
