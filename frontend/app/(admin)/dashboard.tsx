@@ -71,15 +71,6 @@ export default function DashboardScreen() {
     }
   };
 
-  const fetchDailyRevenue = async () => {
-    try {
-      const data = await apiService.getDailyRevenue();
-      setDailyRevenue(data.daily_revenue || []);
-    } catch (error) {
-      console.error('Error fetching daily revenue:', error);
-    }
-  };
-
   const fetchPendingApprovals = async () => {
     try {
       const data = await apiService.getPendingUsers();
@@ -93,7 +84,6 @@ export default function DashboardScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchStats();
-    fetchDailyRevenue();
     fetchPendingApprovals();
   };
 
