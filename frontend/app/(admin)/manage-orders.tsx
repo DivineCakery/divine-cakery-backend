@@ -33,7 +33,8 @@ export default function ManageOrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  // Default to today's date for faster loading (instead of loading all 7 days)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
   const [editingDeliveryDate, setEditingDeliveryDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
