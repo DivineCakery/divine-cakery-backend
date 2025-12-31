@@ -854,12 +854,80 @@ const styles = StyleSheet.create({
   preparationCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 15,
+    padding: 12,
     marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
     elevation: 2,
   },
+  preparationContent: {
+    marginBottom: 10,
+  },
+  preparationProductName: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 6,
+  },
+  preparationStatsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 6,
+  },
+  preparationStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  preparationStatLabel: {
+    fontSize: 11,
+    color: '#666',
+    marginRight: 4,
+  },
+  preparationStatValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  preparationBoxes: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  preparationBox: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 2,
+  },
+  preparationBoxToday: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#2196F3',
+  },
+  preparationBoxTomorrow: {
+    backgroundColor: '#FFF3E0',
+    borderColor: '#FF9800',
+  },
+  preparationBoxLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 2,
+  },
+  preparationBoxValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  preparationBoxUnit: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 2,
+  },
+  // Keep legacy styles for compatibility
   preparationRank: {
     backgroundColor: '#8B4513',
     width: 40,
@@ -877,28 +945,12 @@ const styles = StyleSheet.create({
   preparationDetails: {
     flex: 1,
   },
-  preparationProductName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
   preparationStats: {
     gap: 6,
   },
   preparationStat: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  preparationStatLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 6,
-  },
-  preparationStatValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#333',
   },
   preparationStatBold: {
     fontWeight: 'bold',
