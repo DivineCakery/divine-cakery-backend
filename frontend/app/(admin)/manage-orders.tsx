@@ -964,7 +964,17 @@ export default function ManageOrdersScreen() {
                       >
                         <Ionicons name="remove" size={20} color="#8B4513" />
                       </TouchableOpacity>
-                      <Text style={styles.quantityText}>{item.quantity}</Text>
+                      <TextInput
+                        style={styles.quantityInput}
+                        value={String(item.quantity)}
+                        onChangeText={(text) => {
+                          const num = parseInt(text) || 0;
+                          updateItemQuantity(index, num);
+                        }}
+                        keyboardType="number-pad"
+                        selectTextOnFocus={true}
+                        maxLength={4}
+                      />
                       <TouchableOpacity
                         style={styles.quantityButton}
                         onPress={() => updateItemQuantity(index, item.quantity + 1)}
