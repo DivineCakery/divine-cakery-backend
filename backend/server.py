@@ -27,7 +27,7 @@ import pytz
 from PIL import Image
 
 from models import (
-    UserCreate, UserLogin, User, UserInDB, UserRole, Token, TokenData,
+    UserCreate, UserLogin, User, UserInDB, UserRole, UserUpdate, Token, TokenData,
     ProductCreate, ProductUpdate, Product,
     OrderCreate, OrderUpdate, Order, OrderStatus,
     Wallet, Transaction, TransactionCreate, TransactionType, TransactionStatus,
