@@ -192,82 +192,57 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Dough Type Filter */}
-      {doughTypes.length > 0 && (
-        <View style={styles.filterContainer}>
-          <View style={styles.filterHeader}>
-            <Ionicons name="disc" size={18} color="#FF9800" />
-            <Text style={styles.filterLabel}>Filter by Dough Type:</Text>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                !selectedDoughType && styles.filterChipActive
-              ]}
-              onPress={() => {
-                setSelectedDoughType(null);
-                setLoading(true);
-              }}
-            >
-              <Text style={[
-                styles.filterChipText,
-                !selectedDoughType && styles.filterChipTextActive
-              ]}>
-                All Types
-              </Text>
-            </TouchableOpacity>
-            {doughTypes.map((dt: any) => (
-              <TouchableOpacity
-                key={dt.id}
-                style={[
-                  styles.filterChip,
-                  selectedDoughType === dt.id && styles.filterChipActive
-                ]}
-                onPress={() => {
-                  setSelectedDoughType(selectedDoughType === dt.id ? null : dt.id);
-                  setLoading(true);
-                }}
-              >
-                <Text style={[
-                  styles.filterChipText,
-                  selectedDoughType === dt.id && styles.filterChipTextActive
-                ]}>
-                  {dt.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
       <View style={styles.content}>
         {activeTab === 'daily' ? (
           <>
-            {/* Date Selector */}
-            <View style={styles.dateSelector}>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => changeDate(-1)}
-              >
-                <Ionicons name="chevron-back" size={24} color="#8B4513" />
-              </TouchableOpacity>
-              
-              <View style={styles.dateDisplay}>
-                <Text style={styles.dateText}>{report?.day_name}</Text>
-                <Text style={styles.dateSubtext}>
-                  {new Date(selectedDate).toLocaleDateString('en-IN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </Text>
+            {/* Compact Controls Row for Daily Items */}
+            <View style={styles.compactControlsRow}>
+              {/* Compact Date Selector */}
+              <View style={styles.compactDateSelector}>
+                <TouchableOpacity
+                  style={styles.compactDateButton}
+                  onPress={() => changeDate(-1)}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#8B4513" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.compactDateDisplay}
+                  onPress={goToToday}
+                >
+                  <Text style={styles.compactDateText}>
+                    {new Date(selectedDate).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </Text>
+                  <Text style={styles.compactDayText}>{report?.day_name}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.compactDateButton}
+                  onPress={() => changeDate(1)}
+                >
+                  <Ionicons name="chevron-forward" size={20} color="#8B4513" />
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => changeDate(1)}
-              >
+              {/* Dough Type Dropdown */}
+              {doughTypes.length > 0 && (
+                <TouchableOpacity
+                  style={styles.doughTypeDropdown}
+                  onPress={() => setShowDoughTypeDropdown(true)}
+                >
+                  <Ionicons name="disc" size={16} color="#FF9800" />
+                  <Text style={styles.doughTypeDropdownText} numberOfLines={1}>
+                    {selectedDoughType 
+                      ? doughTypes.find(dt => dt.id === selectedDoughType)?.name || 'Selected'
+                      : 'All Dough'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="#666" />
+                </TouchableOpacity>
+              )}
+            </View>
                 <Ionicons
                   name="chevron-forward"
                   size={24}
