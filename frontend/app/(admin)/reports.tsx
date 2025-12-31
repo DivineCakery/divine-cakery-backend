@@ -243,36 +243,6 @@ export default function ReportsScreen() {
                 </TouchableOpacity>
               )}
             </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={'#8B4513'}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {selectedDate.toDateString() !== new Date().toDateString() && (
-              <TouchableOpacity style={styles.todayButton} onPress={goToToday}>
-                <Ionicons name="today" size={16} color="#8B4513" />
-                <Text style={styles.todayButtonText}>Go to Today</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Show active filter */}
-            {selectedDoughType && (
-              <View style={styles.activeFilterBadge}>
-                <Ionicons name="disc" size={16} color="#FF9800" />
-                <Text style={styles.activeFilterText}>
-                  Filtered: {doughTypes.find(dt => dt.id === selectedDoughType)?.name}
-                </Text>
-                <TouchableOpacity onPress={() => {
-                  setSelectedDoughType(null);
-                  setLoading(true);
-                }}>
-                  <Ionicons name="close-circle" size={20} color="#FF9800" />
-                </TouchableOpacity>
-              </View>
-            )}
 
             {/* Summary Cards */}
             <View style={styles.summaryContainer}>
