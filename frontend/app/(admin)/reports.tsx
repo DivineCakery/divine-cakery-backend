@@ -898,6 +898,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
+  dropdownScrollView: {
+    maxHeight: 350,
+  },
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
