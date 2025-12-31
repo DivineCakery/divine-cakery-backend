@@ -433,37 +433,46 @@ export default function ReportsScreen() {
           activeOpacity={1}
           onPress={() => setShowDoughTypeDropdown(false)}
         >
-          <View style={styles.dropdownContent}>
+          <View 
+            style={styles.dropdownContent}
+            onStartShouldSetResponder={() => true}
+          >
             <Text style={styles.dropdownTitle}>Select Dough Type</Text>
-            <TouchableOpacity
-              style={[styles.dropdownItem, !selectedDoughType && styles.dropdownItemActive]}
-              onPress={() => {
-                setSelectedDoughType(null);
-                setShowDoughTypeDropdown(false);
-                setLoading(true);
-              }}
+            <ScrollView 
+              style={styles.dropdownScrollView}
+              showsVerticalScrollIndicator={true}
+              bounces={false}
             >
-              <Text style={[styles.dropdownItemText, !selectedDoughType && styles.dropdownItemTextActive]}>
-                All Dough Types
-              </Text>
-              {!selectedDoughType && <Ionicons name="checkmark" size={20} color="#8B4513" />}
-            </TouchableOpacity>
-            {doughTypes.map((dt) => (
               <TouchableOpacity
-                key={dt.id}
-                style={[styles.dropdownItem, selectedDoughType === dt.id && styles.dropdownItemActive]}
+                style={[styles.dropdownItem, !selectedDoughType && styles.dropdownItemActive]}
                 onPress={() => {
-                  setSelectedDoughType(dt.id);
+                  setSelectedDoughType(null);
                   setShowDoughTypeDropdown(false);
                   setLoading(true);
                 }}
               >
-                <Text style={[styles.dropdownItemText, selectedDoughType === dt.id && styles.dropdownItemTextActive]}>
-                  {dt.name}
+                <Text style={[styles.dropdownItemText, !selectedDoughType && styles.dropdownItemTextActive]}>
+                  All Dough Types
                 </Text>
-                {selectedDoughType === dt.id && <Ionicons name="checkmark" size={20} color="#8B4513" />}
+                {!selectedDoughType && <Ionicons name="checkmark" size={20} color="#8B4513" />}
               </TouchableOpacity>
-            ))}
+              {doughTypes.map((dt) => (
+                <TouchableOpacity
+                  key={dt.id}
+                  style={[styles.dropdownItem, selectedDoughType === dt.id && styles.dropdownItemActive]}
+                  onPress={() => {
+                    setSelectedDoughType(dt.id);
+                    setShowDoughTypeDropdown(false);
+                    setLoading(true);
+                  }}
+                >
+                  <Text style={[styles.dropdownItemText, selectedDoughType === dt.id && styles.dropdownItemTextActive]}>
+                    {dt.name}
+                  </Text>
+                  {selectedDoughType === dt.id && <Ionicons name="checkmark" size={20} color="#8B4513" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
