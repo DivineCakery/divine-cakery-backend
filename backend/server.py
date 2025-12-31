@@ -2112,6 +2112,20 @@ async def get_orders(
     # IST timezone for delivery date conversion
     ist = pytz.timezone('Asia/Kolkata')
     
+    # OPTIMIZATION: Batch fetch all users in ONE query instead of N queries
+    # Collect all unique user IDs from orders
+    user_ids_set = set()
+    for order in orders:
+        user_id = order.get("user_id") or order.get("customer_id")
+        if user_id:
+            user_ids_set.add(user_id)
+    
+    # Fetch all users in one query
+    users_map = {}
+    if user_ids_set:
+        users_list = await db.users.find({"id": {"$in": list(user_ids_set)}}).to_list(len(user_ids_set))
+        users_map = {u["id"]: u for u in users_list}
+    
     # Enrich orders with user information for admin view
     enriched_orders = []
     for order in orders:
@@ -2130,9 +2144,6 @@ async def get_orders(
                 order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
                 order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
                 # CRITICAL: Override delivery_date to be the IST date at noon UTC
-                # This ensures that when any app parses this datetime in any timezone,
-                # the DATE portion will always show the correct IST delivery date
-                # (noon UTC gives a buffer so even UTC-12 to UTC+14 timezones show same date)
                 order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
             elif isinstance(delivery_dt, str):
                 # If it's already a string, try to parse and convert
@@ -2154,10 +2165,10 @@ async def get_orders(
                     order_dict["delivery_date_ist"] = delivery_dt[:10] if len(delivery_dt) >= 10 else delivery_dt
                     order_dict["delivery_date_formatted"] = delivery_dt
         
-        # Fetch user information (handle both user_id and customer_id fields)
+        # Get user info from pre-fetched map (O(1) lookup instead of DB call)
         user_id = order_dict.get("user_id") or order_dict.get("customer_id")
         if user_id:
-            user = await db.users.find_one({"id": user_id})
+            user = users_map.get(user_id)
             if user:
                 order_dict["user_name"] = user.get("username", "N/A")
                 order_dict["user_phone"] = user.get("phone", None)
