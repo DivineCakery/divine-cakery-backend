@@ -439,47 +439,54 @@ export default function ReportsScreen() {
                     Total Items: {preparationList.total_items}
                   </Text>
                 </View>
-                {preparationList.items.map((item: any, index: number) => (
-                  <View key={item.product_id} style={styles.preparationCard}>
-                    <View style={styles.preparationRank}>
-                      <Text style={styles.preparationRankText}>#{index + 1}</Text>
-                    </View>
-                    <View style={styles.preparationDetails}>
-                      <Text style={styles.preparationProductName}>{item.product_name}</Text>
-                      {item.dough_type_name && (
-                        <View style={styles.doughTypeBadge}>
-                          <Ionicons name="disc" size={12} color="#FF9800" />
-                          <Text style={styles.doughTypeBadgeText}>{item.dough_type_name}</Text>
+                {preparationList.items.map((item: any, index: number) => {
+                  // Calculate Today's preparation: orders_today - last_closing_stock (min 0)
+                  const todayPrep = Math.max(0, item.orders_today - item.previous_closing_stock);
+                  // Calculate Tomorrow's preparation: orders_tomorrow - remaining after today
+                  // Remaining after today = last_closing_stock - orders_today (can be negative meaning deficit)
+                  const remainingAfterToday = item.previous_closing_stock - item.orders_today;
+                  const tomorrowPrep = Math.max(0, item.orders_tomorrow - Math.max(0, remainingAfterToday));
+                  
+                  return (
+                    <View key={item.product_id} style={styles.preparationCard}>
+                      <View style={styles.preparationContent}>
+                        <Text style={styles.preparationProductName}>{item.product_name}</Text>
+                        {item.dough_type_name && (
+                          <View style={styles.doughTypeBadge}>
+                            <Ionicons name="disc" size={12} color="#FF9800" />
+                            <Text style={styles.doughTypeBadgeText}>{item.dough_type_name}</Text>
+                          </View>
+                        )}
+                        <View style={styles.preparationStatsRow}>
+                          <View style={styles.preparationStatItem}>
+                            <Text style={styles.preparationStatLabel}>Closing Stock:</Text>
+                            <Text style={styles.preparationStatValue}>{item.previous_closing_stock}</Text>
+                          </View>
+                          <View style={styles.preparationStatItem}>
+                            <Text style={styles.preparationStatLabel}>Today Orders:</Text>
+                            <Text style={styles.preparationStatValue}>{item.orders_today}</Text>
+                          </View>
+                          <View style={styles.preparationStatItem}>
+                            <Text style={styles.preparationStatLabel}>Tomorrow Orders:</Text>
+                            <Text style={styles.preparationStatValue}>{item.orders_tomorrow}</Text>
+                          </View>
                         </View>
-                      )}
-                      <View style={styles.preparationStats}>
-                        <View style={styles.preparationStat}>
-                          <Text style={styles.preparationStatLabel}>Last Closing Stock:</Text>
-                          <Text style={styles.preparationStatValue}>{item.previous_closing_stock} {item.unit}</Text>
+                      </View>
+                      <View style={styles.preparationBoxes}>
+                        <View style={[styles.preparationBox, styles.preparationBoxToday]}>
+                          <Text style={styles.preparationBoxLabel}>Today</Text>
+                          <Text style={styles.preparationBoxValue}>{todayPrep}</Text>
+                          <Text style={styles.preparationBoxUnit}>{item.unit}</Text>
                         </View>
-                        <View style={styles.preparationStat}>
-                          <Text style={styles.preparationStatLabel}>Orders for Today:</Text>
-                          <Text style={styles.preparationStatValue}>{item.orders_today} {item.unit}</Text>
-                        </View>
-                        <View style={styles.preparationStat}>
-                          <Text style={styles.preparationStatLabel}>Orders for Tomorrow:</Text>
-                          <Text style={styles.preparationStatValue}>{item.orders_tomorrow} {item.unit}</Text>
-                        </View>
-                        <View style={styles.preparationStat}>
-                          <Text style={styles.preparationStatLabel}>Total Need:</Text>
-                          <Text style={[styles.preparationStatValue, styles.preparationStatBold]}>
-                            {item.total} {item.unit}
-                          </Text>
+                        <View style={[styles.preparationBox, styles.preparationBoxTomorrow]}>
+                          <Text style={styles.preparationBoxLabel}>Tomorrow</Text>
+                          <Text style={styles.preparationBoxValue}>{tomorrowPrep}</Text>
+                          <Text style={styles.preparationBoxUnit}>{item.unit}</Text>
                         </View>
                       </View>
                     </View>
-                    <View style={styles.preparationNeed}>
-                      <Text style={styles.preparationNeedValue}>{item.units_to_prepare}</Text>
-                      <Text style={styles.preparationNeedLabel}>{item.unit}</Text>
-                      <Text style={styles.preparationNeedLabel}>to prepare</Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </>
             ) : (
               <View style={styles.emptyState}>
