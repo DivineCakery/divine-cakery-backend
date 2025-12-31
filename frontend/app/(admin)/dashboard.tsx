@@ -19,7 +19,6 @@ import { showAlert } from '../../utils/alerts';
 export default function DashboardScreen() {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
-  const [dailyRevenue, setDailyRevenue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
@@ -49,7 +48,6 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     fetchStats();
-    fetchDailyRevenue();
     fetchPendingApprovals();
   }, []);
 
