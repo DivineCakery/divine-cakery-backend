@@ -8,6 +8,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Platform,
+  Modal,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +22,7 @@ export default function ReportsScreen() {
   const [preparationList, setPreparationList] = useState<any>(null);
   const [doughTypes, setDoughTypes] = useState<any[]>([]);
   const [selectedDoughType, setSelectedDoughType] = useState<string | null>(null);
+  const [showDoughTypeDropdown, setShowDoughTypeDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
