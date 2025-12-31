@@ -2389,6 +2389,94 @@ async def create_user_by_admin(
     return User(**user_dict)
 
 
+@api_router.put("/admin/users/{user_id}")
+async def update_user_by_admin(
+    user_id: str,
+    user_data: UserUpdate,
+    current_user: User = Depends(get_current_admin)
+):
+    """
+    Update user details by admin.
+    Superadmin can update role to admin.
+    """
+    # Find user
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent editing superadmin (Soman) unless you are superadmin yourself
+    if user.get("is_superadmin") and not current_user.is_superadmin:
+        raise HTTPException(status_code=403, detail="Cannot edit superadmin account")
+    
+    # Build update dict
+    update_data = {}
+    
+    if user_data.username is not None:
+        # Check if new username is taken
+        existing = await db.users.find_one({"username": user_data.username, "id": {"$ne": user_id}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already exists")
+        update_data["username"] = user_data.username
+    
+    if user_data.email is not None:
+        update_data["email"] = user_data.email
+    
+    if user_data.phone is not None:
+        update_data["phone"] = normalize_phone_number(user_data.phone) if user_data.phone else None
+    
+    if user_data.business_name is not None:
+        update_data["business_name"] = user_data.business_name
+    
+    if user_data.address is not None:
+        update_data["address"] = user_data.address
+    
+    if user_data.can_topup_wallet is not None:
+        update_data["can_topup_wallet"] = user_data.can_topup_wallet
+    
+    if user_data.onsite_pickup_only is not None:
+        update_data["onsite_pickup_only"] = user_data.onsite_pickup_only
+    
+    if user_data.delivery_charge_waived is not None:
+        update_data["delivery_charge_waived"] = user_data.delivery_charge_waived
+    
+    if user_data.is_active is not None:
+        update_data["is_active"] = user_data.is_active
+    
+    if user_data.user_type is not None:
+        update_data["user_type"] = user_data.user_type
+    
+    if user_data.admin_access_level is not None:
+        update_data["admin_access_level"] = user_data.admin_access_level
+    
+    # Only superadmin can change roles
+    if user_data.role is not None:
+        if user_data.role == UserRole.ADMIN:
+            # Check if current user is superadmin
+            if not current_user.is_superadmin:
+                raise HTTPException(status_code=403, detail="Only superadmin can create or modify admin users")
+        update_data["role"] = user_data.role
+    
+    # Handle password change
+    if user_data.new_password is not None and user_data.new_password.strip():
+        update_data["hashed_password"] = get_password_hash(user_data.new_password)
+        logger.info(f"Password changed for user {user_id} by admin {current_user.username}")
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    # Update user
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    # Fetch updated user
+    updated_user = await db.users.find_one({"id": user_id})
+    updated_user.pop('_id', None)
+    updated_user.pop('hashed_password', None)
+    
+    logger.info(f"User {user_id} updated by admin {current_user.username}: {list(update_data.keys())}")
+    
+    return User(**updated_user)
+
+
 @api_router.post("/admin/create-order-agent")
 async def create_order_agent(
     owner_id: str,
