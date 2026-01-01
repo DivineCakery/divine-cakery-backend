@@ -2068,14 +2068,21 @@ async def get_orders(
     delivery_date: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Get orders for the current user. Only shows orders from last 7 days."""
+    """Get orders for the current user. When filtering by delivery_date, show all orders for that date."""
     
-    # Filter: Only show orders from last 7 days for performance
+    # Filter: Only show orders from last 7 days for performance (unless filtering by delivery_date)
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    
+    # Check if we're filtering by delivery_date
+    filtering_by_delivery_date = delivery_date is not None
     
     # Build query based on user role and type
     if current_user.role == UserRole.ADMIN:
-        query = {"created_at": {"$gte": seven_days_ago}}  # Only last 7 days
+        # For admins: only apply created_at filter if NOT filtering by delivery_date
+        if filtering_by_delivery_date:
+            query = {}  # No created_at filter when filtering by delivery_date
+        else:
+            query = {"created_at": {"$gte": seven_days_ago}}  # Only last 7 days
     elif current_user.user_type == "owner":
         # Owner sees their own orders AND orders placed by their linked order agent
         user_ids = [current_user.id]
@@ -2083,16 +2090,22 @@ async def get_orders(
         linked_agent = await db.users.find_one({"linked_owner_id": current_user.id})
         if linked_agent:
             user_ids.append(linked_agent["id"])
-        query = {
-            "user_id": {"$in": user_ids},
-            "created_at": {"$gte": seven_days_ago}  # Only last 7 days
-        }
+        if filtering_by_delivery_date:
+            query = {"user_id": {"$in": user_ids}}  # No created_at filter
+        else:
+            query = {
+                "user_id": {"$in": user_ids},
+                "created_at": {"$gte": seven_days_ago}  # Only last 7 days
+            }
     else:
         # Order agent or regular customer sees only their own orders
-        query = {
-            "user_id": current_user.id,
-            "created_at": {"$gte": seven_days_ago}  # Only last 7 days
-        }
+        if filtering_by_delivery_date:
+            query = {"user_id": current_user.id}  # No created_at filter
+        else:
+            query = {
+                "user_id": current_user.id,
+                "created_at": {"$gte": seven_days_ago}  # Only last 7 days
+            }
     
     # Add delivery date filter if provided
     if delivery_date:
