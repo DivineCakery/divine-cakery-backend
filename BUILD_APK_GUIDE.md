@@ -250,7 +250,7 @@ Already configured and ready:
 App Name: Divine Cakery
 Package: com.divinecakery.app
 Version: 1.0.0
-Backend: https://doughtype-admin.preview.emergentagent.com
+Backend: https://order-tracker-231.preview.emergentagent.com
 Icons: ✅ Ready
 Splash Screen: ✅ Ready
 EAS Config: ✅ Ready

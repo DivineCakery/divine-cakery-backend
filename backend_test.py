@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 # Configuration
-BASE_URL = "https://doughtype-admin.preview.emergentagent.com/api"
+BASE_URL = "https://order-tracker-231.preview.emergentagent.com/api"
 ADMIN_USERNAME = "Kitchen"
 ADMIN_PASSWORD = "kitchen123"
 

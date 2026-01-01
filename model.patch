@@ -22,7 +22,7 @@ index 59f3c7ee..e69de29b 100644
 -+import uuid
 -+
 -+# Configuration
--+BACKEND_URL = "https://doughtype-admin.preview.emergentagent.com/api"
+-+BACKEND_URL = "https://order-tracker-231.preview.emergentagent.com/api"
 -+
 -+def create_test_customer():
 -+    """Create a test customer account"""
@@ -4388,7 +4388,7 @@ index 59f3c7ee..e69de29b 100644
 ----------------------------------------------------------------------------------------------------------------+## 🚀 Quick Start
 ----------------------------------------------------------------------------------------------------------------+
 ----------------------------------------------------------------------------------------------------------------+1. **Services**: Backend and Expo are already running
-----------------------------------------------------------------------------------------------------------------+2. **Access**: https://doughtype-admin.preview.emergentagent.com
+----------------------------------------------------------------------------------------------------------------+2. **Access**: https://order-tracker-231.preview.emergentagent.com
 ----------------------------------------------------------------------------------------------------------------+3. **Scan QR**: Use Expo Go app on mobile to scan QR code
 ----------------------------------------------------------------------------------------------------------------+
 ----------------------------------------------------------------------------------------------------------------+## 📦 Sample Data
@@ -4864,7 +4864,7 @@ index 59f3c7ee..e69de29b 100644
 -+import pytz
 -+
 -+# Configuration
--+BACKEND_URL = "https://doughtype-admin.preview.emergentagent.com/api"
+-+BACKEND_URL = "https://order-tracker-231.preview.emergentagent.com/api"
 -+
 -+def test_delivery_date_endpoint():
 -+    """Test GET /api/delivery-date endpoint (Public)"""
