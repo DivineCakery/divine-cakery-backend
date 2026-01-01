@@ -184,18 +184,44 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         return StandingOrder(**standing_order_dict)
     
     
-    @api_router.get("/admin/standing-orders", response_model=List[StandingOrder])
+    @api_router.get("/admin/standing-orders")
     async def get_standing_orders(
         status: Optional[StandingOrderStatus] = None,
         current_user: User = Depends(get_current_admin)
     ):
-        """Get all standing orders with optional status filter"""
+        """Get all standing orders with optional status filter, including generated orders"""
         query = {}
         if status:
             query["status"] = status
         
         standing_orders = await db.standing_orders.find(query).to_list(1000)
-        return [StandingOrder(**so) for so in standing_orders]
+        
+        # Enrich with generated orders for each standing order
+        enriched_orders = []
+        for so in standing_orders:
+            so_dict = dict(so)
+            so_dict.pop('_id', None)
+            
+            # Fetch generated orders for this standing order
+            generated = await db.orders.find({
+                "standing_order_id": so["id"]
+            }).sort("delivery_date", -1).to_list(50)  # Last 50 orders
+            
+            # Add generated orders summary
+            so_dict["generated_orders"] = [
+                {
+                    "order_id": o["id"],
+                    "order_number": o.get("order_number"),
+                    "delivery_date": o.get("delivery_date").isoformat() if o.get("delivery_date") else None,
+                    "status": o.get("order_status", "unknown"),
+                    "total_amount": o.get("total_amount", 0)
+                }
+                for o in generated
+            ]
+            
+            enriched_orders.append(so_dict)
+        
+        return enriched_orders
     
     
     @api_router.get("/admin/standing-orders/{standing_order_id}", response_model=StandingOrder)
