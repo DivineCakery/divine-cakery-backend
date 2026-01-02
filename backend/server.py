@@ -872,13 +872,15 @@ async def get_all_categories(
 ):
     """
     Get all categories. 
-    - For customers: Returns only non-admin categories
+    - For customers: Returns only non-admin product categories (excludes dough types)
     - For admins: Returns all categories including admin-only ones
     - category_type: Optional filter for "product_category" or "dough_type"
       - If "product_category": Returns categories where category_type is "product_category" OR not set (legacy)
       - If "dough_type": Returns only categories with category_type="dough_type"
     """
     query = {}
+    
+    is_admin = current_user and current_user.role == UserRole.ADMIN
     
     if category_type:
         if category_type == "product_category":
@@ -890,8 +892,13 @@ async def get_all_categories(
             ]
         else:
             query["category_type"] = category_type
+    else:
+        # No category_type specified
+        # For customers: exclude dough types by default (they're admin-only functionally)
+        if not is_admin:
+            query["category_type"] = {"$ne": "dough_type"}
     
-    if current_user and current_user.role == UserRole.ADMIN:
+    if is_admin:
         # Admin users see all categories
         categories = await db.categories.find(query).sort("display_order", 1).to_list(1000)
     else:
