@@ -2117,13 +2117,23 @@ async def get_orders(
     # Add delivery date filter if provided
     if delivery_date:
         try:
-            # Parse the date string
+            import pytz
+            ist = pytz.timezone('Asia/Kolkata')
+            
+            # Parse the date string (user sends date in IST context)
             filter_date = datetime.fromisoformat(delivery_date.replace('Z', '+00:00'))
-            # Create start and end of the delivery date
-            start_of_day = filter_date.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_of_day = filter_date.replace(hour=23, minute=59, second=59, microsecond=999999)
-            # Filter by delivery_date field (used by standing orders and regular orders)
-            query["delivery_date"] = {"$gte": start_of_day, "$lte": end_of_day}
+            
+            # Create IST start and end of the delivery date
+            # User selects "Dec 31" meaning Dec 31 in IST timezone
+            ist_start = ist.localize(datetime(filter_date.year, filter_date.month, filter_date.day, 0, 0, 0))
+            ist_end = ist.localize(datetime(filter_date.year, filter_date.month, filter_date.day, 23, 59, 59, 999999))
+            
+            # Convert to UTC for database query
+            utc_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
+            utc_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
+            
+            # Filter by delivery_date field in UTC
+            query["delivery_date"] = {"$gte": utc_start, "$lte": utc_end}
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format")
     
