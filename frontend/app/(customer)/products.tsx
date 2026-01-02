@@ -97,7 +97,8 @@ export default function ProductsScreen() {
 
   const fetchCategories = async () => {
     try {
-      const data = await apiService.getCategories();
+      // Only fetch product categories (exclude dough types which are admin-only)
+      const data = await apiService.getProductCategories();
       // Filter out admin-only categories for customers
       const customerCategories = data.filter((cat: any) => !cat.is_admin_only);
       setCategoriesData(customerCategories);
