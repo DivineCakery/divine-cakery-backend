@@ -2153,7 +2153,7 @@ async def get_orders(
         order.pop('_id', None)
         order_dict = dict(order)
         
-        # Convert delivery_date to IST date string for correct display on all app versions
+        # Add IST date strings for display (but DON'T modify the original delivery_date)
         if order_dict.get("delivery_date"):
             delivery_dt = order_dict["delivery_date"]
             # Check if it's a datetime object (not a string)
@@ -2163,10 +2163,10 @@ async def get_orders(
                 # Add formatted IST date string for display
                 order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
                 order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
-                # CRITICAL: Override delivery_date to be the IST date at noon UTC
-                order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
+                # Keep delivery_date as ISO string but preserve the original UTC time
+                order_dict["delivery_date"] = delivery_dt.isoformat() + "Z" if delivery_dt.tzinfo is None else delivery_dt.isoformat()
             elif isinstance(delivery_dt, str):
-                # If it's already a string, try to parse and convert
+                # If it's already a string, try to parse and add IST conversion
                 try:
                     # Try to parse ISO format string
                     if 'T' in delivery_dt:
@@ -2179,7 +2179,7 @@ async def get_orders(
                     delivery_ist = parsed_dt.astimezone(ist)
                     order_dict["delivery_date_ist"] = delivery_ist.strftime("%Y-%m-%d")
                     order_dict["delivery_date_formatted"] = delivery_ist.strftime("%A, %B %d, %Y")
-                    order_dict["delivery_date"] = f"{delivery_ist.strftime('%Y-%m-%d')}T12:00:00.000Z"
+                    # Keep the original delivery_date string unchanged
                 except:
                     # If parsing fails, just use the string as-is
                     order_dict["delivery_date_ist"] = delivery_dt[:10] if len(delivery_dt) >= 10 else delivery_dt
