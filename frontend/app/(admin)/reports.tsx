@@ -64,7 +64,11 @@ export default function ReportsScreen() {
 
     try {
       isFetchingRef.current = true;
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Format date in local timezone (YYYY-MM-DD) to avoid UTC conversion issues
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
       console.log(`🔄 Fetching reports for date: ${dateStr}, activeTab: ${activeTab}, doughType: ${selectedDoughType}`);
       if (activeTab === 'daily') {
         const data = await apiService.getDailyItemsReport(dateStr, selectedDoughType || undefined);
