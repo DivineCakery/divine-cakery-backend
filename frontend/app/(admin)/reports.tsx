@@ -35,7 +35,6 @@ export default function ReportsScreen() {
   
   // For reports-only users, default to preparation tab and don't allow daily items
   const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>(isReportsOnly ? 'preparation' : 'daily');
-  const isFetchingRef = React.useRef(false);
 
   // Fetch dough types on mount
   useEffect(() => {
