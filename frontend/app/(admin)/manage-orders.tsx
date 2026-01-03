@@ -61,7 +61,14 @@ export default function ManageOrdersScreen() {
 
   const fetchOrders = async () => {
     try {
-      const dateStr = selectedDate ? selectedDate.toISOString().split('T')[0] : undefined;
+      // Format date in local timezone (YYYY-MM-DD) to avoid UTC conversion issues
+      let dateStr: string | undefined;
+      if (selectedDate) {
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        dateStr = `${year}-${month}-${day}`;
+      }
       const data = await apiService.getOrders(dateStr);
       setOrders(data);
     } catch (error) {
