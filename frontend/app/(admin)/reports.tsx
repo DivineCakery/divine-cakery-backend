@@ -26,8 +26,15 @@ export default function ReportsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>('daily');
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
+  const isFetchingRef = React.useRef(false);
+  
+  // Check user access level
+  const accessLevel = user?.admin_access_level || 'full';
+  const isReportsOnly = accessLevel === 'reports';
+  
+  // For reports-only users, default to preparation tab and don't allow daily items
+  const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>(isReportsOnly ? 'preparation' : 'daily');
   const isFetchingRef = React.useRef(false);
 
   // Fetch dough types on mount
