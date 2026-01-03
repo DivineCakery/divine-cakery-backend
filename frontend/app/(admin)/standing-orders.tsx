@@ -234,9 +234,15 @@ export default function StandingOrdersScreen() {
           ? { days: selectedDays }
           : { days: parseInt(intervalDays) };
 
+      // Ensure all quantities are properly parsed as numbers before submission
+      const itemsWithParsedQuantities = selectedProducts.map(item => ({
+        ...item,
+        quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity
+      }));
+
       const standingOrderData = {
         customer_id: selectedCustomer,
-        items: selectedProducts,
+        items: itemsWithParsedQuantities,
         recurrence_type: recurrenceType,
         recurrence_config: recurrenceConfig,
         duration_type: durationType,
