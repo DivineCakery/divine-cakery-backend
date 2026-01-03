@@ -726,6 +726,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
   },
+  fullWidthTab: {
+    // When there's only one tab (reports-only users), make it look like a header
+    backgroundColor: '#8B4513',
+  },
   activeTab: {
     backgroundColor: '#8B4513',
   },
