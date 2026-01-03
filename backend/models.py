@@ -381,7 +381,7 @@ class AppVersionInfo(BaseModel):
 class StandingOrderItem(BaseModel):
     product_id: str
     product_name: str
-    quantity: int
+    quantity: float
     price: float
 
 
