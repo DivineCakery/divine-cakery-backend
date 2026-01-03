@@ -181,7 +181,8 @@ export default function StandingOrdersScreen() {
         price: product.price,
       };
     } else if (field === 'quantity') {
-      updated[index].quantity = parseInt(value) || 1;
+      // Allow decimal values (e.g., 0.5, 1.5)
+      updated[index].quantity = parseFloat(value) || 0;
     }
     setSelectedProducts(updated);
   };
