@@ -285,14 +285,14 @@ export default function ManageStockScreen() {
               style={styles.compactStockInput}
               value={tempStockValue}
               onChangeText={setTempStockValue}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
               autoFocus
               selectTextOnFocus
             />
             <TouchableOpacity
               style={styles.compactSaveButton}
               onPress={() => {
-                const newStock = parseInt(tempStockValue) || 0;
+                const newStock = parseFloat(tempStockValue) || 0;
                 if (newStock >= 0) {
                   updateClosingStock(item.id, newStock);
                 }
