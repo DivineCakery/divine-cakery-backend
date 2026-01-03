@@ -175,22 +175,24 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tab Selector */}
+      {/* Tab Selector - Hide Daily Items for reports-only users */}
       <View style={styles.tabContainer}>
+        {!isReportsOnly && (
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
+            onPress={() => {
+              setActiveTab('daily');
+              setLoading(true);
+            }}
+          >
+            <Ionicons name="calendar" size={20} color={activeTab === 'daily' ? '#fff' : '#8B4513'} />
+            <Text style={[styles.tabText, activeTab === 'daily' && styles.activeTabText]}>
+              Daily Items
+            </Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'daily' && styles.activeTab]}
-          onPress={() => {
-            setActiveTab('daily');
-            setLoading(true);
-          }}
-        >
-          <Ionicons name="calendar" size={20} color={activeTab === 'daily' ? '#fff' : '#8B4513'} />
-          <Text style={[styles.tabText, activeTab === 'daily' && styles.activeTabText]}>
-            Daily Items
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'preparation' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'preparation' && styles.activeTab, isReportsOnly && styles.fullWidthTab]}
           onPress={() => {
             setActiveTab('preparation');
             setLoading(true);
