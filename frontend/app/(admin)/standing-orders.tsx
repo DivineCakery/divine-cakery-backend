@@ -660,7 +660,7 @@ export default function StandingOrdersScreen() {
                   style={styles.quantityInput}
                   value={item.quantity.toString()}
                   onChangeText={(text) => updateProduct(index, 'quantity', text)}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="Qty"
                 />
                 <TouchableOpacity onPress={() => removeProduct(index)}>
