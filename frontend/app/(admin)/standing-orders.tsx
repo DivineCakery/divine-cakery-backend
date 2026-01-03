@@ -181,8 +181,14 @@ export default function StandingOrdersScreen() {
         price: product.price,
       };
     } else if (field === 'quantity') {
-      // Allow decimal values (e.g., 0.5, 1.5)
-      updated[index].quantity = parseFloat(value) || 0;
+      // Allow decimal values - store as string during editing, parse on blur/submit
+      // Handle empty string, partial decimals like "0." or "1."
+      if (value === '' || value === '.' || value.endsWith('.')) {
+        updated[index].quantity = value; // Keep as string temporarily
+      } else {
+        const parsed = parseFloat(value);
+        updated[index].quantity = isNaN(parsed) ? 0 : parsed;
+      }
     }
     setSelectedProducts(updated);
   };
