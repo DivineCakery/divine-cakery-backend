@@ -485,172 +485,200 @@ export default function ManageOrdersScreen() {
     });
   };
 
-  const renderOrder = ({ item, index }: any) => (
-    <View style={[
-      styles.orderCard,
-      index % 2 === 0 ? styles.orderCardEven : styles.orderCardOdd,
-      item.is_pay_later && styles.orderCardPayLater
-    ]}>
-      <View style={styles.orderHeader}>
-        <View style={styles.orderHeaderLeft}>
-          <Text style={styles.orderNumber}>Order #{item.order_number || item.id}</Text>
-          {item.is_pay_later && (
-            <View style={styles.payLaterBadge}>
-              <Ionicons name="time" size={12} color="#fff" />
-              <Text style={styles.payLaterBadgeText}>Pay Later</Text>
+  const renderOrder = ({ item, index }: any) => {
+    const isExpanded = expandedOrderId === item.id;
+    const statusColor = STATUS_COLORS[item.order_status || item.status || 'pending'] || '#999';
+    
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.orderCard,
+          styles.compactOrderCard,
+          index % 2 === 0 ? styles.orderCardEven : styles.orderCardOdd,
+          item.is_pay_later && styles.orderCardPayLater
+        ]}
+        onPress={() => setExpandedOrderId(isExpanded ? null : item.id)}
+        activeOpacity={0.7}
+      >
+        {/* Compact Header - Always Visible */}
+        <View style={styles.compactHeader}>
+          <View style={styles.compactHeaderLeft}>
+            <Text style={styles.compactOrderNumber}>#{item.order_number || item.id?.slice(-4)}</Text>
+            <Text style={styles.compactCustomerName}>{item.user_name || 'N/A'}</Text>
+            {item.is_pay_later && (
+              <View style={styles.compactPayLaterBadge}>
+                <Text style={styles.compactPayLaterText}>Pay Later</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.compactHeaderRight}>
+            <View style={[styles.compactStatusBadge, { backgroundColor: statusColor }]}>
+              <Text style={styles.compactStatusText}>
+                {(item.order_status || item.status || 'pending').toUpperCase()}
+              </Text>
             </View>
-          )}
-        </View>
-        <Text style={styles.orderAmount}>₹{(item.total_amount || 0).toFixed(2)}</Text>
-      </View>
-
-      {/* Order Type Display */}
-      <View style={styles.orderTypeDisplayContainer}>
-        <View style={[
-          styles.orderTypeDisplay, 
-          item.order_type === 'delivery' ? styles.orderTypeDelivery : styles.orderTypePickup
-        ]}>
-          <Ionicons 
-            name={item.order_type === 'delivery' ? 'bicycle' : 'basket'} 
-            size={18} 
-            color="#fff" 
-          />
-          <Text style={styles.orderTypeDisplayText}>
-            {item.order_type === 'delivery' ? 'DELIVERY' : 'PICKUP'}
-          </Text>
-        </View>
-      </View>
-
-      {/* Customer Information */}
-      <View style={styles.customerSection}>
-        <View style={styles.customerHeader}>
-          <View style={styles.customerTitleContainer}>
-            <Ionicons name="person-circle" size={20} color="#8B4513" />
-            <Text style={styles.customerTitle}>Customer</Text>
+            <Ionicons 
+              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
+              size={20} 
+              color="#8B4513" 
+            />
           </View>
-          <TouchableOpacity 
-            style={styles.editCustomerButton}
-            onPress={() => {
-              console.log('Edit button pressed for order:', item.id);
-              openCustomerEditor(item);
-            }}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="pencil" size={14} color="#8B4513" />
-            <Text style={styles.editCustomerText}>Edit</Text>
-          </TouchableOpacity>
         </View>
-        <Text style={styles.customerName}>{item.user_name || 'N/A'}</Text>
-        {item.delivery_address && (
-          <Text style={styles.customerAddress}>{item.delivery_address}</Text>
-        )}
-      </View>
 
-      {/* Items List */}
-      <View style={styles.itemsSection}>
-        <View style={styles.itemsHeader}>
-          <View style={styles.itemsTitleContainer}>
-            <Ionicons name="cart" size={18} color="#8B4513" />
-            <Text style={styles.itemsTitle}>Items Ordered</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.editOrderButton}
-            onPress={() => openOrderEditor(item)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="create-outline" size={16} color="#8B4513" />
-            <Text style={styles.editOrderText}>Edit Order</Text>
-          </TouchableOpacity>
-        </View>
-        {item.items && item.items.map((orderItem: any, index: number) => (
-          <View key={`${item.id}-item-${index}`} style={styles.itemRow}>
-            <View style={styles.itemInfo}>
-              <Text style={styles.itemName}>{orderItem.product_name}</Text>
-              <Text style={styles.itemQuantity}>Qty: {orderItem.quantity} × ₹{orderItem.price.toFixed(2)}</Text>
+        {/* Expanded Details - Only visible when expanded */}
+        {isExpanded && (
+          <View style={styles.expandedContent}>
+            {/* Order Amount & Type */}
+            <View style={styles.expandedRow}>
+              <Text style={styles.orderAmount}>₹{(item.total_amount || 0).toFixed(2)}</Text>
+              <View style={[
+                styles.orderTypeDisplay, 
+                item.order_type === 'delivery' ? styles.orderTypeDelivery : styles.orderTypePickup
+              ]}>
+                <Ionicons 
+                  name={item.order_type === 'delivery' ? 'bicycle' : 'basket'} 
+                  size={14} 
+                  color="#fff" 
+                />
+                <Text style={styles.orderTypeDisplayText}>
+                  {item.order_type === 'delivery' ? 'DELIVERY' : 'PICKUP'}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.itemTotal}>₹{(orderItem.subtotal || orderItem.quantity * orderItem.price).toFixed(2)}</Text>
-          </View>
-        ))}
-      </View>
 
-      <View style={styles.orderDetails}>
-        <Text style={styles.detailText}>Payment: {item.payment_method}</Text>
-        <Text style={styles.detailText}>Order Date: {new Date(item.created_at).toLocaleDateString('en-IN')}</Text>
-        <View style={styles.deliveryDateContainer}>
-          <Text style={styles.detailText}>
-            Delivery: {item.delivery_date_formatted || item.delivery_date_ist || (item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('en-IN') : 'Not set')}
-          </Text>
-          <TouchableOpacity 
-            style={styles.editDateButton}
-            onPress={() => openDeliveryDateEditor(item)}
-          >
-            <Ionicons name="calendar" size={16} color="#8B4513" />
-            <Text style={styles.editDateText}>Edit</Text>
-          </TouchableOpacity>
-        </View>
-        {item.notes && typeof item.notes === 'string' && item.notes.trim() !== '' && (
-          <View style={styles.notesContainer}>
-            <Ionicons name="document-text" size={16} color="#666" />
-            <Text style={styles.notesText}>Note: {item.notes}</Text>
-          </View>
-        )}
-      </View>
+            {/* Customer Information */}
+            <View style={styles.customerSection}>
+              <View style={styles.customerHeader}>
+                <View style={styles.customerTitleContainer}>
+                  <Ionicons name="person-circle" size={20} color="#8B4513" />
+                  <Text style={styles.customerTitle}>Customer</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.editCustomerButton}
+                  onPress={() => {
+                    console.log('Edit button pressed for order:', item.id);
+                    openCustomerEditor(item);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="pencil" size={14} color="#8B4513" />
+                  <Text style={styles.editCustomerText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.customerName}>{item.user_name || 'N/A'}</Text>
+              {item.delivery_address && (
+                <Text style={styles.customerAddress}>{item.delivery_address}</Text>
+              )}
+            </View>
 
-      <View style={styles.statusContainer}>
-        <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.order_status || item.status || 'pending'] || '#999' }]}>
-          <Text style={styles.statusText}>{(item.order_status || item.status || 'pending').toUpperCase()}</Text>
-        </View>
-        {item.standing_order_id && (
-          <TouchableOpacity
-            style={styles.deleteOccurrenceBtn}
-            onPress={() => handleDeleteStandingOrderOccurrence(item)}
-          >
-            <Ionicons name="trash-outline" size={18} color="#f44336" />
-            <Text style={styles.deleteOccurrenceText}>Delete</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            {/* Items List */}
+            <View style={styles.itemsSection}>
+              <View style={styles.itemsHeader}>
+                <View style={styles.itemsTitleContainer}>
+                  <Ionicons name="cart" size={18} color="#8B4513" />
+                  <Text style={styles.itemsTitle}>Items Ordered</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.editOrderButton}
+                  onPress={() => openOrderEditor(item)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="create-outline" size={16} color="#8B4513" />
+                  <Text style={styles.editOrderText}>Edit Order</Text>
+                </TouchableOpacity>
+              </View>
+              {item.items && item.items.map((orderItem: any, idx: number) => (
+                <View key={`${item.id}-item-${idx}`} style={styles.itemRow}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName}>{orderItem.product_name}</Text>
+                    <Text style={styles.itemQuantity}>Qty: {orderItem.quantity} × ₹{orderItem.price.toFixed(2)}</Text>
+                  </View>
+                  <Text style={styles.itemTotal}>₹{(orderItem.subtotal || orderItem.quantity * orderItem.price).toFixed(2)}</Text>
+                </View>
+              ))}
+            </View>
 
-      <View style={styles.actionButtons}>
-        {(item.order_status || item.status) === 'pending' && (
-          <>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.statusButton, styles.pendingButton]}
-              onPress={() => confirmOrder(item.id, item)}
-            >
-              <Ionicons name="time-outline" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Tap to Confirm</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.statusButton, styles.cancelButton]}
-              onPress={() => cancelOrder(item.id)}
-            >
-              <Ionicons name="close-circle" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </>
-        )}
-        {(item.order_status || item.status) === 'confirmed' && (
-          <View style={[styles.actionButton, styles.statusButton, styles.confirmedButton]}>
-            <Ionicons name="checkmark-circle" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Confirmed</Text>
+            <View style={styles.orderDetails}>
+              <Text style={styles.detailText}>Payment: {item.payment_method}</Text>
+              <Text style={styles.detailText}>Order Date: {new Date(item.created_at).toLocaleDateString('en-IN')}</Text>
+              <View style={styles.deliveryDateContainer}>
+                <Text style={styles.detailText}>
+                  Delivery: {item.delivery_date_formatted || item.delivery_date_ist || (item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('en-IN') : 'Not set')}
+                </Text>
+                <TouchableOpacity 
+                  style={styles.editDateButton}
+                  onPress={() => openDeliveryDateEditor(item)}
+                >
+                  <Ionicons name="calendar" size={16} color="#8B4513" />
+                  <Text style={styles.editDateText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+              {item.notes && typeof item.notes === 'string' && item.notes.trim() !== '' && (
+                <View style={styles.notesContainer}>
+                  <Ionicons name="document-text" size={16} color="#666" />
+                  <Text style={styles.notesText}>Note: {item.notes}</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.actionButtons}>
+              {(item.order_status || item.status) === 'pending' && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.statusButton, styles.pendingButton]}
+                    onPress={() => confirmOrder(item.id, item)}
+                  >
+                    <Ionicons name="time-outline" size={20} color="#fff" />
+                    <Text style={styles.actionButtonText}>Tap to Confirm</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.statusButton, styles.cancelButton]}
+                    onPress={() => cancelOrder(item.id)}
+                  >
+                    <Ionicons name="close-circle" size={20} color="#fff" />
+                    <Text style={styles.actionButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              {(item.order_status || item.status) === 'confirmed' && (
+                <View style={[styles.actionButton, styles.statusButton, styles.confirmedButton]}>
+                  <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Confirmed</Text>
+                </View>
+              )}
+              {(item.order_status || item.status) === 'processing' && (
+                <View style={[styles.actionButton, styles.statusButton, styles.processingButton]}>
+                  <Ionicons name="sync" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Processing</Text>
+                </View>
+              )}
+              {(item.order_status || item.status) === 'delivered' && (
+                <View style={[styles.actionButton, styles.statusButton, styles.deliveredButton]}>
+                  <Ionicons name="checkmark-done" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Delivered</Text>
+                </View>
+              )}
+              {(item.order_status || item.status) === 'cancelled' && (
+                <View style={[styles.actionButton, styles.statusButton, styles.cancelledButton]}>
+                  <Ionicons name="ban" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Cancelled</Text>
+                </View>
+              )}
+              {item.standing_order_id && (
+                <TouchableOpacity
+                  style={styles.deleteOccurrenceBtn}
+                  onPress={() => handleDeleteStandingOrderOccurrence(item)}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#f44336" />
+                  <Text style={styles.deleteOccurrenceText}>Delete</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         )}
-        {(item.order_status || item.status) === 'processing' && (
-          <View style={[styles.actionButton, styles.statusButton, styles.processingButton]}>
-            <Ionicons name="sync" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Processing</Text>
-          </View>
-        )}
-        {(item.order_status || item.status) === 'delivered' && (
-          <View style={[styles.actionButton, styles.statusButton, styles.deliveredButton]}>
-            <Ionicons name="checkmark-done" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Delivered</Text>
-          </View>
-        )}
-        {(item.order_status || item.status) === 'cancelled' && (
-          <View style={[styles.actionButton, styles.statusButton, styles.cancelledButton]}>
-            <Ionicons name="ban" size={20} color="#fff" />
+      </TouchableOpacity>
+    );
+  };
             <Text style={styles.actionButtonText}>Cancelled</Text>
           </View>
         )}
