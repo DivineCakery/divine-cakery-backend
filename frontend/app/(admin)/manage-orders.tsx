@@ -679,12 +679,6 @@ export default function ManageOrdersScreen() {
       </TouchableOpacity>
     );
   };
-            <Text style={styles.actionButtonText}>Cancelled</Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
 
   if (loading) {
     return (
