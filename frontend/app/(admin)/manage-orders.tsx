@@ -54,6 +54,9 @@ export default function ManageOrdersScreen() {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [showProductPicker, setShowProductPicker] = useState(false);
+  
+  // Expanded order state for compact view
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
