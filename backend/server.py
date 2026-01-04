@@ -2076,6 +2076,7 @@ async def get_orders(
     current_user: User = Depends(get_current_user)
 ):
     """Get orders for the current user. When filtering by delivery_date, show all orders for that date."""
+    import pytz
     
     # Filter: Only show orders from last 7 days for performance (unless filtering by delivery_date)
     seven_days_ago = datetime.utcnow() - timedelta(days=7)
