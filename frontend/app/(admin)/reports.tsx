@@ -34,7 +34,17 @@ export default function ReportsScreen() {
   const isReportsOnly = accessLevel === 'reports';
   
   // For reports-only users, default to preparation tab and don't allow daily items
-  const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>(isReportsOnly ? 'preparation' : 'daily');
+  const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>('preparation');
+  
+  // Update activeTab when user loads (and enforce preparation tab for reports-only users)
+  useEffect(() => {
+    if (isReportsOnly) {
+      setActiveTab('preparation');
+    } else if (activeTab === 'preparation' && !isReportsOnly) {
+      // For non-reports users, default to daily on first load
+      setActiveTab('daily');
+    }
+  }, [user?.admin_access_level]);
 
   // Fetch dough types on mount
   useEffect(() => {
