@@ -16,6 +16,8 @@ interface User {
   can_topup_wallet?: boolean;
   user_type?: 'owner' | 'order_agent';
   linked_owner_id?: string;
+  admin_access_level?: 'full' | 'limited' | 'reports';
+  is_superadmin?: boolean;
 }
 
 interface AuthState {
