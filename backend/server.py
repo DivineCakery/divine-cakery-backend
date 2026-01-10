@@ -77,6 +77,38 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ============ KEEP-ALIVE BACKGROUND TASK ============
+import asyncio
+import aiohttp
+
+KEEP_ALIVE_INTERVAL = 240  # Ping every 4 minutes
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://order-tracker-231.preview.emergentagent.com")
+
+async def keep_alive_task():
+    """Background task to keep the server alive by pinging the health endpoint"""
+    await asyncio.sleep(60)  # Wait 1 minute after startup before first ping
+    logger.info(f"[KEEP-ALIVE] Starting keep-alive service - pinging {BACKEND_URL}/api/health every {KEEP_ALIVE_INTERVAL} seconds")
+    
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{BACKEND_URL}/api/health", timeout=30) as response:
+                    if response.status == 200:
+                        logger.info(f"[KEEP-ALIVE] Health ping OK at {datetime.now()}")
+                    else:
+                        logger.warning(f"[KEEP-ALIVE] Health ping returned status {response.status}")
+        except Exception as e:
+            logger.error(f"[KEEP-ALIVE] Health ping failed: {e}")
+        
+        await asyncio.sleep(KEEP_ALIVE_INTERVAL)
+
+@app.on_event("startup")
+async def start_keep_alive():
+    """Start the keep-alive background task on server startup"""
+    asyncio.create_task(keep_alive_task())
+    logger.info("[KEEP-ALIVE] Background keep-alive task scheduled")
+# ====================================================
+
 
 # Helper function to compress base64 images
 def compress_base64_image(base64_string: str, max_width: int = 800, quality: int = 70) -> str:
