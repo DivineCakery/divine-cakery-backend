@@ -36,9 +36,9 @@ next-env.d.ts
 dist/
 build/
 
-# Environment files
-*.env
-*.env.*
+# Environment files - keep base .env tracked for Emergent deployment
+# *.env
+# *.env.*
 *.env.local
 *token.json*
 *credentials.json*
