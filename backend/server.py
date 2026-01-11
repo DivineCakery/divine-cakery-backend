@@ -1672,123 +1672,182 @@ async def create_payment_order(
 async def payment_webhook(request: Request):
     """
     Razorpay webhook endpoint - receives payment notifications from Razorpay
-    This is the proper way to handle payment confirmations
+    This handles all payment-related events including:
+    - payment_link.paid (payment link payments)
+    - payment.captured (direct payments)
+    - payment.authorized (authorized payments)
+    - order.paid (order-based payments)
     """
     try:
         # Get webhook payload
         payload = await request.json()
-        logger.info(f"Webhook received: {payload.get('event', 'unknown event')}")
-        
         event = payload.get("event")
-        payment_entity = payload.get("payload", {}).get("payment_link", {}).get("entity", {})
+        logger.info(f"Webhook received: {event}")
+        logger.info(f"Webhook payload: {str(payload)[:1000]}")  # Log first 1000 chars for debugging
+        
+        # Extract payment info based on event type
+        payment_link_id = None
+        payment_id = None
+        amount = 0
+        notes = {}
         
         if event == "payment_link.paid":
+            # Payment link event
+            payment_entity = payload.get("payload", {}).get("payment_link", {}).get("entity", {})
             payment_link_id = payment_entity.get("id")
-            reference_id = payment_entity.get("reference_id")
-            amount = payment_entity.get("amount", 0) / 100  # Convert from paise
+            amount = payment_entity.get("amount", 0) / 100
+            notes = payment_entity.get("notes", {})
+            logger.info(f"Payment link paid: link_id={payment_link_id}, amount={amount}")
             
-            logger.info(f"Payment link paid: link_id={payment_link_id}, reference_id={reference_id}, amount={amount}")
+        elif event in ["payment.captured", "payment.authorized"]:
+            # Direct payment event
+            payment_entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
+            payment_id = payment_entity.get("id")
+            amount = payment_entity.get("amount", 0) / 100
+            notes = payment_entity.get("notes", {})
+            # Try to get payment link ID from notes or order_id
+            payment_link_id = notes.get("payment_link_id") or payment_entity.get("order_id")
+            logger.info(f"Payment {event}: payment_id={payment_id}, amount={amount}, notes={notes}")
             
-            # Find transaction by payment link ID or reference ID
+        elif event == "order.paid":
+            # Order paid event
+            order_entity = payload.get("payload", {}).get("order", {}).get("entity", {})
+            payment_link_id = order_entity.get("id")
+            amount = order_entity.get("amount", 0) / 100
+            notes = order_entity.get("notes", {})
+            logger.info(f"Order paid: order_id={payment_link_id}, amount={amount}")
+            
+        else:
+            logger.info(f"Unhandled webhook event type: {event}")
+            return {"status": "ok", "message": "Event received"}
+        
+        # Find transaction by payment link ID, payment ID, or notes
+        transaction = None
+        
+        # Try to find by payment_link_id
+        if payment_link_id:
             transaction = await db.transactions.find_one({
                 "$or": [
                     {"razorpay_payment_link_id": payment_link_id},
-                    {"id": reference_id}
+                    {"razorpay_order_id": payment_link_id},
+                    {"id": notes.get("reference_id")}
                 ]
             })
+        
+        # If not found, try by amount and user_id from notes
+        if not transaction and notes.get("user_id"):
+            # Find most recent pending transaction for this user with matching amount
+            transaction = await db.transactions.find_one({
+                "user_id": notes.get("user_id"),
+                "status": "pending",
+                "amount": amount
+            }, sort=[("created_at", -1)])
+        
+        if not transaction:
+            logger.error(f"Transaction not found for payment: link_id={payment_link_id}, payment_id={payment_id}, notes={notes}")
+            # Log all pending transactions for debugging
+            pending = await db.transactions.find({"status": "pending"}).to_list(10)
+            logger.error(f"Recent pending transactions: {[{'id': t['id'], 'amount': t['amount'], 'user_id': t['user_id']} for t in pending]}")
+            return {"status": "error", "message": "Transaction not found"}
+        
+        logger.info(f"Found transaction: id={transaction['id']}, type={transaction['transaction_type']}")
+        
+        # Check if already processed
+        if transaction.get("status") == "success":
+            logger.info(f"Transaction {transaction['id']} already processed, skipping")
+            return {"status": "ok", "message": "Already processed"}
+        
+        # Update transaction status
+        await db.transactions.update_one(
+            {"id": transaction["id"]},
+            {
+                "$set": {
+                    "razorpay_payment_link_id": payment_link_id,
+                    "razorpay_payment_id": payment_id,
+                    "status": TransactionStatus.SUCCESS,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        
+        # Handle different transaction types
+        if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
+            user_id = transaction["user_id"]
+            amount = transaction["amount"]
             
-            if not transaction:
-                logger.error(f"Transaction not found for payment_link_id: {payment_link_id}")
-                return {"status": "error", "message": "Transaction not found"}
-            
-            # Update transaction status
-            await db.transactions.update_one(
-                {"id": transaction["id"]},
+            # Update wallet balance
+            await db.wallets.update_one(
+                {"user_id": user_id},
                 {
-                    "$set": {
-                        "razorpay_payment_link_id": payment_link_id,
-                        "status": TransactionStatus.SUCCESS,
-                        "updated_at": datetime.utcnow()
-                    }
+                    "$inc": {"balance": amount},
+                    "$set": {"updated_at": datetime.utcnow()}
                 }
             )
             
-            # Handle different transaction types
-            if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
-                user_id = transaction["user_id"]
-                amount = transaction["amount"]
-                
-                # Update wallet balance
-                await db.wallets.update_one(
-                    {"user_id": user_id},
-                    {
-                        "$inc": {"balance": amount},
-                        "$set": {"updated_at": datetime.utcnow()}
-                    }
-                )
-                
-                # Update user's wallet balance
-                await db.users.update_one(
-                    {"id": user_id},
-                    {"$inc": {"wallet_balance": amount}}
-                )
-                
-                logger.info(f"✅ Wallet updated successfully: user_id={user_id}, amount={amount}")
+            # Update user's wallet balance
+            await db.users.update_one(
+                {"id": user_id},
+                {"$inc": {"wallet_balance": amount}}
+            )
             
-            elif transaction["transaction_type"] == TransactionType.ORDER_PAYMENT:
-                # Create the order after successful payment
-                order_data = transaction.get("notes", {}).get("order_data")
-                
-                if order_data:
-                    # Generate order number
-                    order_number = await generate_order_number()
-                    order_id = str(uuid.uuid4())
-                    
-                    # Calculate delivery date using backend logic (IST timezone)
-                    # This ensures consistent delivery date calculation regardless of customer's device timezone
-                    delivery_date = calculate_delivery_date()
-                    
-                    # Create order document
-                    order_dict = {
-                        "id": order_id,
-                        "order_number": order_number,
-                        "customer_id": order_data.get("customer_id"),  # Primary field
-                        "user_id": order_data.get("customer_id"),  # Backward compatibility
-                        "items": order_data["items"],
-                        "total_amount": order_data["total_amount"],
-                        "delivery_date": delivery_date,  # Always use backend-calculated date
-                        "delivery_address": order_data.get("delivery_address"),
-                        "delivery_notes": order_data.get("delivery_notes"),
-                        "notes": order_data.get("notes"),
-                        "order_type": order_data.get("order_type", "delivery"),  # Use order_type instead of onsite_pickup
-                        "payment_method": order_data.get("payment_method", "razorpay"),
-                        "payment_status": "paid",
-                        "order_status": OrderStatus.PENDING,
-                        "created_at": datetime.utcnow(),
-                        "updated_at": datetime.utcnow()
-                    }
-                    
-                    # Insert order
-                    await db.orders.insert_one(order_dict)
-                    
-                    # Mark transaction as having created an order
-                    await db.transactions.update_one(
-                        {"id": transaction["id"]},
-                        {"$set": {"order_created": True, "order_id": order_id}}
-                    )
-                    
-                    logger.info(f"✅ Order created successfully after payment: order_id={order_id}, order_number={order_number}, customer_id={order_data['customer_id']}")
-                else:
-                    logger.error("Order data not found in transaction notes")
-            
-            return {"status": "success", "message": "Payment processed"}
+            logger.info(f"✅ Wallet updated successfully: user_id={user_id}, amount={amount}")
         
-        else:
-            logger.info(f"Unhandled webhook event: {event}")
-            return {"status": "ok", "message": "Event received"}
+        elif transaction["transaction_type"] == TransactionType.ORDER_PAYMENT:
+            # Create the order after successful payment
+            order_data = transaction.get("notes", {}).get("order_data")
+            
+            if order_data:
+                # Check if order already created
+                if transaction.get("order_created"):
+                    logger.info(f"Order already created for transaction {transaction['id']}")
+                    return {"status": "ok", "message": "Order already created"}
+                
+                # Generate order number
+                order_number = await generate_order_number()
+                order_id = str(uuid.uuid4())
+                
+                # Calculate delivery date using backend logic (IST timezone)
+                delivery_date = calculate_delivery_date()
+                
+                # Create order document
+                order_dict = {
+                    "id": order_id,
+                    "order_number": order_number,
+                    "customer_id": order_data.get("customer_id"),
+                    "user_id": order_data.get("customer_id"),
+                    "items": order_data["items"],
+                    "total_amount": order_data["total_amount"],
+                    "delivery_date": delivery_date,
+                    "delivery_address": order_data.get("delivery_address"),
+                    "delivery_notes": order_data.get("delivery_notes"),
+                    "notes": order_data.get("notes"),
+                    "order_type": order_data.get("order_type", "delivery"),
+                    "payment_method": order_data.get("payment_method", "razorpay"),
+                    "payment_status": "paid",
+                    "order_status": OrderStatus.PENDING,
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                
+                # Insert order
+                await db.orders.insert_one(order_dict)
+                
+                # Mark transaction as having created an order
+                await db.transactions.update_one(
+                    {"id": transaction["id"]},
+                    {"$set": {"order_created": True, "order_id": order_id}}
+                )
+                
+                logger.info(f"✅ Order created successfully after payment: order_id={order_id}, order_number={order_number}")
+            else:
+                logger.error(f"Order data not found in transaction notes. Transaction notes: {transaction.get('notes')}")
+        
+        return {"status": "success", "message": "Payment processed"}
     
     except Exception as e:
         logger.error(f"Error processing webhook: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         return {"status": "error", "message": str(e)}
 
 
