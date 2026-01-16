@@ -1,28 +1,37 @@
 #!/usr/bin/env python3
 """
-Backend Test Suite for Divine Cakery - Edit Standing Order Propagation Feature
-Testing the FIXED import issue and items/quantity change propagation
+Backend Test Suite for Edit Standing Order Propagation Feature
+Tests the FIXED "Edit Standing Order" propagation feature after removing duplicate code.
 """
 
-import requests
+import asyncio
+import aiohttp
 import json
-import time
+import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
-# Configuration
-BACKEND_URL = "https://divine-cakery-backend.onrender.com/api"
-ADMIN_CREDENTIALS = {
-    "username": "testadmin",
-    "password": "admin123"
-}
+# Get backend URL from environment
+BACKEND_URL = "https://stanorder-update.preview.emergentagent.com/api"
+
+# Admin credentials
+ADMIN_USERNAME = "testadmin"
+ADMIN_PASSWORD = "admin123"
 
 class BackendTester:
     def __init__(self):
-        self.session = requests.Session()
+        self.session = None
         self.admin_token = None
         self.test_results = []
         
+    async def __aenter__(self):
+        self.session = aiohttp.ClientSession()
+        return self
+        
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+    
     def log_result(self, test_name: str, success: bool, message: str, details: Dict = None):
         """Log test result"""
         result = {
@@ -33,559 +42,425 @@ class BackendTester:
             "timestamp": datetime.now().isoformat()
         }
         self.test_results.append(result)
-        
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name}")
-        print(f"   {message}")
+        print(f"{status}: {test_name} - {message}")
         if details:
-            print(f"   Details: {details}")
-        print()
-        
-    def authenticate_admin(self) -> bool:
+            print(f"   Details: {json.dumps(details, indent=2)}")
+    
+    async def authenticate_admin(self) -> bool:
         """Authenticate as admin and get token"""
         try:
-            response = self.session.post(
-                f"{BACKEND_URL}/auth/login",
-                json=ADMIN_CREDENTIALS,
-                timeout=30
-            )
+            login_data = {
+                "username": ADMIN_USERNAME,
+                "password": ADMIN_PASSWORD
+            }
             
-            if response.status_code == 200:
-                data = response.json()
-                self.admin_token = data["access_token"]
-                self.session.headers.update({
-                    "Authorization": f"Bearer {self.admin_token}"
-                })
-                self.log_result(
-                    "Admin Authentication",
-                    True,
-                    f"Successfully authenticated as {ADMIN_CREDENTIALS['username']}"
-                )
-                return True
-            else:
-                self.log_result(
-                    "Admin Authentication",
-                    False,
-                    f"Authentication failed: {response.status_code} - {response.text}"
-                )
-                return False
-                
+            async with self.session.post(f"{BACKEND_URL}/auth/login", json=login_data) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    self.admin_token = data["access_token"]
+                    self.log_result("Admin Authentication", True, "Successfully authenticated as admin")
+                    return True
+                else:
+                    error_text = await response.text()
+                    self.log_result("Admin Authentication", False, f"Failed to authenticate: {response.status} - {error_text}")
+                    return False
         except Exception as e:
-            self.log_result(
-                "Admin Authentication",
-                False,
-                f"Authentication error: {str(e)}"
-            )
+            self.log_result("Admin Authentication", False, f"Authentication error: {str(e)}")
             return False
     
-    def get_test_customer(self) -> Dict:
-        """Get or create a test customer for standing orders"""
+    def get_auth_headers(self) -> Dict[str, str]:
+        """Get authorization headers"""
+        return {"Authorization": f"Bearer {self.admin_token}"}
+    
+    async def create_test_customer(self) -> str:
+        """Create a test customer for standing orders"""
         try:
-            # Get all users to find a customer
-            response = self.session.get(f"{BACKEND_URL}/admin/users", timeout=30)
+            customer_data = {
+                "username": f"testcustomer_{int(datetime.now().timestamp())}",
+                "email": f"test_{int(datetime.now().timestamp())}@example.com",
+                "phone": "+919876543210",
+                "business_name": "Test Bakery Business",
+                "address": "123 Test Street, Test City",
+                "role": "customer",
+                "is_approved": True,
+                "can_topup_wallet": True,
+                "user_type": "owner"
+            }
             
-            if response.status_code == 200:
-                users = response.json()
-                customers = [u for u in users if u.get("role") == "customer"]
-                
-                if customers:
-                    customer = customers[0]
-                    self.log_result(
-                        "Get Test Customer",
-                        True,
-                        f"Found test customer: {customer.get('username')} (ID: {customer.get('id')})"
-                    )
-                    return customer
+            async with self.session.post(
+                f"{BACKEND_URL}/admin/users",
+                json=customer_data,
+                headers=self.get_auth_headers()
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    customer_id = data["id"]
+                    self.log_result("Create Test Customer", True, f"Created customer with ID: {customer_id}")
+                    return customer_id
                 else:
-                    self.log_result(
-                        "Get Test Customer",
-                        False,
-                        "No customers found in database"
-                    )
+                    error_text = await response.text()
+                    self.log_result("Create Test Customer", False, f"Failed to create customer: {response.status} - {error_text}")
                     return None
-            else:
-                self.log_result(
-                    "Get Test Customer",
-                    False,
-                    f"Failed to get users: {response.status_code}"
-                )
-                return None
-                
         except Exception as e:
-            self.log_result(
-                "Get Test Customer",
-                False,
-                f"Error getting test customer: {str(e)}"
-            )
+            self.log_result("Create Test Customer", False, f"Error creating customer: {str(e)}")
             return None
     
-    def get_test_products(self) -> List[Dict]:
-        """Get test products for standing order items"""
+    async def create_test_standing_order(self, customer_id: str) -> str:
+        """Create a test standing order with specific items"""
         try:
-            response = self.session.get(f"{BACKEND_URL}/products", timeout=30)
-            
-            if response.status_code == 200:
-                products = response.json()
-                # Get first 3 products for testing
-                test_products = products[:3] if len(products) >= 3 else products
-                
-                self.log_result(
-                    "Get Test Products",
-                    True,
-                    f"Found {len(test_products)} test products"
-                )
-                return test_products
-            else:
-                self.log_result(
-                    "Get Test Products",
-                    False,
-                    f"Failed to get products: {response.status_code}"
-                )
-                return []
-                
-        except Exception as e:
-            self.log_result(
-                "Get Test Products",
-                False,
-                f"Error getting test products: {str(e)}"
-            )
-            return []
-    
-    def create_test_standing_order(self, customer: Dict, products: List[Dict]) -> Dict:
-        """Create a test standing order with initial quantities"""
-        try:
-            # Create items with initial quantities [2, 3, 4]
-            items = []
-            initial_quantities = [2, 3, 4]
-            
-            for i, product in enumerate(products[:3]):
-                items.append({
-                    "product_id": product["id"],
-                    "product_name": product["name"],
-                    "quantity": initial_quantities[i],
-                    "price": float(product.get("price", 100))
-                })
-            
             standing_order_data = {
-                "customer_id": customer["id"],
-                "items": items,
+                "customer_id": customer_id,
+                "items": [
+                    {
+                        "product_id": "test_product_1",
+                        "product_name": "Test Bread Loaf",
+                        "quantity": 5,
+                        "price": 25.0
+                    },
+                    {
+                        "product_id": "test_product_2", 
+                        "product_name": "Test Burger Buns",
+                        "quantity": 10,
+                        "price": 15.0
+                    }
+                ],
                 "recurrence_type": "weekly_days",
-                "recurrence_config": {"days": [0, 2, 4]},  # Mon, Wed, Fri
+                "recurrence_config": {
+                    "days": [0, 2, 4]  # Monday, Wednesday, Friday
+                },
                 "duration_type": "indefinite",
                 "notes": "Test standing order for propagation testing"
             }
             
-            response = self.session.post(
+            async with self.session.post(
                 f"{BACKEND_URL}/admin/standing-orders",
                 json=standing_order_data,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                standing_order = response.json()
-                self.log_result(
-                    "Create Test Standing Order",
-                    True,
-                    f"Created standing order {standing_order['id']} with initial quantities {initial_quantities}",
-                    {"standing_order_id": standing_order["id"], "items": items}
-                )
-                return standing_order
-            else:
-                self.log_result(
-                    "Create Test Standing Order",
-                    False,
-                    f"Failed to create standing order: {response.status_code} - {response.text}"
-                )
-                return None
-                
+                headers=self.get_auth_headers()
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    standing_order_id = data["id"]
+                    self.log_result("Create Test Standing Order", True, f"Created standing order with ID: {standing_order_id}")
+                    return standing_order_id
+                else:
+                    error_text = await response.text()
+                    self.log_result("Create Test Standing Order", False, f"Failed to create standing order: {response.status} - {error_text}")
+                    return None
         except Exception as e:
-            self.log_result(
-                "Create Test Standing Order",
-                False,
-                f"Error creating standing order: {str(e)}"
-            )
+            self.log_result("Create Test Standing Order", False, f"Error creating standing order: {str(e)}")
             return None
     
-    def get_generated_orders(self, standing_order_id: str) -> List[Dict]:
-        """Get all orders generated from a standing order"""
+    async def get_standing_order_with_generated_orders(self, standing_order_id: str) -> Dict:
+        """Get standing order details with generated orders"""
         try:
-            response = self.session.get(
+            # Get standing order details
+            async with self.session.get(
+                f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}",
+                headers=self.get_auth_headers()
+            ) as response:
+                if response.status == 200:
+                    standing_order = await response.json()
+                else:
+                    return None
+            
+            # Get generated orders
+            async with self.session.get(
                 f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}/generated-orders",
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                orders = response.json()
-                self.log_result(
-                    "Get Generated Orders",
-                    True,
-                    f"Found {len(orders)} generated orders for standing order {standing_order_id}"
-                )
-                return orders
-            else:
-                self.log_result(
-                    "Get Generated Orders",
-                    False,
-                    f"Failed to get generated orders: {response.status_code}"
-                )
-                return []
-                
+                headers=self.get_auth_headers()
+            ) as response:
+                if response.status == 200:
+                    generated_orders = await response.json()
+                    standing_order["generated_orders"] = generated_orders
+                    return standing_order
+                else:
+                    return None
         except Exception as e:
-            self.log_result(
-                "Get Generated Orders",
-                False,
-                f"Error getting generated orders: {str(e)}"
-            )
-            return []
+            self.log_result("Get Standing Order", False, f"Error getting standing order: {str(e)}")
+            return None
     
-    def update_standing_order_items(self, standing_order_id: str, products: List[Dict]) -> Dict:
-        """Update standing order items with new quantities [5, 6, 3]"""
+    async def update_standing_order_items(self, standing_order_id: str, new_items: List[Dict]) -> Dict:
+        """Update standing order items and return response"""
         try:
-            # Create items with NEW quantities [5, 6, 3]
-            new_items = []
-            new_quantities = [5, 6, 3]
-            
-            for i, product in enumerate(products[:3]):
-                new_items.append({
-                    "product_id": product["id"],
-                    "product_name": product["name"],
-                    "quantity": new_quantities[i],
-                    "price": float(product.get("price", 100))
-                })
-            
             update_data = {
                 "items": new_items
             }
             
-            response = self.session.put(
+            async with self.session.put(
                 f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}",
                 json=update_data,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                updated_standing_order = response.json()
-                self.log_result(
-                    "Update Standing Order Items",
-                    True,
-                    f"Updated standing order {standing_order_id} with new quantities {new_quantities}",
-                    {"new_items": new_items}
-                )
-                return updated_standing_order
-            else:
-                self.log_result(
-                    "Update Standing Order Items",
-                    False,
-                    f"Failed to update standing order: {response.status_code} - {response.text}"
-                )
-                return None
-                
+                headers=self.get_auth_headers()
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    self.log_result("Update Standing Order Items", True, "Successfully updated standing order items")
+                    return data
+                else:
+                    error_text = await response.text()
+                    self.log_result("Update Standing Order Items", False, f"Failed to update: {response.status} - {error_text}")
+                    return None
         except Exception as e:
-            self.log_result(
-                "Update Standing Order Items",
-                False,
-                f"Error updating standing order: {str(e)}"
-            )
+            self.log_result("Update Standing Order Items", False, f"Error updating standing order: {str(e)}")
             return None
     
-    def verify_debug_info(self, standing_order_id: str) -> bool:
-        """Verify that debug_info shows update was executed"""
-        try:
-            response = self.session.get(
-                f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}",
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                standing_order = response.json()
-                debug_info = standing_order.get("debug_info", {})
-                
-                # Check for required debug info fields
-                update_logic_executed = debug_info.get("update_logic_executed")
-                orders_found = debug_info.get("orders_found")
-                orders_updated = debug_info.get("orders_updated")
-                
-                success = (
-                    update_logic_executed == "items_change" and
-                    orders_found is not None and
-                    orders_updated is not None
-                )
-                
-                if success:
-                    self.log_result(
-                        "Verify Debug Info",
-                        True,
-                        f"Debug info confirms update executed: {update_logic_executed}, found {orders_found} orders, updated {orders_updated}",
-                        debug_info
-                    )
-                else:
-                    self.log_result(
-                        "Verify Debug Info",
-                        False,
-                        f"Debug info missing or incorrect: {debug_info}",
-                        debug_info
-                    )
-                
-                return success
-            else:
-                self.log_result(
-                    "Verify Debug Info",
-                    False,
-                    f"Failed to get standing order: {response.status_code}"
-                )
-                return False
-                
-        except Exception as e:
-            self.log_result(
-                "Verify Debug Info",
-                False,
-                f"Error verifying debug info: {str(e)}"
-            )
+    async def test_items_quantity_change_propagation(self):
+        """Test Scenario 1: Items/Quantity Change Propagation"""
+        print("\n🔍 Testing Items/Quantity Change Propagation...")
+        
+        # Step 1: Create test customer
+        customer_id = await self.create_test_customer()
+        if not customer_id:
             return False
-    
-    def verify_order_propagation(self, standing_order_id: str, expected_quantities: List[int]) -> bool:
-        """Verify that generated orders have the updated quantities"""
-        try:
-            orders = self.get_generated_orders(standing_order_id)
+        
+        # Step 2: Create test standing order
+        standing_order_id = await self.create_test_standing_order(customer_id)
+        if not standing_order_id:
+            return False
+        
+        # Step 3: Wait a moment for orders to be generated
+        await asyncio.sleep(2)
+        
+        # Step 4: Get initial standing order with generated orders
+        initial_data = await self.get_standing_order_with_generated_orders(standing_order_id)
+        if not initial_data:
+            self.log_result("Get Initial Data", False, "Failed to get initial standing order data")
+            return False
+        
+        initial_orders = initial_data.get("generated_orders", [])
+        self.log_result("Initial Generated Orders", True, f"Found {len(initial_orders)} generated orders")
+        
+        # Log initial quantities for verification
+        if initial_orders:
+            first_order = initial_orders[0]
+            initial_quantities = [item["quantity"] for item in first_order.get("items", [])]
+            self.log_result("Initial Quantities", True, f"Initial quantities: {initial_quantities}")
+        
+        # Step 5: Update standing order with new quantities (clearly different)
+        new_items = [
+            {
+                "product_id": "test_product_1",
+                "product_name": "Test Bread Loaf",
+                "quantity": 15,  # Changed from 5 to 15 (+10)
+                "price": 25.0
+            },
+            {
+                "product_id": "test_product_2",
+                "product_name": "Test Burger Buns", 
+                "quantity": 20,  # Changed from 10 to 20 (+10)
+                "price": 15.0
+            }
+        ]
+        
+        updated_standing_order = await self.update_standing_order_items(standing_order_id, new_items)
+        if not updated_standing_order:
+            return False
+        
+        # Step 6: Wait for propagation to complete
+        await asyncio.sleep(3)
+        
+        # Step 7: Verify debug_info contains expected fields
+        debug_info = updated_standing_order.get("debug_info", {})
+        expected_debug_fields = {
+            "function_called": True,
+            "items_changed": True,
+            "update_logic_executed": "items_change"
+        }
+        
+        debug_success = True
+        for field, expected_value in expected_debug_fields.items():
+            if debug_info.get(field) != expected_value:
+                self.log_result(f"Debug Info - {field}", False, f"Expected {expected_value}, got {debug_info.get(field)}")
+                debug_success = False
+            else:
+                self.log_result(f"Debug Info - {field}", True, f"Correct value: {expected_value}")
+        
+        # Check orders_found and orders_updated
+        orders_found = debug_info.get("orders_found", 0)
+        orders_updated = debug_info.get("orders_updated", 0)
+        
+        if orders_found > 0:
+            self.log_result("Debug Info - orders_found", True, f"Found {orders_found} orders to update")
+        else:
+            self.log_result("Debug Info - orders_found", False, f"No orders found to update: {orders_found}")
+            debug_success = False
+        
+        if orders_updated > 0:
+            self.log_result("Debug Info - orders_updated", True, f"Updated {orders_updated} orders")
+        else:
+            self.log_result("Debug Info - orders_updated", False, f"No orders updated: {orders_updated}")
+            debug_success = False
+        
+        # Step 8: Get updated standing order with generated orders
+        updated_data = await self.get_standing_order_with_generated_orders(standing_order_id)
+        if not updated_data:
+            self.log_result("Get Updated Data", False, "Failed to get updated standing order data")
+            return False
+        
+        updated_orders = updated_data.get("generated_orders", [])
+        self.log_result("Updated Generated Orders", True, f"Found {len(updated_orders)} generated orders after update")
+        
+        # Step 9: Verify ALL current and future generated orders have NEW quantities
+        propagation_success = True
+        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        for order in updated_orders:
+            order_date = datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None)
             
-            if not orders:
-                self.log_result(
-                    "Verify Order Propagation",
-                    False,
-                    "No generated orders found to verify"
-                )
-                return False
-            
-            # Check future orders (delivery_date >= today)
-            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-            future_orders = []
-            
-            for order in orders:
-                delivery_date_str = order.get("delivery_date")
-                if delivery_date_str:
-                    # Parse delivery date
-                    if isinstance(delivery_date_str, str):
-                        delivery_date = datetime.fromisoformat(delivery_date_str.replace('Z', '+00:00'))
-                    else:
-                        delivery_date = delivery_date_str
-                    
-                    if delivery_date.replace(tzinfo=None) >= today:
-                        future_orders.append(order)
-            
-            if not future_orders:
-                self.log_result(
-                    "Verify Order Propagation",
-                    False,
-                    "No future orders found to verify propagation"
-                )
-                return False
-            
-            # Check if all future orders have the updated quantities
-            propagation_success = True
-            propagation_details = []
-            
-            for order in future_orders:
+            # Only check current and future orders
+            if order_date >= today:
                 order_items = order.get("items", [])
-                order_quantities = [item.get("quantity", 0) for item in order_items[:len(expected_quantities)]]
-                
-                if order_quantities == expected_quantities:
-                    propagation_details.append({
-                        "order_id": order["id"],
-                        "delivery_date": order.get("delivery_date"),
-                        "quantities": order_quantities,
-                        "status": "✅ CORRECT"
-                    })
+                if len(order_items) >= 2:
+                    qty1 = order_items[0]["quantity"]
+                    qty2 = order_items[1]["quantity"]
+                    
+                    if qty1 == 15 and qty2 == 20:
+                        self.log_result(f"Order {order['order_number']} Quantities", True, f"Correct new quantities: [{qty1}, {qty2}]")
+                    else:
+                        self.log_result(f"Order {order['order_number']} Quantities", False, f"Wrong quantities: [{qty1}, {qty2}], expected [15, 20]")
+                        propagation_success = False
                 else:
+                    self.log_result(f"Order {order['order_number']} Items", False, f"Missing items in order")
                     propagation_success = False
-                    propagation_details.append({
-                        "order_id": order["id"],
-                        "delivery_date": order.get("delivery_date"),
-                        "quantities": order_quantities,
-                        "expected": expected_quantities,
-                        "status": "❌ INCORRECT"
-                    })
-            
-            if propagation_success:
-                self.log_result(
-                    "Verify Order Propagation",
-                    True,
-                    f"All {len(future_orders)} future orders have correct quantities {expected_quantities}",
-                    {"orders_checked": len(future_orders), "details": propagation_details}
-                )
-            else:
-                self.log_result(
-                    "Verify Order Propagation",
-                    False,
-                    f"Some orders have incorrect quantities. Expected {expected_quantities}",
-                    {"orders_checked": len(future_orders), "details": propagation_details}
-                )
-            
-            return propagation_success
-            
-        except Exception as e:
-            self.log_result(
-                "Verify Order Propagation",
-                False,
-                f"Error verifying order propagation: {str(e)}"
-            )
-            return False
+        
+        return debug_success and propagation_success
     
-    def cleanup_test_data(self, standing_order_id: str):
-        """Clean up test standing order"""
+    async def test_debug_info_response_structure(self):
+        """Test Scenario 2: Verify Response Contains debug_info"""
+        print("\n🔍 Testing Debug Info Response Structure...")
+        
+        # Create test customer and standing order
+        customer_id = await self.create_test_customer()
+        if not customer_id:
+            return False
+        
+        standing_order_id = await self.create_test_standing_order(customer_id)
+        if not standing_order_id:
+            return False
+        
+        await asyncio.sleep(2)
+        
+        # Update with new items
+        new_items = [
+            {
+                "product_id": "test_product_1",
+                "product_name": "Test Bread Loaf",
+                "quantity": 8,
+                "price": 25.0
+            }
+        ]
+        
+        updated_standing_order = await self.update_standing_order_items(standing_order_id, new_items)
+        if not updated_standing_order:
+            return False
+        
+        # Verify all required debug_info fields are present
+        debug_info = updated_standing_order.get("debug_info", {})
+        
+        required_fields = [
+            "function_called",
+            "items_changed", 
+            "update_logic_executed",
+            "orders_found",
+            "orders_updated"
+        ]
+        
+        all_fields_present = True
+        for field in required_fields:
+            if field in debug_info:
+                self.log_result(f"Debug Field - {field}", True, f"Present with value: {debug_info[field]}")
+            else:
+                self.log_result(f"Debug Field - {field}", False, "Missing from response")
+                all_fields_present = False
+        
+        return all_fields_present
+    
+    async def test_route_registration_and_execution(self):
+        """Test that the standing orders routes are properly registered and executing"""
+        print("\n🔍 Testing Route Registration and Execution...")
+        
+        # Test that we can access the standing orders endpoints
         try:
-            response = self.session.delete(
-                f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}",
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                self.log_result(
-                    "Cleanup Test Data",
-                    True,
-                    f"Successfully deleted test standing order {standing_order_id}"
-                )
-            else:
-                self.log_result(
-                    "Cleanup Test Data",
-                    False,
-                    f"Failed to delete standing order: {response.status_code}"
-                )
-                
+            async with self.session.get(
+                f"{BACKEND_URL}/admin/standing-orders",
+                headers=self.get_auth_headers()
+            ) as response:
+                if response.status == 200:
+                    self.log_result("Standing Orders Endpoint Access", True, "Successfully accessed /admin/standing-orders")
+                    return True
+                else:
+                    error_text = await response.text()
+                    self.log_result("Standing Orders Endpoint Access", False, f"Failed to access endpoint: {response.status} - {error_text}")
+                    return False
         except Exception as e:
-            self.log_result(
-                "Cleanup Test Data",
-                False,
-                f"Error during cleanup: {str(e)}"
-            )
+            self.log_result("Standing Orders Endpoint Access", False, f"Error accessing endpoint: {str(e)}")
+            return False
     
-    def run_comprehensive_test(self):
-        """Run the comprehensive Edit Standing Order propagation test"""
-        print("🧪 STARTING COMPREHENSIVE EDIT STANDING ORDER PROPAGATION TEST")
-        print("=" * 80)
-        print()
+    async def run_all_tests(self):
+        """Run all test scenarios"""
+        print("🚀 Starting Edit Standing Order Propagation Tests...")
+        print(f"Backend URL: {BACKEND_URL}")
         
-        # Step 1: Authenticate
-        if not self.authenticate_admin():
-            return False
+        # Authenticate first
+        if not await self.authenticate_admin():
+            print("❌ Authentication failed, cannot proceed with tests")
+            return
         
-        # Step 2: Get test data
-        customer = self.get_test_customer()
-        if not customer:
-            return False
+        # Run all test scenarios
+        test_scenarios = [
+            ("Route Registration and Execution", self.test_route_registration_and_execution),
+            ("Items/Quantity Change Propagation", self.test_items_quantity_change_propagation),
+            ("Debug Info Response Structure", self.test_debug_info_response_structure)
+        ]
         
-        products = self.get_test_products()
-        if len(products) < 3:
-            self.log_result(
-                "Test Prerequisites",
-                False,
-                f"Need at least 3 products for testing, found {len(products)}"
-            )
-            return False
+        passed_tests = 0
+        total_tests = len(test_scenarios)
         
-        # Step 3: Create test standing order with initial quantities [2, 3, 4]
-        standing_order = self.create_test_standing_order(customer, products)
-        if not standing_order:
-            return False
-        
-        standing_order_id = standing_order["id"]
-        
-        try:
-            # Step 4: Wait a moment for orders to be generated
-            print("⏳ Waiting 3 seconds for orders to be generated...")
-            time.sleep(3)
+        for test_name, test_func in test_scenarios:
+            print(f"\n{'='*60}")
+            print(f"Running: {test_name}")
+            print(f"{'='*60}")
             
-            # Step 5: Verify initial orders were generated
-            initial_orders = self.get_generated_orders(standing_order_id)
-            if not initial_orders:
-                self.log_result(
-                    "Initial Order Generation",
-                    False,
-                    "No orders were generated after creating standing order"
-                )
-                return False
-            
-            # Step 6: Update standing order items with new quantities [5, 6, 3]
-            updated_standing_order = self.update_standing_order_items(standing_order_id, products)
-            if not updated_standing_order:
-                return False
-            
-            # Step 7: Wait a moment for propagation
-            print("⏳ Waiting 2 seconds for propagation to complete...")
-            time.sleep(2)
-            
-            # Step 8: Verify debug info shows update was executed
-            debug_success = self.verify_debug_info(standing_order_id)
-            
-            # Step 9: Verify order propagation - orders should have new quantities [5, 6, 3]
-            propagation_success = self.verify_order_propagation(standing_order_id, [5, 6, 3])
-            
-            # Overall test result
-            overall_success = debug_success and propagation_success
-            
-            if overall_success:
-                print("🎉 COMPREHENSIVE TEST RESULT: SUCCESS!")
-                print("✅ Edit Standing Order propagation feature is working correctly")
-                print("✅ Items/quantity changes are properly propagated to existing orders")
-                print("✅ Debug info confirms update logic execution")
-            else:
-                print("❌ COMPREHENSIVE TEST RESULT: FAILURE!")
-                print("❌ Edit Standing Order propagation feature has issues")
-                if not debug_success:
-                    print("❌ Debug info does not show proper update execution")
-                if not propagation_success:
-                    print("❌ Order propagation is not working correctly")
-            
-            return overall_success
-            
-        finally:
-            # Step 10: Cleanup
-            print("\n🧹 Cleaning up test data...")
-            self.cleanup_test_data(standing_order_id)
-    
-    def print_summary(self):
-        """Print test summary"""
-        print("\n" + "=" * 80)
-        print("📊 TEST SUMMARY")
-        print("=" * 80)
+            try:
+                success = await test_func()
+                if success:
+                    passed_tests += 1
+                    print(f"✅ {test_name}: PASSED")
+                else:
+                    print(f"❌ {test_name}: FAILED")
+            except Exception as e:
+                print(f"❌ {test_name}: ERROR - {str(e)}")
+                self.log_result(test_name, False, f"Test error: {str(e)}")
         
-        total_tests = len(self.test_results)
-        passed_tests = len([r for r in self.test_results if r["success"]])
-        failed_tests = total_tests - passed_tests
+        # Print summary
+        print(f"\n{'='*60}")
+        print(f"TEST SUMMARY")
+        print(f"{'='*60}")
+        print(f"Passed: {passed_tests}/{total_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
         
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {passed_tests} ✅")
-        print(f"Failed: {failed_tests} ❌")
-        print(f"Success Rate: {(passed_tests/total_tests*100):.1f}%")
+        if passed_tests == total_tests:
+            print("🎉 ALL TESTS PASSED! Edit Standing Order propagation is working correctly.")
+        else:
+            print("⚠️  Some tests failed. Check the detailed results above.")
         
-        if failed_tests > 0:
-            print("\n❌ FAILED TESTS:")
-            for result in self.test_results:
-                if not result["success"]:
-                    print(f"  - {result['test']}: {result['message']}")
-        
-        print("\n" + "=" * 80)
+        return passed_tests == total_tests
 
-
-def main():
+async def main():
     """Main test execution"""
-    tester = BackendTester()
-    
-    try:
-        success = tester.run_comprehensive_test()
-        tester.print_summary()
+    async with BackendTester() as tester:
+        success = await tester.run_all_tests()
         
-        # Exit with appropriate code
-        exit(0 if success else 1)
+        # Print detailed results
+        print(f"\n{'='*60}")
+        print("DETAILED TEST RESULTS")
+        print(f"{'='*60}")
         
-    except KeyboardInterrupt:
-        print("\n\n⚠️ Test interrupted by user")
-        tester.print_summary()
-        exit(1)
-    except Exception as e:
-        print(f"\n\n💥 Unexpected error: {str(e)}")
-        tester.print_summary()
-        exit(1)
-
+        for result in tester.test_results:
+            status = "✅" if result["success"] else "❌"
+            print(f"{status} {result['test']}: {result['message']}")
+        
+        return success
 
 if __name__ == "__main__":
-    main()
+    success = asyncio.run(main())
+    exit(0 if success else 1)
