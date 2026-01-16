@@ -63,7 +63,7 @@ index 3903a324..e69de29b 100644
 --+import uuid
 --+
 --+# Configuration
---+BACKEND_URL = "https://order-tracker-231.preview.emergentagent.com/api"
+--+BACKEND_URL = "https://stanorder-update.preview.emergentagent.com/api"
 --+
 --+def create_test_customer():
 --+    """Create a test customer account"""
@@ -4429,7 +4429,7 @@ index 3903a324..e69de29b 100644
 -----------------------------------------------------------------------------------------------------------------+## 🚀 Quick Start
 -----------------------------------------------------------------------------------------------------------------+
 -----------------------------------------------------------------------------------------------------------------+1. **Services**: Backend and Expo are already running
------------------------------------------------------------------------------------------------------------------+2. **Access**: https://order-tracker-231.preview.emergentagent.com
+-----------------------------------------------------------------------------------------------------------------+2. **Access**: https://stanorder-update.preview.emergentagent.com
 -----------------------------------------------------------------------------------------------------------------+3. **Scan QR**: Use Expo Go app on mobile to scan QR code
 -----------------------------------------------------------------------------------------------------------------+
 -----------------------------------------------------------------------------------------------------------------+## 📦 Sample Data
@@ -4905,7 +4905,7 @@ index 3903a324..e69de29b 100644
 --+import pytz
 --+
 --+# Configuration
---+BACKEND_URL = "https://order-tracker-231.preview.emergentagent.com/api"
+--+BACKEND_URL = "https://stanorder-update.preview.emergentagent.com/api"
 --+
 --+def test_delivery_date_endpoint():
 --+    """Test GET /api/delivery-date endpoint (Public)"""
