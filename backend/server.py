@@ -3672,9 +3672,10 @@ async def migrate_product_categories():
     Migration endpoint to ensure all products have categories array.
     Converts single category field to categories array.
     """
+    from pymongo import UpdateOne
     all_products = await db.products.find().to_list(1000)
     
-    fixed_count = 0
+    bulk_operations = []
     for product in all_products:
         updates = {}
         
@@ -3687,12 +3688,14 @@ async def migrate_product_categories():
                 updates["categories"] = []
         
         if updates:
-            result = await db.products.update_one(
-                {"_id": product["_id"]},
-                {"$set": updates}
+            bulk_operations.append(
+                UpdateOne({"_id": product["_id"]}, {"$set": updates})
             )
-            if result.modified_count > 0:
-                fixed_count += 1
+    
+    fixed_count = 0
+    if bulk_operations:
+        result = await db.products.bulk_write(bulk_operations)
+        fixed_count = result.modified_count
     
     return {
         "message": f"Migrated {fixed_count} products to have categories array",
