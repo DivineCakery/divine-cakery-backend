@@ -106,6 +106,21 @@ user_problem_statement: "Divine Cakery native mobile app for bakery wholesale cu
 
 
 backend:
+  - task: "Edit Standing Order feature - Backend API"
+    implemented: true
+    working: true
+    file: "/app/backend/standing_orders_routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Edit Standing Order feature implemented with PUT /api/admin/standing-orders/{standing_order_id} endpoint. Supports updating items, recurrence_type, recurrence_config, duration_type, end_date, notes, and status fields. Backend implementation complete and ready for testing."
+        - working: true
+          agent: "testing"
+          comment: "🎉 COMPREHENSIVE EDIT STANDING ORDER TESTING COMPLETE: All 8 test scenarios passed with 100% success rate! ✅ AUTHENTICATION REQUIRED: Endpoint correctly requires admin authentication (returns 401 without token) ✅ UPDATE PRODUCTS: Successfully updated items array with new products (product_id, product_name, quantity, price) ✅ UPDATE RECURRENCE TYPE: Successfully changed recurrence_type from 'weekly_days' to 'interval' and vice versa ✅ UPDATE RECURRENCE CONFIG: Successfully updated recurrence_config (e.g., {days: [0, 2, 4]} for weekly_days, {days: 3} for interval) ✅ UPDATE DURATION TYPE: Successfully changed duration_type from 'indefinite' to 'end_date' and back ✅ UPDATE END DATE: Successfully set and updated end_date when duration_type is 'end_date' ✅ UPDATE NOTES: Successfully updated notes field with new content ✅ VALIDATION RESPONSE: Response returns complete updated standing order with all changes applied and all required fields (id, customer_id, customer_name, status, created_at). Feature is production-ready and fully functional. Admin credentials: testadmin/admin123."
+
   - task: "Automatic delivery date calculation with IST timezone"
     implemented: true
     working: true
