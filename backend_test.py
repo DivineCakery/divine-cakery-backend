@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 
 # Configuration
 BASE_URL = "https://divine-cakery-backend.onrender.com/api"
-ADMIN_USERNAME = "admin"
+ADMIN_USERNAME = "testadmin"
 ADMIN_PASSWORD = "admin123"
 
 class BackendTester:
