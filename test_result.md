@@ -108,10 +108,10 @@ user_problem_statement: "Divine Cakery native mobile app for bakery wholesale cu
 backend:
   - task: "Edit Standing Order feature - Backend API"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/standing_orders_routes.py"
-    stuck_count: 0
-    priority: "high"
+    stuck_count: 1
+    priority: "critical"
     needs_retesting: false
     status_history:
         - working: "NA"
@@ -120,6 +120,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "🎉 COMPREHENSIVE EDIT STANDING ORDER TESTING COMPLETE: All 8 test scenarios passed with 100% success rate! ✅ AUTHENTICATION REQUIRED: Endpoint correctly requires admin authentication (returns 401 without token) ✅ UPDATE PRODUCTS: Successfully updated items array with new products (product_id, product_name, quantity, price) ✅ UPDATE RECURRENCE TYPE: Successfully changed recurrence_type from 'weekly_days' to 'interval' and vice versa ✅ UPDATE RECURRENCE CONFIG: Successfully updated recurrence_config (e.g., {days: [0, 2, 4]} for weekly_days, {days: 3} for interval) ✅ UPDATE DURATION TYPE: Successfully changed duration_type from 'indefinite' to 'end_date' and back ✅ UPDATE END DATE: Successfully set and updated end_date when duration_type is 'end_date' ✅ UPDATE NOTES: Successfully updated notes field with new content ✅ VALIDATION RESPONSE: Response returns complete updated standing order with all changes applied and all required fields (id, customer_id, customer_name, status, created_at). Feature is production-ready and fully functional. Admin credentials: testadmin/admin123."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL BUG FOUND: Items/Quantity Change Propagation NOT Working! Comprehensive testing revealed that while the standing order configuration is updated successfully, the changes are NOT propagated to existing generated orders. SPECIFIC ISSUES: 1) Items Update: When updating items array with new quantities (e.g., changing from [2,3,4] to [5,6,3]), existing orders retain original quantities instead of updated ones. 2) Combined Changes: When updating both items AND frequency, only frequency changes are applied due to 'elif' logic bug in lines 296-311 of standing_orders_routes.py. 3) Order Propagation Logic: The update_many query in lines 331-346 appears to not execute or not match existing orders correctly. TESTING EVIDENCE: Created test standing order with 3 items (qty 2,3,4), updated to new quantities (5,6,3), verified that 4 existing future orders still show original quantities (2,3,4) instead of updated ones. This is a critical production bug that breaks the core functionality described in the review request. The feature requires immediate fix before it can be considered working."
 
   - task: "Automatic delivery date calculation with IST timezone"
     implemented: true
