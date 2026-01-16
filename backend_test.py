@@ -1,557 +1,573 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Dough Types Feature
-Tests the new dough types functionality including category filtering, 
-report filtering, and product dough type assignment.
+Backend API Testing Script for Divine Cakery
+Testing the "Edit Standing Order" feature - PUT /api/admin/standing-orders/{standing_order_id}
 """
 
 import requests
 import json
-import sys
-from datetime import datetime
-from typing import Dict, List, Optional
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://stanorder-update.preview.emergentagent.com/api"
-ADMIN_USERNAME = "Kitchen"
-ADMIN_PASSWORD = "kitchen123"
+BASE_URL = "https://divine-cakery-backend.onrender.com/api"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
 
-class DoughTypesTestSuite:
+class BackendTester:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
-        self.test_results = []
-        self.created_dough_type_id = None
-        self.test_product_id = None
+        self.test_customer_id = None
+        self.test_standing_order_id = None
         
-    def log_test(self, test_name: str, success: bool, message: str, details: str = ""):
-        """Log test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        self.test_results.append({
-            "test": test_name,
-            "success": success,
-            "message": message,
-            "details": details
-        })
-        print(f"{status}: {test_name} - {message}")
-        if details and not success:
-            print(f"   Details: {details}")
-    
-    def authenticate_admin(self) -> bool:
-        """Authenticate as admin and get token"""
+    def log(self, message: str, level: str = "INFO"):
+        """Log test messages with timestamp"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {level}: {message}")
+        
+    def login_admin(self) -> bool:
+        """Login as admin and get authentication token"""
         try:
-            response = self.session.post(f"{BASE_URL}/auth/login", json={
+            self.log("🔐 Logging in as admin...")
+            
+            login_data = {
                 "username": ADMIN_USERNAME,
                 "password": ADMIN_PASSWORD
-            })
+            }
+            
+            response = self.session.post(
+                f"{BASE_URL}/auth/login",
+                data=login_data,
+                headers={"Content-Type": "application/x-www-form-urlencoded"}
+            )
             
             if response.status_code == 200:
-                data = response.json()
-                self.admin_token = data["access_token"]
-                self.session.headers.update({"Authorization": f"Bearer {self.admin_token}"})
-                self.log_test("Admin Authentication", True, "Successfully authenticated as admin")
+                token_data = response.json()
+                self.admin_token = token_data["access_token"]
+                self.session.headers.update({
+                    "Authorization": f"Bearer {self.admin_token}"
+                })
+                self.log("✅ Admin login successful")
                 return True
             else:
-                self.log_test("Admin Authentication", False, f"Failed with status {response.status_code}", response.text)
+                self.log(f"❌ Admin login failed: {response.status_code} - {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log_test("Admin Authentication", False, f"Exception: {str(e)}")
+            self.log(f"❌ Admin login error: {str(e)}", "ERROR")
             return False
     
-    def test_category_type_filtering(self):
-        """Test 1: Category Type Filtering"""
-        print("\n=== TEST 1: Category Type Filtering ===")
-        
-        # Test 1a: Get all categories (no filter)
+    def get_test_customer(self) -> Optional[str]:
+        """Get or create a test customer for standing orders"""
         try:
-            response = self.session.get(f"{BASE_URL}/categories")
+            self.log("👤 Getting test customer...")
+            
+            # Get all users to find a customer
+            response = self.session.get(f"{BASE_URL}/admin/users")
+            
             if response.status_code == 200:
-                all_categories = response.json()
-                self.log_test("Get All Categories", True, f"Retrieved {len(all_categories)} total categories")
+                users = response.json()
+                # Find a customer (non-admin user)
+                customers = [u for u in users if u.get("role") == "customer"]
+                
+                if customers:
+                    customer = customers[0]
+                    self.test_customer_id = customer["id"]
+                    self.log(f"✅ Using existing customer: {customer.get('username', 'Unknown')} (ID: {self.test_customer_id})")
+                    return self.test_customer_id
+                else:
+                    self.log("❌ No customers found in database", "ERROR")
+                    return None
             else:
-                self.log_test("Get All Categories", False, f"Status {response.status_code}", response.text)
-                return
+                self.log(f"❌ Failed to get users: {response.status_code} - {response.text}", "ERROR")
+                return None
+                
         except Exception as e:
-            self.log_test("Get All Categories", False, f"Exception: {str(e)}")
-            return
-        
-        # Test 1b: Get product categories (legacy + explicit product_category)
-        try:
-            response = self.session.get(f"{BASE_URL}/categories?category_type=product_category")
-            if response.status_code == 200:
-                product_categories = response.json()
-                self.log_test("Get Product Categories", True, 
-                            f"Retrieved {len(product_categories)} product categories")
-                
-                # Verify these are legacy categories (no category_type) or explicit product_category
-                for cat in product_categories:
-                    cat_type = cat.get("category_type")
-                    if cat_type and cat_type != "product_category":
-                        self.log_test("Product Categories Validation", False, 
-                                    f"Found non-product category: {cat['name']} with type {cat_type}")
-                        return
-                
-                self.log_test("Product Categories Validation", True, 
-                            "All returned categories are product categories or legacy")
-            else:
-                self.log_test("Get Product Categories", False, f"Status {response.status_code}", response.text)
-                return
-        except Exception as e:
-            self.log_test("Get Product Categories", False, f"Exception: {str(e)}")
-            return
-        
-        # Test 1c: Get dough type categories (should be empty initially)
-        try:
-            response = self.session.get(f"{BASE_URL}/categories?category_type=dough_type")
-            if response.status_code == 200:
-                dough_type_categories = response.json()
-                self.log_test("Get Dough Type Categories", True, 
-                            f"Retrieved {len(dough_type_categories)} dough type categories")
-                
-                # Verify these are all dough_type categories
-                for cat in dough_type_categories:
-                    if cat.get("category_type") != "dough_type":
-                        self.log_test("Dough Type Categories Validation", False, 
-                                    f"Found non-dough-type category: {cat['name']}")
-                        return
-                
-                self.log_test("Dough Type Categories Validation", True, 
-                            "All returned categories are dough type categories")
-            else:
-                self.log_test("Get Dough Type Categories", False, f"Status {response.status_code}", response.text)
-                return
-        except Exception as e:
-            self.log_test("Get Dough Type Categories", False, f"Exception: {str(e)}")
-            return
+            self.log(f"❌ Error getting test customer: {str(e)}", "ERROR")
+            return None
     
-    def test_create_dough_type_category(self):
-        """Test 2: Create Dough Type Category"""
-        print("\n=== TEST 2: Create Dough Type Category ===")
-        
+    def create_test_standing_order(self) -> Optional[str]:
+        """Create a test standing order for editing"""
         try:
-            # Create a test dough type category
-            dough_type_data = {
-                "name": "Test Dough Type",
-                "description": "Test dough type for automated testing",
-                "display_order": 0,
-                "category_type": "dough_type"
+            self.log("📝 Creating test standing order...")
+            
+            standing_order_data = {
+                "customer_id": self.test_customer_id,
+                "items": [
+                    {
+                        "product_id": str(uuid.uuid4()),
+                        "product_name": "Test Bread",
+                        "quantity": 5,
+                        "price": 25.0
+                    },
+                    {
+                        "product_id": str(uuid.uuid4()),
+                        "product_name": "Test Rolls",
+                        "quantity": 10,
+                        "price": 15.0
+                    }
+                ],
+                "recurrence_type": "weekly_days",
+                "recurrence_config": {
+                    "days": [0, 2, 4]  # Monday, Wednesday, Friday
+                },
+                "duration_type": "indefinite",
+                "notes": "Original test standing order for editing"
             }
             
-            response = self.session.post(f"{BASE_URL}/admin/categories", json=dough_type_data)
+            response = self.session.post(
+                f"{BASE_URL}/admin/standing-orders",
+                json=standing_order_data,
+                headers={"Content-Type": "application/json"}
+            )
             
             if response.status_code == 200:
-                created_category = response.json()
-                self.created_dough_type_id = created_category["id"]
-                self.log_test("Create Dough Type Category", True, 
-                            f"Created dough type: {created_category['name']} (ID: {self.created_dough_type_id})")
-                
-                # Verify the category was created with correct type
-                if created_category.get("category_type") != "dough_type":
-                    self.log_test("Dough Type Creation Validation", False, 
-                                f"Created category has wrong type: {created_category.get('category_type')}")
-                    return
-                
-                self.log_test("Dough Type Creation Validation", True, 
-                            "Created category has correct dough_type category_type")
+                created_order = response.json()
+                self.test_standing_order_id = created_order["id"]
+                self.log(f"✅ Test standing order created: {self.test_standing_order_id}")
+                return self.test_standing_order_id
             else:
-                self.log_test("Create Dough Type Category", False, f"Status {response.status_code}", response.text)
-                return
+                self.log(f"❌ Failed to create test standing order: {response.status_code} - {response.text}", "ERROR")
+                return None
                 
         except Exception as e:
-            self.log_test("Create Dough Type Category", False, f"Exception: {str(e)}")
-            return
-        
-        # Verify the created dough type appears in dough_type filter
-        try:
-            response = self.session.get(f"{BASE_URL}/categories?category_type=dough_type")
-            if response.status_code == 200:
-                dough_types = response.json()
-                found_created = any(cat["id"] == self.created_dough_type_id for cat in dough_types)
-                
-                if found_created:
-                    self.log_test("Dough Type Filter Verification", True, 
-                                "Created dough type appears in dough_type filter")
-                else:
-                    self.log_test("Dough Type Filter Verification", False, 
-                                "Created dough type not found in dough_type filter")
-            else:
-                self.log_test("Dough Type Filter Verification", False, f"Status {response.status_code}", response.text)
-                
-        except Exception as e:
-            self.log_test("Dough Type Filter Verification", False, f"Exception: {str(e)}")
-        
-        # Verify the created dough type does NOT appear in product_category filter
-        try:
-            response = self.session.get(f"{BASE_URL}/categories?category_type=product_category")
-            if response.status_code == 200:
-                product_categories = response.json()
-                found_in_products = any(cat["id"] == self.created_dough_type_id for cat in product_categories)
-                
-                if not found_in_products:
-                    self.log_test("Product Category Filter Verification", True, 
-                                "Created dough type correctly excluded from product_category filter")
-                else:
-                    self.log_test("Product Category Filter Verification", False, 
-                                "Created dough type incorrectly appears in product_category filter")
-            else:
-                self.log_test("Product Category Filter Verification", False, f"Status {response.status_code}", response.text)
-                
-        except Exception as e:
-            self.log_test("Product Category Filter Verification", False, f"Exception: {str(e)}")
+            self.log(f"❌ Error creating test standing order: {str(e)}", "ERROR")
+            return None
     
-    def test_daily_items_report_filter(self):
-        """Test 3: Daily Items Report Filter"""
-        print("\n=== TEST 3: Daily Items Report Filter ===")
-        
-        # Test 3a: Daily items without filter
+    def get_standing_orders(self) -> Optional[list]:
+        """Get list of standing orders to find one for testing"""
         try:
-            response = self.session.get(f"{BASE_URL}/admin/reports/daily-items")
-            if response.status_code == 200:
-                report_data = response.json()
-                self.log_test("Daily Items Report (No Filter)", True, 
-                            f"Retrieved report with {len(report_data.get('items', []))} items")
-                
-                # Verify response structure
-                required_fields = ["date", "day_name", "items"]
-                missing_fields = [field for field in required_fields if field not in report_data]
-                
-                if missing_fields:
-                    self.log_test("Daily Items Report Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    self.log_test("Daily Items Report Structure", True, 
-                                "Report has all required fields")
-                    
-                    # Check if filter fields are present (should be None for no filter)
-                    if "filter_dough_type_id" in report_data and "filter_dough_type_name" in report_data:
-                        self.log_test("Daily Items Filter Fields", True, 
-                                    "Report includes filter fields")
-                    else:
-                        self.log_test("Daily Items Filter Fields", False, 
-                                    "Report missing filter fields")
-            else:
-                self.log_test("Daily Items Report (No Filter)", False, f"Status {response.status_code}", response.text)
-                return
-                
-        except Exception as e:
-            self.log_test("Daily Items Report (No Filter)", False, f"Exception: {str(e)}")
-            return
-        
-        # Test 3b: Daily items with dough type filter (if we created one)
-        if self.created_dough_type_id:
-            try:
-                response = self.session.get(f"{BASE_URL}/admin/reports/daily-items?dough_type_id={self.created_dough_type_id}")
-                if response.status_code == 200:
-                    filtered_report = response.json()
-                    self.log_test("Daily Items Report (With Dough Type Filter)", True, 
-                                f"Retrieved filtered report with {len(filtered_report.get('items', []))} items")
-                    
-                    # Verify filter fields are populated
-                    if filtered_report.get("filter_dough_type_id") == self.created_dough_type_id:
-                        self.log_test("Daily Items Filter ID Verification", True, 
-                                    "Filter dough_type_id correctly set in response")
-                    else:
-                        self.log_test("Daily Items Filter ID Verification", False, 
-                                    f"Expected filter_dough_type_id {self.created_dough_type_id}, got {filtered_report.get('filter_dough_type_id')}")
-                    
-                    if filtered_report.get("filter_dough_type_name") == "Test Dough Type":
-                        self.log_test("Daily Items Filter Name Verification", True, 
-                                    "Filter dough_type_name correctly set in response")
-                    else:
-                        self.log_test("Daily Items Filter Name Verification", False, 
-                                    f"Expected filter_dough_type_name 'Test Dough Type', got {filtered_report.get('filter_dough_type_name')}")
-                else:
-                    self.log_test("Daily Items Report (With Dough Type Filter)", False, f"Status {response.status_code}", response.text)
-                    
-            except Exception as e:
-                self.log_test("Daily Items Report (With Dough Type Filter)", False, f"Exception: {str(e)}")
-    
-    def test_preparation_list_report_filter(self):
-        """Test 4: Preparation List Report Filter"""
-        print("\n=== TEST 4: Preparation List Report Filter ===")
-        
-        # Test 4a: Preparation list without filter
-        try:
-            response = self.session.get(f"{BASE_URL}/admin/reports/preparation-list")
-            if response.status_code == 200:
-                report_data = response.json()
-                self.log_test("Preparation List Report (No Filter)", True, 
-                            f"Retrieved report with {len(report_data.get('items', []))} items")
-                
-                # Verify response structure
-                required_fields = ["date", "day_name", "total_items", "items"]
-                missing_fields = [field for field in required_fields if field not in report_data]
-                
-                if missing_fields:
-                    self.log_test("Preparation List Report Structure", False, 
-                                f"Missing fields: {missing_fields}")
-                else:
-                    self.log_test("Preparation List Report Structure", True, 
-                                "Report has all required fields")
-            else:
-                self.log_test("Preparation List Report (No Filter)", False, f"Status {response.status_code}", response.text)
-                return
-                
-        except Exception as e:
-            self.log_test("Preparation List Report (No Filter)", False, f"Exception: {str(e)}")
-            return
-        
-        # Test 4b: Preparation list with dough type filter (if we created one)
-        if self.created_dough_type_id:
-            try:
-                response = self.session.get(f"{BASE_URL}/admin/reports/preparation-list?dough_type_id={self.created_dough_type_id}")
-                if response.status_code == 200:
-                    filtered_report = response.json()
-                    self.log_test("Preparation List Report (With Dough Type Filter)", True, 
-                                f"Retrieved filtered report with {len(filtered_report.get('items', []))} items")
-                    
-                    # Verify the response structure is maintained
-                    if "items" in filtered_report:
-                        items = filtered_report["items"]
-                        if items:
-                            # Check if items have dough_type fields
-                            sample_item = items[0]
-                            if "dough_type_id" in sample_item and "dough_type_name" in sample_item:
-                                self.log_test("Preparation List Item Structure", True, 
-                                            "Items include dough_type fields")
-                            else:
-                                self.log_test("Preparation List Item Structure", False, 
-                                            "Items missing dough_type fields")
-                        else:
-                            self.log_test("Preparation List Filter Result", True, 
-                                        "No items found for this dough type (expected for new dough type)")
-                else:
-                    self.log_test("Preparation List Report (With Dough Type Filter)", False, f"Status {response.status_code}", response.text)
-                    
-            except Exception as e:
-                self.log_test("Preparation List Report (With Dough Type Filter)", False, f"Exception: {str(e)}")
-    
-    def test_product_with_dough_type(self):
-        """Test 5: Product with Dough Type"""
-        print("\n=== TEST 5: Product with Dough Type ===")
-        
-        # First, get a product to update
-        try:
-            response = self.session.get(f"{BASE_URL}/products")
-            if response.status_code == 200:
-                products = response.json()
-                if products:
-                    self.test_product_id = products[0]["id"]
-                    product_name = products[0]["name"]
-                    self.log_test("Get Test Product", True, 
-                                f"Found test product: {product_name} (ID: {self.test_product_id})")
-                else:
-                    self.log_test("Get Test Product", False, "No products found in database")
-                    return
-            else:
-                self.log_test("Get Test Product", False, f"Status {response.status_code}", response.text)
-                return
-                
-        except Exception as e:
-            self.log_test("Get Test Product", False, f"Exception: {str(e)}")
-            return
-        
-        # Update the product with dough_type_id (if we created one)
-        if self.created_dough_type_id and self.test_product_id:
-            try:
-                update_data = {
-                    "dough_type_id": self.created_dough_type_id
-                }
-                
-                response = self.session.put(f"{BASE_URL}/products/{self.test_product_id}", json=update_data)
-                
-                if response.status_code == 200:
-                    updated_product = response.json()
-                    self.log_test("Update Product with Dough Type", True, 
-                                f"Successfully updated product with dough_type_id")
-                    
-                    # Verify the dough_type_id was set
-                    if updated_product.get("dough_type_id") == self.created_dough_type_id:
-                        self.log_test("Product Dough Type Verification", True, 
-                                    "Product correctly updated with dough_type_id")
-                    else:
-                        self.log_test("Product Dough Type Verification", False, 
-                                    f"Expected dough_type_id {self.created_dough_type_id}, got {updated_product.get('dough_type_id')}")
-                else:
-                    self.log_test("Update Product with Dough Type", False, f"Status {response.status_code}", response.text)
-                    return
-                    
-            except Exception as e:
-                self.log_test("Update Product with Dough Type", False, f"Exception: {str(e)}")
-                return
-        
-        # Test retrieving the product to verify dough_type_id persists
-        if self.test_product_id:
-            try:
-                response = self.session.get(f"{BASE_URL}/products/{self.test_product_id}")
-                if response.status_code == 200:
-                    product = response.json()
-                    
-                    if product.get("dough_type_id") == self.created_dough_type_id:
-                        self.log_test("Product Retrieval with Dough Type", True, 
-                                    "Product retrieval shows correct dough_type_id")
-                    else:
-                        self.log_test("Product Retrieval with Dough Type", False, 
-                                    f"Product retrieval shows incorrect dough_type_id: {product.get('dough_type_id')}")
-                else:
-                    self.log_test("Product Retrieval with Dough Type", False, f"Status {response.status_code}", response.text)
-                    
-            except Exception as e:
-                self.log_test("Product Retrieval with Dough Type", False, f"Exception: {str(e)}")
-        
-        # Test report filtering with the updated product
-        if self.created_dough_type_id:
-            try:
-                response = self.session.get(f"{BASE_URL}/admin/reports/daily-items?dough_type_id={self.created_dough_type_id}")
-                if response.status_code == 200:
-                    filtered_report = response.json()
-                    items = filtered_report.get("items", [])
-                    
-                    # Look for our test product in the filtered results
-                    found_product = any(item.get("product_id") == self.test_product_id for item in items)
-                    
-                    if found_product:
-                        self.log_test("Report Filtering with Product Dough Type", True, 
-                                    "Updated product appears in dough type filtered report")
-                    else:
-                        # This might be expected if the product has no orders today
-                        self.log_test("Report Filtering with Product Dough Type", True, 
-                                    "Product not in report (expected if no orders for this product today)")
-                else:
-                    self.log_test("Report Filtering with Product Dough Type", False, f"Status {response.status_code}", response.text)
-                    
-            except Exception as e:
-                self.log_test("Report Filtering with Product Dough Type", False, f"Exception: {str(e)}")
-    
-    def test_authentication_requirements(self):
-        """Test 6: Authentication Requirements"""
-        print("\n=== TEST 6: Authentication Requirements ===")
-        
-        # Test that GET /api/categories works without authentication
-        try:
-            # Create a new session without auth token
-            no_auth_session = requests.Session()
-            response = no_auth_session.get(f"{BASE_URL}/categories")
+            self.log("📋 Getting existing standing orders...")
+            
+            response = self.session.get(f"{BASE_URL}/admin/standing-orders")
             
             if response.status_code == 200:
-                self.log_test("Categories Public Access", True, 
-                            "GET /api/categories works without authentication")
+                orders = response.json()
+                self.log(f"✅ Found {len(orders)} standing orders")
+                return orders
             else:
-                self.log_test("Categories Public Access", False, f"Status {response.status_code}", response.text)
+                self.log(f"❌ Failed to get standing orders: {response.status_code} - {response.text}", "ERROR")
+                return None
                 
         except Exception as e:
-            self.log_test("Categories Public Access", False, f"Exception: {str(e)}")
-        
-        # Test that admin endpoints require authentication
+            self.log(f"❌ Error getting standing orders: {str(e)}", "ERROR")
+            return None
+    
+    def test_authentication_required(self) -> bool:
+        """Test 1: Verify endpoint requires admin authentication"""
         try:
-            no_auth_session = requests.Session()
-            response = no_auth_session.get(f"{BASE_URL}/admin/reports/daily-items")
+            self.log("🔒 Test 1: Authentication Required")
+            
+            # Remove auth header temporarily
+            original_headers = self.session.headers.copy()
+            if "Authorization" in self.session.headers:
+                del self.session.headers["Authorization"]
+            
+            # Try to update without authentication
+            update_data = {"notes": "Should fail without auth"}
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/test-id",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Restore headers
+            self.session.headers = original_headers
             
             if response.status_code == 401:
-                self.log_test("Admin Endpoints Auth Required", True, 
-                            "Admin endpoints correctly require authentication")
+                self.log("✅ Test 1 PASSED: Endpoint correctly requires authentication (401)")
+                return True
             else:
-                self.log_test("Admin Endpoints Auth Required", False, 
-                            f"Expected 401, got {response.status_code}")
+                self.log(f"❌ Test 1 FAILED: Expected 401, got {response.status_code}", "ERROR")
+                return False
                 
         except Exception as e:
-            self.log_test("Admin Endpoints Auth Required", False, f"Exception: {str(e)}")
+            self.log(f"❌ Test 1 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_update_products(self) -> bool:
+        """Test 2: Update products (items array)"""
+        try:
+            self.log("🛒 Test 2: Update Products")
+            
+            update_data = {
+                "items": [
+                    {
+                        "product_id": str(uuid.uuid4()),
+                        "product_name": "Updated Bread Loaf",
+                        "quantity": 8,
+                        "price": 30.0
+                    },
+                    {
+                        "product_id": str(uuid.uuid4()),
+                        "product_name": "Updated Dinner Rolls",
+                        "quantity": 12,
+                        "price": 18.0
+                    },
+                    {
+                        "product_id": str(uuid.uuid4()),
+                        "product_name": "New Croissants",
+                        "quantity": 6,
+                        "price": 45.0
+                    }
+                ]
+            }
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                updated_order = response.json()
+                updated_items = updated_order.get("items", [])
+                
+                if len(updated_items) == 3 and updated_items[0]["product_name"] == "Updated Bread Loaf":
+                    self.log("✅ Test 2 PASSED: Products updated successfully")
+                    return True
+                else:
+                    self.log(f"❌ Test 2 FAILED: Items not updated correctly. Got: {updated_items}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 2 FAILED: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 2 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_update_recurrence_type(self) -> bool:
+        """Test 3: Update recurrence type from weekly_days to interval"""
+        try:
+            self.log("🔄 Test 3: Update Recurrence Type")
+            
+            update_data = {
+                "recurrence_type": "interval",
+                "recurrence_config": {
+                    "days": 3  # Every 3 days
+                }
+            }
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                updated_order = response.json()
+                
+                if (updated_order.get("recurrence_type") == "interval" and 
+                    updated_order.get("recurrence_config", {}).get("days") == 3):
+                    self.log("✅ Test 3 PASSED: Recurrence type updated to interval")
+                    return True
+                else:
+                    self.log(f"❌ Test 3 FAILED: Recurrence not updated correctly. Got: {updated_order.get('recurrence_type')}, {updated_order.get('recurrence_config')}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 3 FAILED: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 3 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_update_recurrence_config(self) -> bool:
+        """Test 4: Update recurrence config back to weekly_days"""
+        try:
+            self.log("📅 Test 4: Update Recurrence Config")
+            
+            update_data = {
+                "recurrence_type": "weekly_days",
+                "recurrence_config": {
+                    "days": [1, 3, 5]  # Tuesday, Thursday, Saturday
+                }
+            }
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                updated_order = response.json()
+                expected_days = [1, 3, 5]
+                actual_days = updated_order.get("recurrence_config", {}).get("days", [])
+                
+                if (updated_order.get("recurrence_type") == "weekly_days" and 
+                    actual_days == expected_days):
+                    self.log("✅ Test 4 PASSED: Recurrence config updated to weekly_days with new schedule")
+                    return True
+                else:
+                    self.log(f"❌ Test 4 FAILED: Config not updated correctly. Expected days: {expected_days}, Got: {actual_days}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 4 FAILED: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 4 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_update_duration_type(self) -> bool:
+        """Test 5: Update duration type from indefinite to end_date"""
+        try:
+            self.log("⏰ Test 5: Update Duration Type")
+            
+            # Set end date to 30 days from now
+            end_date = (datetime.utcnow() + timedelta(days=30)).isoformat()
+            
+            update_data = {
+                "duration_type": "end_date",
+                "end_date": end_date
+            }
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                updated_order = response.json()
+                
+                if (updated_order.get("duration_type") == "end_date" and 
+                    updated_order.get("end_date") is not None):
+                    self.log("✅ Test 5 PASSED: Duration type updated to end_date with end date set")
+                    return True
+                else:
+                    self.log(f"❌ Test 5 FAILED: Duration not updated correctly. Got: {updated_order.get('duration_type')}, end_date: {updated_order.get('end_date')}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 5 FAILED: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 5 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_update_end_date(self) -> bool:
+        """Test 6: Update end date to a different date"""
+        try:
+            self.log("📆 Test 6: Update End Date")
+            
+            # Set end date to 60 days from now
+            new_end_date = (datetime.utcnow() + timedelta(days=60)).isoformat()
+            
+            update_data = {
+                "end_date": new_end_date
+            }
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                updated_order = response.json()
+                updated_end_date = updated_order.get("end_date")
+                
+                if updated_end_date and new_end_date[:10] in updated_end_date:  # Check date part
+                    self.log("✅ Test 6 PASSED: End date updated successfully")
+                    return True
+                else:
+                    self.log(f"❌ Test 6 FAILED: End date not updated correctly. Expected: {new_end_date[:10]}, Got: {updated_end_date}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 6 FAILED: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 6 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_update_notes(self) -> bool:
+        """Test 7: Update notes field"""
+        try:
+            self.log("📝 Test 7: Update Notes")
+            
+            update_data = {
+                "notes": "Updated notes: This standing order has been modified during testing. Special delivery instructions included."
+            }
+            
+            response = self.session.put(
+                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                updated_order = response.json()
+                updated_notes = updated_order.get("notes", "")
+                
+                if "Updated notes: This standing order has been modified" in updated_notes:
+                    self.log("✅ Test 7 PASSED: Notes updated successfully")
+                    return True
+                else:
+                    self.log(f"❌ Test 7 FAILED: Notes not updated correctly. Got: {updated_notes}", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 7 FAILED: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 7 ERROR: {str(e)}", "ERROR")
+            return False
+    
+    def test_validation_response(self) -> bool:
+        """Test 8: Verify response returns updated standing order with all changes"""
+        try:
+            self.log("✅ Test 8: Validation - Response Structure")
+            
+            # Get the current standing order to verify all our changes
+            response = self.session.get(f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}")
+            
+            if response.status_code == 200:
+                standing_order = response.json()
+                
+                # Verify all the changes we made are present
+                checks = []
+                
+                # Check items (from test 2)
+                items = standing_order.get("items", [])
+                checks.append(("Items count", len(items) == 3, f"Expected 3 items, got {len(items)}"))
+                if items:
+                    checks.append(("First item name", "Updated Bread Loaf" in items[0].get("product_name", ""), f"Expected 'Updated Bread Loaf', got '{items[0].get('product_name')}'"))
+                
+                # Check recurrence (from test 4)
+                recurrence_type = standing_order.get("recurrence_type")
+                recurrence_config = standing_order.get("recurrence_config", {})
+                checks.append(("Recurrence type", recurrence_type == "weekly_days", f"Expected 'weekly_days', got '{recurrence_type}'"))
+                checks.append(("Recurrence days", recurrence_config.get("days") == [1, 3, 5], f"Expected [1, 3, 5], got {recurrence_config.get('days')}"))
+                
+                # Check duration (from test 5)
+                duration_type = standing_order.get("duration_type")
+                checks.append(("Duration type", duration_type == "end_date", f"Expected 'end_date', got '{duration_type}'"))
+                
+                # Check end date (from test 6)
+                end_date = standing_order.get("end_date")
+                checks.append(("End date set", end_date is not None, f"Expected end_date to be set, got {end_date}"))
+                
+                # Check notes (from test 7)
+                notes = standing_order.get("notes", "")
+                checks.append(("Notes updated", "Updated notes: This standing order has been modified" in notes, f"Expected updated notes, got '{notes[:50]}...'"))
+                
+                # Check required fields
+                required_fields = ["id", "customer_id", "customer_name", "status", "created_at"]
+                for field in required_fields:
+                    checks.append((f"Field {field}", field in standing_order, f"Missing required field: {field}"))
+                
+                # Report results
+                passed_checks = sum(1 for _, passed, _ in checks if passed)
+                total_checks = len(checks)
+                
+                self.log(f"Validation Results: {passed_checks}/{total_checks} checks passed")
+                
+                for check_name, passed, message in checks:
+                    status = "✅" if passed else "❌"
+                    self.log(f"  {status} {check_name}: {message}")
+                
+                if passed_checks == total_checks:
+                    self.log("✅ Test 8 PASSED: All validation checks passed")
+                    return True
+                else:
+                    self.log(f"❌ Test 8 FAILED: {total_checks - passed_checks} validation checks failed", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Test 8 FAILED: Could not retrieve standing order: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Test 8 ERROR: {str(e)}", "ERROR")
+            return False
     
     def cleanup_test_data(self):
-        """Clean up test data created during testing"""
-        print("\n=== CLEANUP ===")
-        
-        # Remove dough_type_id from test product
-        if self.test_product_id:
-            try:
-                update_data = {"dough_type_id": None}
-                response = self.session.put(f"{BASE_URL}/products/{self.test_product_id}", json=update_data)
-                
+        """Clean up test standing order"""
+        try:
+            if self.test_standing_order_id:
+                self.log("🧹 Cleaning up test data...")
+                response = self.session.delete(f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}")
                 if response.status_code == 200:
-                    self.log_test("Cleanup Product Dough Type", True, "Removed dough_type_id from test product")
+                    self.log("✅ Test standing order deleted successfully")
                 else:
-                    self.log_test("Cleanup Product Dough Type", False, f"Status {response.status_code}")
-                    
-            except Exception as e:
-                self.log_test("Cleanup Product Dough Type", False, f"Exception: {str(e)}")
-        
-        # Delete test dough type category
-        if self.created_dough_type_id:
-            try:
-                response = self.session.delete(f"{BASE_URL}/admin/categories/{self.created_dough_type_id}")
-                
-                if response.status_code == 200:
-                    self.log_test("Cleanup Dough Type Category", True, "Deleted test dough type category")
-                else:
-                    self.log_test("Cleanup Dough Type Category", False, f"Status {response.status_code}")
-                    
-            except Exception as e:
-                self.log_test("Cleanup Dough Type Category", False, f"Exception: {str(e)}")
+                    self.log(f"⚠️ Could not delete test standing order: {response.status_code}")
+        except Exception as e:
+            self.log(f"⚠️ Cleanup error: {str(e)}")
     
     def run_all_tests(self):
-        """Run all tests in sequence"""
-        print("🧪 STARTING DOUGH TYPES FEATURE TESTING")
-        print("=" * 60)
+        """Run all standing order edit tests"""
+        self.log("🚀 Starting Edit Standing Order Backend API Tests")
+        self.log("=" * 60)
         
-        # Authenticate first
-        if not self.authenticate_admin():
-            print("❌ Cannot proceed without admin authentication")
+        # Setup
+        if not self.login_admin():
+            self.log("❌ Cannot proceed without admin authentication", "ERROR")
             return False
         
-        # Run all test suites
-        self.test_category_type_filtering()
-        self.test_create_dough_type_category()
-        self.test_daily_items_report_filter()
-        self.test_preparation_list_report_filter()
-        self.test_product_with_dough_type()
-        self.test_authentication_requirements()
+        if not self.get_test_customer():
+            self.log("❌ Cannot proceed without test customer", "ERROR")
+            return False
         
-        # Cleanup
-        self.cleanup_test_data()
+        # Try to get existing standing orders first
+        existing_orders = self.get_standing_orders()
+        if existing_orders and len(existing_orders) > 0:
+            # Use existing standing order for testing
+            self.test_standing_order_id = existing_orders[0]["id"]
+            self.log(f"📋 Using existing standing order for testing: {self.test_standing_order_id}")
+        else:
+            # Create new standing order for testing
+            if not self.create_test_standing_order():
+                self.log("❌ Cannot proceed without test standing order", "ERROR")
+                return False
         
-        # Print summary
-        self.print_summary()
+        # Run tests
+        tests = [
+            ("Authentication Required", self.test_authentication_required),
+            ("Update Products", self.test_update_products),
+            ("Update Recurrence Type", self.test_update_recurrence_type),
+            ("Update Recurrence Config", self.test_update_recurrence_config),
+            ("Update Duration Type", self.test_update_duration_type),
+            ("Update End Date", self.test_update_end_date),
+            ("Update Notes", self.test_update_notes),
+            ("Validation Response", self.test_validation_response),
+        ]
         
-        # Return overall success
-        return all(result["success"] for result in self.test_results)
-    
-    def print_summary(self):
-        """Print test summary"""
-        print("\n" + "=" * 60)
-        print("🧪 DOUGH TYPES FEATURE TEST SUMMARY")
-        print("=" * 60)
+        passed_tests = 0
+        total_tests = len(tests)
         
-        total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result["success"])
-        failed_tests = total_tests - passed_tests
+        for test_name, test_func in tests:
+            self.log("-" * 40)
+            try:
+                if test_func():
+                    passed_tests += 1
+                else:
+                    self.log(f"Test '{test_name}' failed", "ERROR")
+            except Exception as e:
+                self.log(f"Test '{test_name}' crashed: {str(e)}", "ERROR")
         
-        print(f"Total Tests: {total_tests}")
-        print(f"✅ Passed: {passed_tests}")
-        print(f"❌ Failed: {failed_tests}")
-        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        # Cleanup (only if we created the test order)
+        if existing_orders is None or len(existing_orders) == 0:
+            self.cleanup_test_data()
         
-        if failed_tests > 0:
-            print("\n❌ FAILED TESTS:")
-            for result in self.test_results:
-                if not result["success"]:
-                    print(f"  • {result['test']}: {result['message']}")
-                    if result["details"]:
-                        print(f"    Details: {result['details']}")
+        # Summary
+        self.log("=" * 60)
+        self.log(f"🏁 TESTING COMPLETE: {passed_tests}/{total_tests} tests passed")
         
-        print("\n" + "=" * 60)
+        if passed_tests == total_tests:
+            self.log("🎉 ALL TESTS PASSED! Edit Standing Order feature is working correctly.")
+            return True
+        else:
+            self.log(f"❌ {total_tests - passed_tests} tests failed. Edit Standing Order feature needs attention.", "ERROR")
+            return False
 
-def main():
-    """Main function to run the test suite"""
-    tester = DoughTypesTestSuite()
-    success = tester.run_all_tests()
-    
-    if success:
-        print("🎉 ALL TESTS PASSED! Dough Types feature is working correctly.")
-        sys.exit(0)
-    else:
-        print("💥 SOME TESTS FAILED! Please check the issues above.")
-        sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    tester = BackendTester()
+    success = tester.run_all_tests()
+    exit(0 if success else 1)
