@@ -272,13 +272,24 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         # Check if items changed - need to update existing orders
         items_changed = "items" in update_data
         
-        # Add debug info to the standing order for verification
-        update_data["debug_info"] = {
-            "last_update": datetime.utcnow().isoformat(),
-            "frequency_changed": frequency_changed,
-            "items_changed": items_changed,
-            "update_logic_executed": False
-        }
+        # Always save debug info to see what's happening
+        await db.standing_orders.update_one(
+            {"id": standing_order_id},
+            {"$set": {
+                "debug_info": {
+                    "last_update": datetime.utcnow().isoformat(),
+                    "frequency_changed": frequency_changed,
+                    "items_changed": items_changed,
+                    "status": update_data.get("status"),
+                    "condition_check": {
+                        "items_changed": items_changed,
+                        "not_frequency_changed": not frequency_changed,
+                        "not_cancelled": update_data.get("status") != StandingOrderStatus.CANCELLED,
+                        "should_execute": items_changed and not frequency_changed and update_data.get("status") != StandingOrderStatus.CANCELLED
+                    }
+                }
+            }}
+        )
         
         # If cancelling, delete future auto-generated orders
         if update_data.get("status") == StandingOrderStatus.CANCELLED:
