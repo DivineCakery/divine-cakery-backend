@@ -47,7 +47,7 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'divine_cakery')]
+db = client[os.environ['DB_NAME']]
 
 # Security
 SECRET_KEY = os.environ.get("SECRET_KEY", "divine_cakery_secret_key_change_in_production")
