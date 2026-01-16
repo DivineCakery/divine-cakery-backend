@@ -112,7 +112,23 @@ class BackendTester:
     def create_test_standing_order(self) -> str:
         """Create a test standing order with initial items"""
         try:
-            # Get some products first
+            # Get existing customers first
+            customers_response = self.session.get(f"{BASE_URL}/admin/users", timeout=30)
+            if customers_response.status_code != 200:
+                raise Exception("Failed to get customers")
+            
+            customers = customers_response.json()
+            customer_users = [c for c in customers if c.get("role") == "customer"]
+            
+            if not customer_users:
+                raise Exception("No customer users found")
+            
+            # Use first customer
+            test_customer = customer_users[0]
+            customer_id = test_customer["id"]
+            customer_name = test_customer.get("business_name", test_customer["username"])
+            
+            # Get some products
             products_response = self.session.get(f"{BASE_URL}/products", timeout=30)
             if products_response.status_code != 200:
                 raise Exception("Failed to get products")
@@ -133,8 +149,8 @@ class BackendTester:
             
             # Create standing order
             standing_order_data = {
-                "customer_id": "test-customer-id",
-                "customer_name": "Test Customer",
+                "customer_id": customer_id,
+                "customer_name": customer_name,
                 "items": test_items,
                 "recurrence_type": "weekly_days",
                 "recurrence_config": {"days": [1, 3, 5]},  # Mon, Wed, Fri
