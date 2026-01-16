@@ -256,6 +256,17 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         import logging
         logger = logging.getLogger(__name__)
         
+        # Add debug info immediately to see if function is called
+        await db.standing_orders.update_one(
+            {"id": standing_order_id},
+            {"$set": {
+                "debug_info": {
+                    "function_called": True,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            }}
+        )
+        
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
             raise HTTPException(status_code=404, detail="Standing order not found")
