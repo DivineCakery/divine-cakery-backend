@@ -435,8 +435,10 @@ class StandingOrderTester:
             
             # Check items update
             for order in updated_future_orders[:3]:  # Check first 3 orders
+                order_id = order.get('order_number', order['id'][:8])  # Use order_number if available, else short ID
+                
                 if len(order["items"]) != len(new_items):
-                    self.log(f"❌ Order {order['order_number']}: Expected {len(new_items)} items, got {len(order['items'])}", "ERROR")
+                    self.log(f"❌ Order {order_id}: Expected {len(new_items)} items, got {len(order['items'])}", "ERROR")
                     success = False
                     continue
                 
@@ -444,7 +446,7 @@ class StandingOrderTester:
                 for i, item in enumerate(order["items"]):
                     expected_qty = new_items[i]["quantity"]
                     if item["quantity"] != expected_qty:
-                        self.log(f"❌ Order {order['order_number']}: Expected qty {expected_qty}, got {item['quantity']}", "ERROR")
+                        self.log(f"❌ Order {order_id}: Expected qty {expected_qty}, got {item['quantity']}", "ERROR")
                         success = False
             
             # Check frequency update (orders should be on Tue, Thu, Sat)
