@@ -3906,7 +3906,7 @@ async def setup_admin():
 
 
 # Setup Standing Orders routes BEFORE including the router
-from backend.standing_orders_routes import setup_standing_orders_routes
+from .standing_orders_routes import setup_standing_orders_routes
 setup_standing_orders_routes(api_router, db, get_current_admin)
 
 # Include the router in the main app
