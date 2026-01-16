@@ -1685,9 +1685,24 @@ const styles = StyleSheet.create({
   deleteButton: {
     backgroundColor: '#f44336',
   },
+  editButton: {
+    backgroundColor: '#8B4513',
+  },
   actionButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  readOnlyField: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 8,
+  },
+  readOnlyText: {
+    fontSize: 16,
+    color: '#666',
   },
   emptyState: {
     alignItems: 'center',
