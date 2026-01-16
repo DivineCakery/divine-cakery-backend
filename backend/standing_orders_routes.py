@@ -303,7 +303,7 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         
         # Handle frequency changes - delete future orders and regenerate on new schedule
         if frequency_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
-            print(f"🔥 FREQUENCY CHANGE LOGIC")
+            print(f"🔥 FREQUENCY CHANGE LOGIC - Will delete and regenerate")
             logger.info(f"Frequency changed for standing order {standing_order_id}, regenerating orders...")
             
             # Delete all future orders for this standing order
@@ -312,14 +312,15 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
                 "delivery_date": {"$gte": today},
                 "is_standing_order": True
             })
+            print(f"🔥 Deleted {delete_result.deleted_count} future orders")
             logger.info(f"Deleted {delete_result.deleted_count} future orders")
             
-            # Regenerate orders with new frequency
+            # Regenerate orders with new frequency (and new items from updated standing order)
             await generate_orders_for_standing_order(db, updated_standing_order, days_ahead=10)
         
-        # Handle items/quantity changes - update all current and future generated orders
-        elif items_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
-            print(f"🔥 ITEMS CHANGE LOGIC")
+        # Handle items/quantity changes (when frequency NOT changed) - update all current and future generated orders
+        if items_changed and not frequency_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
+            print(f"🔥 ITEMS CHANGE LOGIC - Will update existing orders")
             logger.info(f"Items changed for standing order {standing_order_id}, updating existing orders...")
             
             # Calculate new items with subtotals
@@ -328,8 +329,11 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
             for item in new_items:
                 item_dict = item if isinstance(item, dict) else item.dict()
                 item_with_subtotal = {
-                    **item_dict, 
-                    "subtotal": item_dict["price"] * item_dict["quantity"]
+                    "product_id": item_dict.get("product_id"),
+                    "product_name": item_dict.get("product_name"),
+                    "quantity": item_dict.get("quantity"),
+                    "price": item_dict.get("price"),
+                    "subtotal": item_dict.get("price", 0) * item_dict.get("quantity", 0)
                 }
                 items_with_subtotal.append(item_with_subtotal)
             
@@ -337,6 +341,16 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
             
             # Build notes for the order
             order_notes = f"Auto-generated from standing order. {updated_standing_order.get('notes', '')}".strip()
+            
+            print(f"🔥 Updating orders with: items={items_with_subtotal}, total={new_total}")
+            
+            # First, count how many orders will be affected
+            orders_to_update = await db.orders.count_documents({
+                "standing_order_id": standing_order_id,
+                "delivery_date": {"$gte": today},
+                "is_standing_order": True
+            })
+            print(f"🔥 Found {orders_to_update} orders to update")
             
             # Update all current and future orders with new items and totals
             update_order_result = await db.orders.update_many(
@@ -355,6 +369,7 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
                     }
                 }
             )
+            print(f"🔥 Update result: matched={update_order_result.matched_count}, modified={update_order_result.modified_count}")
             logger.info(f"Updated {update_order_result.modified_count} existing orders with new items")
         
         # If reactivating, regenerate orders
