@@ -320,59 +320,77 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         
         # Handle items/quantity changes (when frequency NOT changed) - update all current and future generated orders
         if items_changed and not frequency_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
-            # Calculate new items with subtotals
-            new_items = update_data["items"]
-            items_with_subtotal = []
-            for item in new_items:
-                item_dict = item if isinstance(item, dict) else item.dict()
-                item_with_subtotal = {
-                    "product_id": item_dict.get("product_id"),
-                    "product_name": item_dict.get("product_name"),
-                    "quantity": item_dict.get("quantity"),
-                    "price": item_dict.get("price"),
-                    "subtotal": item_dict.get("price", 0) * item_dict.get("quantity", 0)
-                }
-                items_with_subtotal.append(item_with_subtotal)
-            
-            new_total = sum(item["subtotal"] for item in items_with_subtotal)
-            
-            # Build notes for the order
-            order_notes = f"Auto-generated from standing order. {updated_standing_order.get('notes', '')}".strip()
-            
-            # First, count how many orders will be affected
-            orders_to_update = await db.orders.count_documents({
-                "standing_order_id": standing_order_id,
-                "delivery_date": {"$gte": today},
-                "is_standing_order": True
-            })
-            
-            # Update all current and future orders with new items and totals
-            update_order_result = await db.orders.update_many(
-                {
+            try:
+                # Calculate new items with subtotals
+                new_items = update_data["items"]
+                items_with_subtotal = []
+                for item in new_items:
+                    item_dict = item if isinstance(item, dict) else item.dict()
+                    item_with_subtotal = {
+                        "product_id": item_dict.get("product_id"),
+                        "product_name": item_dict.get("product_name"),
+                        "quantity": item_dict.get("quantity"),
+                        "price": item_dict.get("price"),
+                        "subtotal": item_dict.get("price", 0) * item_dict.get("quantity", 0)
+                    }
+                    items_with_subtotal.append(item_with_subtotal)
+                
+                new_total = sum(item["subtotal"] for item in items_with_subtotal)
+                
+                # Build notes for the order
+                order_notes = f"Auto-generated from standing order. {updated_standing_order.get('notes', '')}".strip()
+                
+                # First, count how many orders will be affected
+                orders_to_update = await db.orders.count_documents({
                     "standing_order_id": standing_order_id,
                     "delivery_date": {"$gte": today},
                     "is_standing_order": True
-                },
-                {
-                    "$set": {
-                        "items": items_with_subtotal,
-                        "total_amount": new_total,
-                        "final_amount": new_total,
-                        "notes": order_notes,
-                        "updated_at": datetime.utcnow()
+                })
+                
+                # Update all current and future orders with new items and totals
+                update_order_result = await db.orders.update_many(
+                    {
+                        "standing_order_id": standing_order_id,
+                        "delivery_date": {"$gte": today},
+                        "is_standing_order": True
+                    },
+                    {
+                        "$set": {
+                            "items": items_with_subtotal,
+                            "total_amount": new_total,
+                            "final_amount": new_total,
+                            "notes": order_notes,
+                            "updated_at": datetime.utcnow()
+                        }
                     }
-                }
-            )
-            
-            # Mark that update logic was executed
-            await db.standing_orders.update_one(
-                {"id": standing_order_id},
-                {"$set": {
-                    "debug_info.update_logic_executed": "items_change",
-                    "debug_info.orders_found": orders_to_update,
-                    "debug_info.orders_updated": update_order_result.modified_count
-                }}
-            )
+                )
+                
+                # Mark that update logic was executed by updating the standing order directly in DB
+                await db.standing_orders.update_one(
+                    {"id": standing_order_id},
+                    {"$set": {
+                        "debug_info": {
+                            "update_logic_executed": "items_change",
+                            "orders_found": orders_to_update,
+                            "orders_updated": update_order_result.modified_count,
+                            "last_update": datetime.utcnow().isoformat()
+                        }
+                    }}
+                )
+                
+            except Exception as e:
+                # Log the error and mark it in debug info
+                logger.error(f"Error in items update logic: {str(e)}")
+                await db.standing_orders.update_one(
+                    {"id": standing_order_id},
+                    {"$set": {
+                        "debug_info": {
+                            "update_logic_executed": "error",
+                            "error": str(e),
+                            "last_update": datetime.utcnow().isoformat()
+                        }
+                    }}
+                )
         
         # If reactivating, regenerate orders
         if update_data.get("status") == StandingOrderStatus.ACTIVE:
