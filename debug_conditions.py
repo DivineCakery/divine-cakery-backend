@@ -1,134 +1,171 @@
 #!/usr/bin/env python3
 """
-Debug the condition logic in standing order update
+Debug test to check the condition logic in standing order update
 """
 
-import requests
+import asyncio
+import aiohttp
 import json
 from datetime import datetime
 
-# Configuration
-BACKEND_URL = "https://divine-cakery-backend.onrender.com/api"
-ADMIN_CREDENTIALS = {
-    "username": "testadmin",
-    "password": "admin123"
-}
+BACKEND_URL = "https://stanorder-update.preview.emergentagent.com/api"
+ADMIN_USERNAME = "testadmin"
+ADMIN_PASSWORD = "admin123"
 
-def authenticate():
-    """Get admin token"""
-    response = requests.post(
-        f"{BACKEND_URL}/auth/login",
-        json=ADMIN_CREDENTIALS,
-        timeout=30
-    )
-    
-    if response.status_code == 200:
-        token = response.json()["access_token"]
-        print(f"✅ Authenticated successfully")
-        return token
-    else:
-        print(f"❌ Authentication failed: {response.status_code}")
-        return None
-
-def debug_condition_logic(token):
-    """Debug the condition logic"""
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    # Get standing orders
-    response = requests.get(f"{BACKEND_URL}/admin/standing-orders", headers=headers, timeout=30)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to get standing orders: {response.status_code}")
-        return
-    
-    standing_orders = response.json()
-    if not standing_orders:
-        print("❌ No standing orders found")
-        return
-    
-    # Find an active standing order
-    active_so = None
-    for so in standing_orders:
-        if so.get("status") == "active":
-            active_so = so
-            break
-    
-    if not active_so:
-        print("❌ No active standing orders found")
-        return
-    
-    so_id = active_so["id"]
-    original_items = active_so.get("items", [])
-    
-    print(f"🔍 Testing standing order: {so_id}")
-    print(f"   Status: {active_so.get('status')}")
-    print(f"   Original items: {len(original_items)}")
-    
-    # Create updated items with different quantities
-    updated_items = []
-    for i, item in enumerate(original_items):
-        new_quantity = item.get("quantity", 1) + 5  # Add 5 to each quantity
-        updated_items.append({
-            "product_id": item.get("product_id"),
-            "product_name": item.get("product_name"),
-            "quantity": new_quantity,
-            "price": item.get("price", 100)
-        })
-    
-    print(f"\n📝 Updating ONLY items (no status change):")
-    
-    # Update ONLY items (no status field)
-    update_data = {"items": updated_items}
-    
-    response = requests.put(
-        f"{BACKEND_URL}/admin/standing-orders/{so_id}",
-        json=update_data,
-        headers=headers,
-        timeout=30
-    )
-    
-    if response.status_code == 200:
-        updated_so = response.json()
-        debug_info = updated_so.get("debug_info", {})
+async def test_condition_logic():
+    async with aiohttp.ClientSession() as session:
+        # Login
+        login_data = {"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD}
+        async with session.post(f"{BACKEND_URL}/auth/login", json=login_data) as response:
+            if response.status != 200:
+                print("❌ Login failed")
+                return
+            token = (await response.json())["access_token"]
+            headers = {"Authorization": f"Bearer {token}"}
+            print("✅ Logged in successfully")
         
-        print(f"\n✅ Standing order updated successfully")
-        print(f"📊 Debug Info Analysis:")
-        print(f"   Raw debug_info: {debug_info}")
+        # Create a new test customer
+        customer_data = {
+            "username": f"debugcustomer_{int(datetime.now().timestamp())}",
+            "email": f"debug_{int(datetime.now().timestamp())}@example.com",
+            "phone": "+919876543210",
+            "business_name": "Debug Test Business",
+            "address": "123 Debug Street",
+            "password": "debugpassword123",
+            "role": "customer",
+            "is_approved": True,
+            "can_topup_wallet": True,
+            "user_type": "owner"
+        }
         
-        if debug_info:
-            condition_check = debug_info.get("condition_check", {})
-            print(f"   items_changed: {condition_check.get('items_changed')}")
-            print(f"   not_frequency_changed: {condition_check.get('not_frequency_changed')}")
-            print(f"   not_cancelled: {condition_check.get('not_cancelled')}")
-            print(f"   should_execute: {condition_check.get('should_execute')}")
+        async with session.post(f"{BACKEND_URL}/admin/users", json=customer_data, headers=headers) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                print(f"❌ Failed to create customer: {response.status} - {error_text}")
+                return
+            customer = await response.json()
+            customer_id = customer["id"]
+            print(f"✅ Created customer: {customer_id}")
+        
+        # Create a new standing order
+        standing_order_data = {
+            "customer_id": customer_id,
+            "items": [
+                {
+                    "product_id": "debug_product_1",
+                    "product_name": "Debug Bread",
+                    "quantity": 5,
+                    "price": 20.0
+                }
+            ],
+            "recurrence_type": "weekly_days",
+            "recurrence_config": {
+                "days": [0, 2, 4]  # Monday, Wednesday, Friday
+            },
+            "duration_type": "indefinite",
+            "notes": "Debug test standing order"
+        }
+        
+        async with session.post(f"{BACKEND_URL}/admin/standing-orders", json=standing_order_data, headers=headers) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                print(f"❌ Failed to create standing order: {response.status} - {error_text}")
+                return
+            standing_order = await response.json()
+            standing_order_id = standing_order["id"]
+            print(f"✅ Created standing order: {standing_order_id}")
+        
+        # Wait for orders to be generated
+        await asyncio.sleep(3)
+        
+        # Now update ONLY the items (no frequency change, no status change)
+        update_data = {
+            "items": [
+                {
+                    "product_id": "debug_product_1",
+                    "product_name": "Debug Bread",
+                    "quantity": 50,  # Changed from 5 to 50
+                    "price": 20.0
+                }
+            ]
+        }
+        
+        print(f"Updating standing order with: {json.dumps(update_data, indent=2)}")
+        
+        async with session.put(
+            f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}",
+            json=update_data,
+            headers=headers
+        ) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                print(f"❌ Update failed: {response.status} - {error_text}")
+                return
             
-            update_logic_executed = debug_info.get("update_logic_executed")
-            print(f"   update_logic_executed: {update_logic_executed}")
+            updated_standing_order = await response.json()
+            print("✅ Update successful")
             
-            if update_logic_executed == "items_change":
-                print(f"   orders_found: {debug_info.get('orders_found')}")
-                print(f"   orders_updated: {debug_info.get('orders_updated')}")
-            elif update_logic_executed == "error":
-                print(f"   error: {debug_info.get('error')}")
-        else:
-            print("   ❌ No debug info found!")
-        
-        return so_id
-    else:
-        print(f"❌ Failed to update standing order: {response.status_code} - {response.text}")
-        return None
-
-def main():
-    print("🐛 DEBUG CONDITION LOGIC IN STANDING ORDER UPDATE")
-    print("=" * 60)
-    
-    # Authenticate
-    token = authenticate()
-    if not token:
-        return
-    
-    # Debug condition logic
-    debug_condition_logic(token)
+            # Check debug_info in detail
+            debug_info = updated_standing_order.get("debug_info", {})
+            print(f"Debug info keys: {list(debug_info.keys())}")
+            print(f"Full debug info: {json.dumps(debug_info, indent=2, default=str)}")
+            
+            # Check the specific fields we expect
+            expected_fields = [
+                "function_called",
+                "items_changed", 
+                "update_logic_executed",
+                "orders_found",
+                "orders_updated"
+            ]
+            
+            for field in expected_fields:
+                value = debug_info.get(field)
+                print(f"  {field}: {value} (type: {type(value)})")
+            
+            # Check if the standing order items were updated
+            updated_items = updated_standing_order.get("items", [])
+            if updated_items and len(updated_items) > 0:
+                new_quantity = updated_items[0].get("quantity")
+                print(f"Standing order quantity updated to: {new_quantity}")
+                if new_quantity == 50:
+                    print("✅ Standing order items updated correctly")
+                else:
+                    print(f"❌ Standing order items not updated correctly (expected 50, got {new_quantity})")
+            
+            # Check generated orders
+            async with session.get(
+                f"{BACKEND_URL}/admin/standing-orders/{standing_order_id}/generated-orders",
+                headers=headers
+            ) as response:
+                if response.status == 200:
+                    generated_orders = await response.json()
+                    print(f"✅ Found {len(generated_orders)} generated orders")
+                    
+                    # Check if any orders have the new quantity
+                    updated_count = 0
+                    for order in generated_orders:
+                        order_items = order.get("items", [])
+                        if order_items and len(order_items) > 0:
+                            order_quantity = order_items[0].get("quantity")
+                            if order_quantity == 50:
+                                updated_count += 1
+                    
+                    print(f"Orders with updated quantity (50): {updated_count}/{len(generated_orders)}")
+                    
+                    if updated_count > 0:
+                        print("✅ Some orders were updated with new quantities")
+                    else:
+                        print("❌ No orders were updated with new quantities")
+                        # Show first few order quantities for debugging
+                        for i, order in enumerate(generated_orders[:3]):
+                            order_items = order.get("items", [])
+                            if order_items:
+                                qty = order_items[0].get("quantity", "N/A")
+                                delivery_date = order.get("delivery_date", "N/A")
+                                print(f"  Order {i+1}: quantity={qty}, delivery_date={delivery_date}")
+                else:
+                    print("❌ Failed to get generated orders")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(test_condition_logic())
