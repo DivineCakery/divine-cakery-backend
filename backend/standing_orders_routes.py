@@ -256,8 +256,12 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         import logging
         logger = logging.getLogger(__name__)
         
-        logger.error(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
-        logger.error(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
+        # This should definitely appear in logs
+        logger.error(f"🔥🔥🔥 STANDING ORDER UPDATE FUNCTION CALLED: {standing_order_id}")
+        
+        # Force an error to see if this function is called
+        if standing_order_id == "ec659ed9-4d46-41c8-bcd5-0d90f141249d":
+            logger.error(f"🔥🔥🔥 TEST ERROR - This should appear in logs!")
         
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
