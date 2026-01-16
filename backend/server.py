@@ -3502,10 +3502,13 @@ async def update_user_pay_later_settings(
 async def get_all_discounts(current_user: User = Depends(get_current_admin)):
     """Get all discounts"""
     from datetime import datetime as dt
+    from pymongo import UpdateOne
     now = dt.utcnow()
     
     discounts = await db.discounts.find().to_list(1000)
     result = []
+    bulk_operations = []
+    
     for discount in discounts:
         # Calculate is_active based on current date
         start_date = discount.get('start_date')
@@ -3514,15 +3517,18 @@ async def get_all_discounts(current_user: User = Depends(get_current_admin)):
         # Check if discount is within active date range
         is_currently_active = start_date <= now <= end_date if start_date and end_date else False
         
-        # Update is_active in database if it has changed
+        # Queue update if is_active has changed
         if discount.get('is_active') != is_currently_active:
-            await db.discounts.update_one(
-                {"_id": discount["_id"]},
-                {"$set": {"is_active": is_currently_active}}
+            bulk_operations.append(
+                UpdateOne({"_id": discount["_id"]}, {"$set": {"is_active": is_currently_active}})
             )
             discount['is_active'] = is_currently_active
         
         result.append(Discount(**discount))
+    
+    # Execute all updates in a single batch
+    if bulk_operations:
+        await db.discounts.bulk_write(bulk_operations)
     
     return result
 
