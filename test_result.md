@@ -110,7 +110,7 @@ backend:
     implemented: true
     working: false
     file: "/app/backend/standing_orders_routes.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "critical"
     needs_retesting: false
     status_history:
@@ -123,6 +123,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL BUG FOUND: Items/Quantity Change Propagation NOT Working! Comprehensive testing revealed that while the standing order configuration is updated successfully, the changes are NOT propagated to existing generated orders. SPECIFIC ISSUES: 1) Items Update: When updating items array with new quantities (e.g., changing from [2,3,4] to [5,6,3]), existing orders retain original quantities instead of updated ones. 2) Combined Changes: When updating both items AND frequency, only frequency changes are applied due to 'elif' logic bug in lines 296-311 of standing_orders_routes.py. 3) Order Propagation Logic: The update_many query in lines 331-346 appears to not execute or not match existing orders correctly. TESTING EVIDENCE: Created test standing order with 3 items (qty 2,3,4), updated to new quantities (5,6,3), verified that 4 existing future orders still show original quantities (2,3,4) instead of updated ones. This is a critical production bug that breaks the core functionality described in the review request. The feature requires immediate fix before it can be considered working."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL IMPORT/ROUTING ISSUE DISCOVERED: After investigating the FIXED import issue, found that the standing_orders_routes.py update function is NOT being called at all. ROOT CAUSE: The PUT /api/admin/standing-orders/{standing_order_id} route defined in standing_orders_routes.py is not being executed - there appears to be a route conflict or registration issue. EVIDENCE: 1) Added debug logging to update_standing_order function - no logs appear when making PUT requests 2) Standing order updates work (notes field changes) but no debug_info is set 3) setup_standing_orders_routes() is called during server startup 4) The importlib fix is working correctly 5) No debug_info field appears in responses, confirming the custom update logic is bypassed. CONCLUSION: While the import fix resolved the module loading issue, the actual route registration or routing logic has a problem. The standing order updates are being handled by some other mechanism (possibly a generic update route) that doesn't include the propagation logic. This explains why items can be updated on the standing order but changes don't propagate to existing orders. The propagation feature is completely non-functional due to this routing issue."
 
   - task: "Automatic delivery date calculation with IST timezone"
     implemented: true
