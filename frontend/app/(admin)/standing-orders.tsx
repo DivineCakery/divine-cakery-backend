@@ -1235,6 +1235,294 @@ export default function StandingOrdersScreen() {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Edit Modal */}
+      <Modal visible={showEditModal} animationType="slide" transparent={false}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Edit Standing Order</Text>
+            <TouchableOpacity onPress={() => setShowEditModal(false)}>
+              <Ionicons name="close" size={28} color="#8B4513" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            {editingOrder && (
+              <>
+                {/* Customer Info (Read-only) */}
+                <Text style={styles.sectionLabel}>Customer</Text>
+                <View style={styles.readOnlyField}>
+                  <Text style={styles.readOnlyText}>{editingOrder.customer_name}</Text>
+                </View>
+
+                {/* Products */}
+                <Text style={styles.sectionLabel}>Products *</Text>
+                {editSelectedProducts.map((item, index) => (
+                  <View key={index} style={styles.productRow}>
+                    <View style={styles.productPickerWrapper}>
+                      <Picker
+                        selectedValue={item.product_id}
+                        onValueChange={(value) => updateEditProduct(index, 'product', value)}
+                        style={styles.productPicker}
+                      >
+                        <Picker.Item label="Select product..." value="" />
+                        {products
+                          .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+                          .map((product: any) => (
+                            <Picker.Item
+                              key={product.id}
+                              label={product.name}
+                              value={product.id}
+                            />
+                          ))}
+                      </Picker>
+                    </View>
+                    <TextInput
+                      style={styles.quantityInput}
+                      value={item.quantity.toString()}
+                      onChangeText={(text) => updateEditProduct(index, 'quantity', text)}
+                      keyboardType="decimal-pad"
+                      placeholder="Qty"
+                    />
+                    <TouchableOpacity onPress={() => removeEditProduct(index)}>
+                      <Ionicons name="trash-outline" size={24} color="#f44336" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <TouchableOpacity style={styles.addProductButton} onPress={addEditProduct}>
+                  <Ionicons name="add-circle" size={20} color="#8B4513" />
+                  <Text style={styles.addProductText}>Add Product</Text>
+                </TouchableOpacity>
+
+                {/* Recurrence Type */}
+                <Text style={styles.sectionLabel}>Recurrence Pattern *</Text>
+                <View style={styles.radioGroup}>
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setEditRecurrenceType('weekly_days')}
+                  >
+                    <Ionicons
+                      name={editRecurrenceType === 'weekly_days' ? 'radio-button-on' : 'radio-button-off'}
+                      size={24}
+                      color="#8B4513"
+                    />
+                    <Text style={styles.radioText}>Days of Week</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setEditRecurrenceType('interval')}
+                  >
+                    <Ionicons
+                      name={editRecurrenceType === 'interval' ? 'radio-button-on' : 'radio-button-off'}
+                      size={24}
+                      color="#8B4513"
+                    />
+                    <Text style={styles.radioText}>Interval</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Weekly Days Selection */}
+                {editRecurrenceType === 'weekly_days' && (
+                  <View style={styles.daysContainer}>
+                    {dayNames.map((day, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[styles.dayChip, editSelectedDays.includes(index) && styles.dayChipSelected]}
+                        onPress={() => toggleEditDay(index)}
+                      >
+                        <Text
+                          style={[
+                            styles.dayChipText,
+                            editSelectedDays.includes(index) && styles.dayChipTextSelected,
+                          ]}
+                        >
+                          {day}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {/* Interval Selection */}
+                {editRecurrenceType === 'interval' && (
+                  <View style={styles.intervalContainer}>
+                    {intervalOptions.map((option) => (
+                      <TouchableOpacity
+                        key={option.value}
+                        style={[
+                          styles.intervalChip,
+                          editIntervalDays === option.value && styles.intervalChipSelected,
+                        ]}
+                        onPress={() => setEditIntervalDays(option.value)}
+                      >
+                        <Text
+                          style={[
+                            styles.intervalChipText,
+                            editIntervalDays === option.value && styles.intervalChipTextSelected,
+                          ]}
+                        >
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {/* Duration Type */}
+                <Text style={styles.sectionLabel}>Duration</Text>
+                <View style={styles.radioGroup}>
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setEditDurationType('indefinite')}
+                  >
+                    <Ionicons
+                      name={editDurationType === 'indefinite' ? 'radio-button-on' : 'radio-button-off'}
+                      size={24}
+                      color="#8B4513"
+                    />
+                    <Text style={styles.radioText}>Indefinite</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.radioOption}
+                    onPress={() => setEditDurationType('end_date')}
+                  >
+                    <Ionicons
+                      name={editDurationType === 'end_date' ? 'radio-button-on' : 'radio-button-off'}
+                      size={24}
+                      color="#8B4513"
+                    />
+                    <Text style={styles.radioText}>End Date</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* End Date Picker */}
+                {editDurationType === 'end_date' && (
+                  <TouchableOpacity
+                    style={styles.datePickerButton}
+                    onPress={() => setShowEditEndDatePicker(true)}
+                  >
+                    <Ionicons name="calendar" size={20} color="#8B4513" />
+                    <Text style={styles.datePickerText}>{editEndDate.toDateString()}</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Notes */}
+                <Text style={styles.sectionLabel}>Notes (Optional)</Text>
+                <TextInput
+                  style={styles.notesInput}
+                  value={editNotes}
+                  onChangeText={setEditNotes}
+                  placeholder="Add any special instructions..."
+                  multiline
+                  numberOfLines={3}
+                />
+
+                {/* Save Button */}
+                <TouchableOpacity
+                  style={[styles.createButton, saving && styles.createButtonDisabled]}
+                  onPress={handleSaveEdit}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                      <Text style={styles.createButtonText}>Save Changes</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Edit End Date Picker Modal for iOS */}
+      {Platform.OS === 'ios' && showEditModal && showEditEndDatePicker && (
+        <Modal transparent animationType="slide">
+          <View style={styles.datePickerModal}>
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => setShowEditEndDatePicker(false)}>
+                  <Text style={styles.datePickerCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>Select End Date</Text>
+                <TouchableOpacity onPress={() => setShowEditEndDatePicker(false)}>
+                  <Text style={styles.datePickerDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={editEndDate}
+                mode="date"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setEditEndDate(selectedDate);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Edit End Date Picker for Android */}
+      {Platform.OS === 'android' && showEditModal && showEditEndDatePicker && (
+        <DateTimePicker
+          value={editEndDate}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={(event, selectedDate) => {
+            setShowEditEndDatePicker(false);
+            if (event.type === 'set' && selectedDate) {
+              setEditEndDate(selectedDate);
+            }
+          }}
+        />
+      )}
+
+      {/* Edit End Date Picker for Web */}
+      {Platform.OS === 'web' && showEditModal && showEditEndDatePicker && (
+        <Modal transparent animationType="fade">
+          <View style={styles.datePickerModal}>
+            <View style={styles.datePickerContainer}>
+              <View style={styles.datePickerHeader}>
+                <TouchableOpacity onPress={() => setShowEditEndDatePicker(false)}>
+                  <Text style={styles.datePickerCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.datePickerTitle}>Select End Date</Text>
+                <TouchableOpacity onPress={() => setShowEditEndDatePicker(false)}>
+                  <Text style={styles.datePickerDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.webDatePickerContent}>
+                <input
+                  type="date"
+                  value={editEndDate.toISOString().split('T')[0]}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => {
+                    const selectedDate = new Date(e.target.value);
+                    if (!isNaN(selectedDate.getTime())) {
+                      setEditEndDate(selectedDate);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    fontSize: '18px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    outline: 'none',
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
