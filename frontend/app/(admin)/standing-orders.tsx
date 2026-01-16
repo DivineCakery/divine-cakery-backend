@@ -602,6 +602,13 @@ export default function StandingOrdersScreen() {
         {item.status === 'active' && (
           <>
             <TouchableOpacity
+              style={[styles.actionButton, styles.editButton]}
+              onPress={() => handleEdit(item)}
+            >
+              <Ionicons name="create" size={18} color="#fff" />
+              <Text style={styles.actionButtonText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[styles.actionButton, styles.duplicateButton]}
               onPress={() => handleDuplicate(item.id)}
             >
