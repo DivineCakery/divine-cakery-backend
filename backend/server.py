@@ -3745,9 +3745,10 @@ async def fix_user_fields():
     Adds: id, is_approved, favorite_products, created_at, is_active
     Fixes: admin_access_level invalid values
     """
+    from pymongo import UpdateOne
     all_users = await db.users.find().to_list(1000)
     
-    fixed_count = 0
+    bulk_operations = []
     details = []
     
     for user in all_users:
@@ -3784,15 +3785,17 @@ async def fix_user_fields():
                 else:
                     updates["admin_access_level"] = "full"  # Default fallback
         
-        # Apply updates if any
+        # Queue update if any
         if updates:
-            result = await db.users.update_one(
-                {"_id": user["_id"]},
-                {"$set": updates}
+            bulk_operations.append(
+                UpdateOne({"_id": user["_id"]}, {"$set": updates})
             )
-            if result.modified_count > 0:
-                fixed_count += 1
-                details.append(f"{username}: fixed {list(updates.keys())}")
+            details.append(f"{username}: fixed {list(updates.keys())}")
+    
+    fixed_count = 0
+    if bulk_operations:
+        result = await db.users.bulk_write(bulk_operations)
+        fixed_count = result.modified_count
     
     return {
         "message": f"Fixed {fixed_count} users with missing/invalid fields",
