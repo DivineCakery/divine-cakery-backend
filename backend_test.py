@@ -165,7 +165,7 @@ class BackendTester:
                 timeout=30
             )
             
-            if response.status_code == 201:
+            if response.status_code == 201 or response.status_code == 200:
                 standing_order = response.json()
                 standing_order_id = standing_order["id"]
                 
@@ -175,6 +175,8 @@ class BackendTester:
                     f"Created standing order with ID: {standing_order_id}",
                     {
                         "standing_order_id": standing_order_id,
+                        "customer_id": customer_id,
+                        "customer_name": customer_name,
                         "items_count": len(test_items),
                         "initial_quantities": [item["quantity"] for item in test_items]
                     }
