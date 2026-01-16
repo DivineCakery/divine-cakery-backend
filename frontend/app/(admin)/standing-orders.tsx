@@ -52,6 +52,19 @@ export default function StandingOrdersScreen() {
   const [generatedOrders, setGeneratedOrders] = useState([]);
   const [regeneratingAll, setRegeneratingAll] = useState(false);
 
+  // Edit modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<any>(null);
+  const [editSelectedProducts, setEditSelectedProducts] = useState<any[]>([]);
+  const [editRecurrenceType, setEditRecurrenceType] = useState('weekly_days');
+  const [editSelectedDays, setEditSelectedDays] = useState<number[]>([]);
+  const [editIntervalDays, setEditIntervalDays] = useState('1');
+  const [editDurationType, setEditDurationType] = useState('indefinite');
+  const [editEndDate, setEditEndDate] = useState(new Date());
+  const [showEditEndDatePicker, setShowEditEndDatePicker] = useState(false);
+  const [editNotes, setEditNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
   const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const intervalOptions = [
     { label: 'Every Day', value: '1' },
