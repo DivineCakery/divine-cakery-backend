@@ -141,6 +141,10 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
 
 def setup_standing_orders_routes(api_router, db, get_current_admin):
     """Setup all standing orders routes"""
+    print("🔧 SETUP_STANDING_ORDERS_ROUTES CALLED - Routes are being registered!")
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("🔧 SETUP_STANDING_ORDERS_ROUTES CALLED - Routes are being registered!")
     
     @api_router.post("/admin/standing-orders", response_model=StandingOrder)
     async def create_standing_order(
