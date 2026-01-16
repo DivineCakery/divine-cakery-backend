@@ -288,6 +288,119 @@ export default function StandingOrdersScreen() {
     setNotes('');
   };
 
+  // Edit standing order functions
+  const handleEdit = (order: any) => {
+    setEditingOrder(order);
+    // Populate edit form with current values
+    setEditSelectedProducts(order.items.map((item: any) => ({
+      product_id: item.product_id,
+      product_name: item.product_name,
+      quantity: item.quantity,
+      price: item.price,
+    })));
+    setEditRecurrenceType(order.recurrence_type);
+    if (order.recurrence_type === 'weekly_days') {
+      setEditSelectedDays(order.recurrence_config.days || []);
+      setEditIntervalDays('1');
+    } else {
+      setEditSelectedDays([]);
+      setEditIntervalDays(String(order.recurrence_config.days || 1));
+    }
+    setEditDurationType(order.duration_type || 'indefinite');
+    setEditEndDate(order.end_date ? new Date(order.end_date) : new Date());
+    setEditNotes(order.notes || '');
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingOrder) return;
+    
+    if (editSelectedProducts.length === 0) {
+      showAlert('Error', 'Please add at least one product');
+      return;
+    }
+
+    if (editRecurrenceType === 'weekly_days' && editSelectedDays.length === 0) {
+      showAlert('Error', 'Please select at least one day');
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const recurrenceConfig = editRecurrenceType === 'weekly_days'
+        ? { days: editSelectedDays }
+        : { days: parseInt(editIntervalDays) };
+
+      // Ensure all quantities are properly parsed as numbers
+      const itemsWithParsedQuantities = editSelectedProducts.map(item => ({
+        ...item,
+        quantity: typeof item.quantity === 'string' ? parseFloat(item.quantity) || 0 : item.quantity
+      }));
+
+      const updateData = {
+        items: itemsWithParsedQuantities,
+        recurrence_type: editRecurrenceType,
+        recurrence_config: recurrenceConfig,
+        duration_type: editDurationType,
+        end_date: editDurationType === 'end_date' ? editEndDate.toISOString() : null,
+        notes: editNotes.trim() || null,
+      };
+
+      await apiService.updateStandingOrder(editingOrder.id, updateData);
+      
+      setShowEditModal(false);
+      setEditingOrder(null);
+      showAlert('Success', 'Standing order updated successfully');
+      fetchData();
+    } catch (error: any) {
+      console.error('Error updating standing order:', error);
+      showAlert('Error', error.response?.data?.detail || 'Failed to update standing order');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addEditProduct = () => {
+    setEditSelectedProducts([...editSelectedProducts, { product_id: null, product_name: '', quantity: 1, price: 0 }]);
+  };
+
+  const removeEditProduct = (index: number) => {
+    setEditSelectedProducts(editSelectedProducts.filter((_, i) => i !== index));
+  };
+
+  const updateEditProduct = (index: number, field: string, value: any) => {
+    const updated = [...editSelectedProducts];
+    if (field === 'product') {
+      const product = products.find((p: any) => p.id === value);
+      if (product) {
+        updated[index] = {
+          product_id: product.id,
+          product_name: product.name,
+          quantity: updated[index].quantity,
+          price: product.price,
+        };
+      }
+    } else if (field === 'quantity') {
+      // Allow decimal values
+      if (value === '' || value === '.' || value.endsWith('.')) {
+        updated[index].quantity = value;
+      } else {
+        const parsed = parseFloat(value);
+        updated[index].quantity = isNaN(parsed) ? 0 : parsed;
+      }
+    }
+    setEditSelectedProducts(updated);
+  };
+
+  const toggleEditDay = (dayIndex: number) => {
+    if (editSelectedDays.includes(dayIndex)) {
+      setEditSelectedDays(editSelectedDays.filter(d => d !== dayIndex));
+    } else {
+      setEditSelectedDays([...editSelectedDays, dayIndex].sort());
+    }
+  };
+
   const handleViewDetails = async (order: any) => {
     try {
       setSelectedOrder(order);
