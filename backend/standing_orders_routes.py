@@ -260,6 +260,9 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         import logging
         logger = logging.getLogger(__name__)
         
+        print(f"🔥 UPDATE_STANDING_ORDER CALLED for ID: {standing_order_id}")
+        logger.info(f"🔥 UPDATE_STANDING_ORDER CALLED for ID: {standing_order_id}")
+        
         # Add debug info immediately to see if function is called
         await db.standing_orders.update_one(
             {"id": standing_order_id},
