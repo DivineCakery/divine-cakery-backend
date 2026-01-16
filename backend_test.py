@@ -82,6 +82,7 @@ class BackendTester:
                 "phone": "+919876543210",
                 "business_name": "Test Bakery Business",
                 "address": "123 Test Street, Test City",
+                "password": "testpassword123",
                 "role": "customer",
                 "is_approved": True,
                 "can_topup_wallet": True,
