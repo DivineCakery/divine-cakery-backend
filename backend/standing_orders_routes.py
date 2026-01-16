@@ -256,12 +256,18 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         import logging
         logger = logging.getLogger(__name__)
         
+        print(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
+        logger.info(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
+        
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
             raise HTTPException(status_code=404, detail="Standing order not found")
         
         update_data = {k: v for k, v in standing_order_data.dict().items() if v is not None}
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        print(f"🔥 UPDATE DATA: {update_data}")
+        logger.info(f"🔥 UPDATE DATA: {update_data}")
         
         # If cancelling, delete future auto-generated orders
         if update_data.get("status") == StandingOrderStatus.CANCELLED:
@@ -280,9 +286,8 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         # Check if items changed - need to update existing orders
         items_changed = "items" in update_data
         
-        logger.info(f"Update analysis: frequency_changed={frequency_changed}, items_changed={items_changed}")
-        logger.info(f"Update data keys: {list(update_data.keys())}")
-        logger.info(f"Standing order status: {update_data.get('status')}")
+        print(f"🔥 ANALYSIS: frequency_changed={frequency_changed}, items_changed={items_changed}")
+        logger.info(f"🔥 ANALYSIS: frequency_changed={frequency_changed}, items_changed={items_changed}")
         
         # Update the standing order configuration
         result = await db.standing_orders.update_one(
@@ -298,6 +303,7 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         
         # Handle frequency changes - delete future orders and regenerate on new schedule
         if frequency_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
+            print(f"🔥 FREQUENCY CHANGE LOGIC")
             logger.info(f"Frequency changed for standing order {standing_order_id}, regenerating orders...")
             
             # Delete all future orders for this standing order
@@ -313,6 +319,7 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         
         # Handle items/quantity changes - update all current and future generated orders
         elif items_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
+            print(f"🔥 ITEMS CHANGE LOGIC")
             logger.info(f"Items changed for standing order {standing_order_id}, updating existing orders...")
             
             # Calculate new items with subtotals
