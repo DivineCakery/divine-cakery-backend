@@ -3709,9 +3709,10 @@ async def migrate_user_types():
     Migration endpoint to set user_type for existing users.
     All existing users without user_type become 'owner'
     """
+    from pymongo import UpdateOne
     all_users = await db.users.find().to_list(1000)
     
-    fixed_count = 0
+    bulk_operations = []
     for user in all_users:
         updates = {}
         
@@ -3722,12 +3723,14 @@ async def migrate_user_types():
             updates["linked_owner_id"] = None
         
         if updates:
-            result = await db.users.update_one(
-                {"_id": user["_id"]},
-                {"$set": updates}
+            bulk_operations.append(
+                UpdateOne({"_id": user["_id"]}, {"$set": updates})
             )
-            if result.modified_count > 0:
-                fixed_count += 1
+    
+    fixed_count = 0
+    if bulk_operations:
+        result = await db.users.bulk_write(bulk_operations)
+        fixed_count = result.modified_count
     
     return {
         "message": f"Migrated {fixed_count} users to have user_type",
