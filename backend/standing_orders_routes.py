@@ -280,6 +280,10 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         # Check if items changed - need to update existing orders
         items_changed = "items" in update_data
         
+        logger.info(f"Update analysis: frequency_changed={frequency_changed}, items_changed={items_changed}")
+        logger.info(f"Update data keys: {list(update_data.keys())}")
+        logger.info(f"Standing order status: {update_data.get('status')}")
+        
         # Update the standing order configuration
         result = await db.standing_orders.update_one(
             {"id": standing_order_id},
