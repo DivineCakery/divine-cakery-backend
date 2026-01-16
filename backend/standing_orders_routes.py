@@ -256,12 +256,8 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         import logging
         logger = logging.getLogger(__name__)
         
-        print(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
-        logger.info(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
-        
-        # Force flush stdout
-        import sys
-        sys.stdout.flush()
+        logger.error(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
+        logger.error(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
         
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
@@ -270,9 +266,8 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         update_data = {k: v for k, v in standing_order_data.dict().items() if v is not None}
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        print(f"🔥 UPDATE DATA: {update_data}")
-        logger.info(f"🔥 UPDATE DATA: {update_data}")
-        sys.stdout.flush()
+        logger.error(f"🔥 UPDATE DATA: {update_data}")
+        logger.error(f"🔥 UPDATE DATA: {update_data}")
         
         # If cancelling, delete future auto-generated orders
         if update_data.get("status") == StandingOrderStatus.CANCELLED:
