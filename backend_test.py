@@ -39,8 +39,8 @@ class BackendTester:
             
             response = self.session.post(
                 f"{BASE_URL}/auth/login",
-                data=login_data,
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
+                json=login_data,
+                headers={"Content-Type": "application/json"}
             )
             
             if response.status_code == 200:
