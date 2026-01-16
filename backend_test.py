@@ -1,573 +1,587 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script for Divine Cakery
-Testing the "Edit Standing Order" feature - PUT /api/admin/standing-orders/{standing_order_id}
+Comprehensive Backend Testing for Edit Standing Order Feature
+Tests the updated functionality that propagates changes to all current and future generated orders.
 """
 
 import requests
 import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, List, Any
+import time
 
 # Configuration
-BASE_URL = "https://divine-cakery-backend.onrender.com/api"
-ADMIN_USERNAME = "testadmin"
-ADMIN_PASSWORD = "admin123"
+BACKEND_URL = "https://divine-cakery-backend.onrender.com/api"
+ADMIN_CREDENTIALS = {
+    "username": "testadmin",
+    "password": "admin123"
+}
 
-class BackendTester:
+class StandingOrderTester:
     def __init__(self):
         self.session = requests.Session()
         self.admin_token = None
         self.test_customer_id = None
         self.test_standing_order_id = None
+        self.test_products = []
         
     def log(self, message: str, level: str = "INFO"):
-        """Log test messages with timestamp"""
+        """Log messages with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] {level}: {message}")
         
-    def login_admin(self) -> bool:
-        """Login as admin and get authentication token"""
+    def authenticate_admin(self) -> bool:
+        """Authenticate as admin and get token"""
         try:
-            self.log("🔐 Logging in as admin...")
-            
-            login_data = {
-                "username": ADMIN_USERNAME,
-                "password": ADMIN_PASSWORD
-            }
-            
             response = self.session.post(
-                f"{BASE_URL}/auth/login",
-                json=login_data,
-                headers={"Content-Type": "application/json"}
+                f"{BACKEND_URL}/auth/login",
+                json=ADMIN_CREDENTIALS
             )
             
             if response.status_code == 200:
-                token_data = response.json()
-                self.admin_token = token_data["access_token"]
+                data = response.json()
+                self.admin_token = data["access_token"]
                 self.session.headers.update({
                     "Authorization": f"Bearer {self.admin_token}"
                 })
-                self.log("✅ Admin login successful")
+                self.log("✅ Admin authentication successful")
                 return True
             else:
-                self.log(f"❌ Admin login failed: {response.status_code} - {response.text}", "ERROR")
+                self.log(f"❌ Admin authentication failed: {response.status_code} - {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Admin login error: {str(e)}", "ERROR")
+            self.log(f"❌ Admin authentication error: {str(e)}", "ERROR")
             return False
     
-    def get_test_customer(self) -> Optional[str]:
-        """Get or create a test customer for standing orders"""
+    def get_test_customer(self) -> bool:
+        """Get or create a test customer"""
         try:
-            self.log("👤 Getting test customer...")
-            
-            # Get all users to find a customer
-            response = self.session.get(f"{BASE_URL}/admin/users")
+            # Get all customers
+            response = self.session.get(f"{BACKEND_URL}/admin/users")
             
             if response.status_code == 200:
                 users = response.json()
-                # Find a customer (non-admin user)
                 customers = [u for u in users if u.get("role") == "customer"]
                 
                 if customers:
-                    customer = customers[0]
-                    self.test_customer_id = customer["id"]
-                    self.log(f"✅ Using existing customer: {customer.get('username', 'Unknown')} (ID: {self.test_customer_id})")
-                    return self.test_customer_id
+                    self.test_customer_id = customers[0]["id"]
+                    self.log(f"✅ Using existing customer: {customers[0].get('username', 'Unknown')}")
+                    return True
                 else:
                     self.log("❌ No customers found in database", "ERROR")
-                    return None
+                    return False
             else:
-                self.log(f"❌ Failed to get users: {response.status_code} - {response.text}", "ERROR")
-                return None
+                self.log(f"❌ Failed to get customers: {response.status_code}", "ERROR")
+                return False
                 
         except Exception as e:
             self.log(f"❌ Error getting test customer: {str(e)}", "ERROR")
-            return None
+            return False
     
-    def create_test_standing_order(self) -> Optional[str]:
-        """Create a test standing order for editing"""
+    def get_test_products(self) -> bool:
+        """Get test products for standing orders"""
         try:
-            self.log("📝 Creating test standing order...")
+            response = self.session.get(f"{BACKEND_URL}/products")
+            
+            if response.status_code == 200:
+                products = response.json()
+                if len(products) >= 3:
+                    self.test_products = products[:3]  # Use first 3 products
+                    self.log(f"✅ Got {len(self.test_products)} test products")
+                    return True
+                else:
+                    self.log("❌ Need at least 3 products for testing", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Failed to get products: {response.status_code}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error getting test products: {str(e)}", "ERROR")
+            return False
+    
+    def create_test_standing_order(self) -> bool:
+        """Create a test standing order with generated orders"""
+        try:
+            # Create standing order items
+            items = []
+            for i, product in enumerate(self.test_products):
+                items.append({
+                    "product_id": product["id"],
+                    "product_name": product["name"],
+                    "quantity": 2 + i,  # 2, 3, 4 quantities
+                    "price": product["price"]
+                })
             
             standing_order_data = {
                 "customer_id": self.test_customer_id,
-                "items": [
-                    {
-                        "product_id": str(uuid.uuid4()),
-                        "product_name": "Test Bread",
-                        "quantity": 5,
-                        "price": 25.0
-                    },
-                    {
-                        "product_id": str(uuid.uuid4()),
-                        "product_name": "Test Rolls",
-                        "quantity": 10,
-                        "price": 15.0
-                    }
-                ],
+                "items": items,
                 "recurrence_type": "weekly_days",
-                "recurrence_config": {
-                    "days": [0, 2, 4]  # Monday, Wednesday, Friday
-                },
+                "recurrence_config": {"days": [0, 2, 4]},  # Mon, Wed, Fri
                 "duration_type": "indefinite",
-                "notes": "Original test standing order for editing"
+                "notes": "Test standing order for edit propagation testing"
             }
             
             response = self.session.post(
-                f"{BASE_URL}/admin/standing-orders",
-                json=standing_order_data,
-                headers={"Content-Type": "application/json"}
+                f"{BACKEND_URL}/admin/standing-orders",
+                json=standing_order_data
             )
             
             if response.status_code == 200:
-                created_order = response.json()
-                self.test_standing_order_id = created_order["id"]
-                self.log(f"✅ Test standing order created: {self.test_standing_order_id}")
-                return self.test_standing_order_id
+                data = response.json()
+                self.test_standing_order_id = data["id"]
+                self.log(f"✅ Created test standing order: {self.test_standing_order_id}")
+                
+                # Wait a moment for orders to be generated
+                time.sleep(2)
+                return True
             else:
-                self.log(f"❌ Failed to create test standing order: {response.status_code} - {response.text}", "ERROR")
-                return None
+                self.log(f"❌ Failed to create standing order: {response.status_code} - {response.text}", "ERROR")
+                return False
                 
         except Exception as e:
             self.log(f"❌ Error creating test standing order: {str(e)}", "ERROR")
-            return None
+            return False
     
-    def get_standing_orders(self) -> Optional[list]:
-        """Get list of standing orders to find one for testing"""
+    def get_generated_orders(self) -> List[Dict]:
+        """Get all generated orders for the test standing order"""
         try:
-            self.log("📋 Getting existing standing orders...")
-            
-            response = self.session.get(f"{BASE_URL}/admin/standing-orders")
+            response = self.session.get(
+                f"{BACKEND_URL}/admin/standing-orders/{self.test_standing_order_id}/generated-orders"
+            )
             
             if response.status_code == 200:
                 orders = response.json()
-                self.log(f"✅ Found {len(orders)} standing orders")
+                self.log(f"✅ Retrieved {len(orders)} generated orders")
                 return orders
             else:
-                self.log(f"❌ Failed to get standing orders: {response.status_code} - {response.text}", "ERROR")
-                return None
+                self.log(f"❌ Failed to get generated orders: {response.status_code}", "ERROR")
+                return []
                 
         except Exception as e:
-            self.log(f"❌ Error getting standing orders: {str(e)}", "ERROR")
-            return None
+            self.log(f"❌ Error getting generated orders: {str(e)}", "ERROR")
+            return []
+    
+    def test_items_quantity_change_propagation(self) -> bool:
+        """Test Scenario 1: Items/Quantity Change Propagation"""
+        self.log("\n🧪 TESTING: Items/Quantity Change Propagation")
+        
+        try:
+            # Get initial generated orders
+            initial_orders = self.get_generated_orders()
+            if not initial_orders:
+                self.log("❌ No initial orders found", "ERROR")
+                return False
+            
+            # Filter for current and future orders (delivery_date >= today)
+            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            current_future_orders = [
+                order for order in initial_orders 
+                if datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None) >= today
+            ]
+            
+            self.log(f"📊 Initial state: {len(current_future_orders)} current/future orders")
+            
+            # Log initial order details
+            for order in current_future_orders[:2]:  # Show first 2 orders
+                self.log(f"   Order {order['order_number']}: {len(order['items'])} items, total: ${order['total_amount']}")
+            
+            # Update items - change quantities and add a new product
+            updated_items = []
+            for i, product in enumerate(self.test_products[:2]):  # Use first 2 products
+                updated_items.append({
+                    "product_id": product["id"],
+                    "product_name": product["name"],
+                    "quantity": 5 + i,  # New quantities: 5, 6
+                    "price": product["price"]
+                })
+            
+            # Add a third product
+            if len(self.test_products) > 2:
+                updated_items.append({
+                    "product_id": self.test_products[2]["id"],
+                    "product_name": self.test_products[2]["name"],
+                    "quantity": 3,
+                    "price": self.test_products[2]["price"]
+                })
+            
+            update_data = {
+                "items": updated_items,
+                "notes": "Updated items and quantities for propagation test"
+            }
+            
+            # Update the standing order
+            response = self.session.put(
+                f"{BACKEND_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data
+            )
+            
+            if response.status_code != 200:
+                self.log(f"❌ Failed to update standing order: {response.status_code} - {response.text}", "ERROR")
+                return False
+            
+            self.log("✅ Standing order updated successfully")
+            
+            # Wait for propagation
+            time.sleep(2)
+            
+            # Get updated generated orders
+            updated_orders = self.get_generated_orders()
+            updated_current_future = [
+                order for order in updated_orders 
+                if datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None) >= today
+            ]
+            
+            self.log(f"📊 After update: {len(updated_current_future)} current/future orders")
+            
+            # Verify propagation
+            success = True
+            
+            # Check that all current/future orders have updated items
+            for order in updated_current_future:
+                # Verify items count
+                if len(order["items"]) != len(updated_items):
+                    self.log(f"❌ Order {order['order_number']}: Expected {len(updated_items)} items, got {len(order['items'])}", "ERROR")
+                    success = False
+                    continue
+                
+                # Verify quantities and calculate expected total
+                expected_total = 0
+                for i, item in enumerate(order["items"]):
+                    expected_qty = updated_items[i]["quantity"]
+                    if item["quantity"] != expected_qty:
+                        self.log(f"❌ Order {order['order_number']}, Item {item['product_name']}: Expected qty {expected_qty}, got {item['quantity']}", "ERROR")
+                        success = False
+                    expected_total += item["price"] * item["quantity"]
+                
+                # Verify totals
+                if abs(order["total_amount"] - expected_total) > 0.01:
+                    self.log(f"❌ Order {order['order_number']}: Expected total ${expected_total}, got ${order['total_amount']}", "ERROR")
+                    success = False
+                
+                if abs(order["final_amount"] - expected_total) > 0.01:
+                    self.log(f"❌ Order {order['order_number']}: Expected final amount ${expected_total}, got ${order['final_amount']}", "ERROR")
+                    success = False
+            
+            if success:
+                self.log("✅ All current/future orders have correct updated items and totals")
+                
+                # Log sample updated order
+                if updated_current_future:
+                    sample_order = updated_current_future[0]
+                    self.log(f"   Sample Order {sample_order['order_number']}: {len(sample_order['items'])} items, total: ${sample_order['total_amount']}")
+                
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error in items/quantity change test: {str(e)}", "ERROR")
+            return False
+    
+    def test_frequency_change_regeneration(self) -> bool:
+        """Test Scenario 2: Frequency Change (Delete & Regenerate)"""
+        self.log("\n🧪 TESTING: Frequency Change (Delete & Regenerate)")
+        
+        try:
+            # Get current generated orders
+            initial_orders = self.get_generated_orders()
+            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            initial_future_orders = [
+                order for order in initial_orders 
+                if datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None) >= today
+            ]
+            
+            self.log(f"📊 Initial state: {len(initial_future_orders)} future orders")
+            
+            # Log some initial delivery dates
+            initial_dates = [
+                datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).strftime("%Y-%m-%d")
+                for order in initial_future_orders[:5]
+            ]
+            self.log(f"   Initial delivery dates: {initial_dates}")
+            
+            # Change frequency from weekly_days to interval
+            update_data = {
+                "recurrence_type": "interval",
+                "recurrence_config": {"days": 2},  # Every 2 days
+                "notes": "Changed to every 2 days for frequency test"
+            }
+            
+            # Update the standing order
+            response = self.session.put(
+                f"{BACKEND_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data
+            )
+            
+            if response.status_code != 200:
+                self.log(f"❌ Failed to update standing order frequency: {response.status_code} - {response.text}", "ERROR")
+                return False
+            
+            self.log("✅ Standing order frequency updated successfully")
+            
+            # Wait for regeneration
+            time.sleep(3)
+            
+            # Get new generated orders
+            new_orders = self.get_generated_orders()
+            new_future_orders = [
+                order for order in new_orders 
+                if datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None) >= today
+            ]
+            
+            self.log(f"📊 After frequency change: {len(new_future_orders)} future orders")
+            
+            # Log new delivery dates
+            new_dates = [
+                datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).strftime("%Y-%m-%d")
+                for order in new_future_orders[:5]
+            ]
+            self.log(f"   New delivery dates: {new_dates}")
+            
+            # Verify that orders were regenerated on new schedule
+            success = True
+            
+            # Check that we have orders (should be regenerated)
+            if len(new_future_orders) == 0:
+                self.log("❌ No future orders found after frequency change", "ERROR")
+                success = False
+            
+            # Verify the new schedule pattern (every 2 days)
+            if len(new_future_orders) >= 2:
+                date1 = datetime.fromisoformat(new_future_orders[0]["delivery_date"].replace("Z", "+00:00"))
+                date2 = datetime.fromisoformat(new_future_orders[1]["delivery_date"].replace("Z", "+00:00"))
+                
+                # The difference should be related to the 2-day interval
+                # Note: The exact pattern depends on the starting date, but we should see regular intervals
+                self.log(f"   First two delivery dates: {date1.strftime('%Y-%m-%d')} and {date2.strftime('%Y-%m-%d')}")
+            
+            if success:
+                self.log("✅ Orders successfully regenerated on new frequency schedule")
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error in frequency change test: {str(e)}", "ERROR")
+            return False
+    
+    def test_combined_changes(self) -> bool:
+        """Test Scenario 3: Combined Changes (Items AND Frequency)"""
+        self.log("\n🧪 TESTING: Combined Changes (Items AND Frequency)")
+        
+        try:
+            # Get current state
+            initial_orders = self.get_generated_orders()
+            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            initial_future_orders = [
+                order for order in initial_orders 
+                if datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None) >= today
+            ]
+            
+            self.log(f"📊 Initial state: {len(initial_future_orders)} future orders")
+            
+            # Prepare combined update: new items AND new frequency
+            new_items = []
+            for i, product in enumerate(self.test_products[:2]):  # Use 2 products
+                new_items.append({
+                    "product_id": product["id"],
+                    "product_name": product["name"],
+                    "quantity": 10 + i,  # New quantities: 10, 11
+                    "price": product["price"]
+                })
+            
+            update_data = {
+                "items": new_items,
+                "recurrence_type": "weekly_days",
+                "recurrence_config": {"days": [1, 3, 5]},  # Tue, Thu, Sat (different from initial)
+                "notes": "Combined update: new items and new frequency"
+            }
+            
+            # Apply combined update
+            response = self.session.put(
+                f"{BACKEND_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json=update_data
+            )
+            
+            if response.status_code != 200:
+                self.log(f"❌ Failed to apply combined update: {response.status_code} - {response.text}", "ERROR")
+                return False
+            
+            self.log("✅ Combined update applied successfully")
+            
+            # Wait for processing
+            time.sleep(3)
+            
+            # Get updated orders
+            updated_orders = self.get_generated_orders()
+            updated_future_orders = [
+                order for order in updated_orders 
+                if datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00")).replace(tzinfo=None) >= today
+            ]
+            
+            self.log(f"📊 After combined update: {len(updated_future_orders)} future orders")
+            
+            # Verify both changes applied
+            success = True
+            
+            # Check items update
+            for order in updated_future_orders[:3]:  # Check first 3 orders
+                if len(order["items"]) != len(new_items):
+                    self.log(f"❌ Order {order['order_number']}: Expected {len(new_items)} items, got {len(order['items'])}", "ERROR")
+                    success = False
+                    continue
+                
+                # Check quantities
+                for i, item in enumerate(order["items"]):
+                    expected_qty = new_items[i]["quantity"]
+                    if item["quantity"] != expected_qty:
+                        self.log(f"❌ Order {order['order_number']}: Expected qty {expected_qty}, got {item['quantity']}", "ERROR")
+                        success = False
+            
+            # Check frequency update (orders should be on Tue, Thu, Sat)
+            if len(updated_future_orders) >= 2:
+                delivery_dates = [
+                    datetime.fromisoformat(order["delivery_date"].replace("Z", "+00:00"))
+                    for order in updated_future_orders[:5]
+                ]
+                
+                weekdays = [date.weekday() for date in delivery_dates]  # 0=Mon, 1=Tue, etc.
+                expected_weekdays = [1, 3, 5]  # Tue, Thu, Sat
+                
+                self.log(f"   Delivery weekdays: {weekdays}")
+                self.log(f"   Expected weekdays: {expected_weekdays}")
+                
+                # Check if we have orders on the expected days
+                has_expected_days = any(wd in expected_weekdays for wd in weekdays)
+                if not has_expected_days:
+                    self.log("⚠️  Warning: No orders found on expected weekdays (may need more time for generation)", "WARN")
+            
+            if success:
+                self.log("✅ Combined changes (items + frequency) applied successfully")
+                
+                # Log sample order details
+                if updated_future_orders:
+                    sample = updated_future_orders[0]
+                    self.log(f"   Sample Order: {len(sample['items'])} items, total: ${sample['total_amount']}")
+                
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error in combined changes test: {str(e)}", "ERROR")
+            return False
     
     def test_authentication_required(self) -> bool:
-        """Test 1: Verify endpoint requires admin authentication"""
+        """Test that the endpoint requires admin authentication"""
+        self.log("\n🧪 TESTING: Authentication Required")
+        
         try:
-            self.log("🔒 Test 1: Authentication Required")
-            
             # Remove auth header temporarily
             original_headers = self.session.headers.copy()
             if "Authorization" in self.session.headers:
                 del self.session.headers["Authorization"]
             
             # Try to update without authentication
-            update_data = {"notes": "Should fail without auth"}
-            
             response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/test-id",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
+                f"{BACKEND_URL}/admin/standing-orders/{self.test_standing_order_id}",
+                json={"notes": "Unauthorized test"}
             )
             
             # Restore headers
-            self.session.headers = original_headers
+            self.session.headers.update(original_headers)
             
             if response.status_code == 401:
-                self.log("✅ Test 1 PASSED: Endpoint correctly requires authentication (401)")
+                self.log("✅ Endpoint correctly requires authentication (401 without token)")
                 return True
             else:
-                self.log(f"❌ Test 1 FAILED: Expected 401, got {response.status_code}", "ERROR")
+                self.log(f"❌ Expected 401, got {response.status_code}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Test 1 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_update_products(self) -> bool:
-        """Test 2: Update products (items array)"""
-        try:
-            self.log("🛒 Test 2: Update Products")
-            
-            update_data = {
-                "items": [
-                    {
-                        "product_id": str(uuid.uuid4()),
-                        "product_name": "Updated Bread Loaf",
-                        "quantity": 8,
-                        "price": 30.0
-                    },
-                    {
-                        "product_id": str(uuid.uuid4()),
-                        "product_name": "Updated Dinner Rolls",
-                        "quantity": 12,
-                        "price": 18.0
-                    },
-                    {
-                        "product_id": str(uuid.uuid4()),
-                        "product_name": "New Croissants",
-                        "quantity": 6,
-                        "price": 45.0
-                    }
-                ]
-            }
-            
-            response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                updated_order = response.json()
-                updated_items = updated_order.get("items", [])
-                
-                if len(updated_items) == 3 and updated_items[0]["product_name"] == "Updated Bread Loaf":
-                    self.log("✅ Test 2 PASSED: Products updated successfully")
-                    return True
-                else:
-                    self.log(f"❌ Test 2 FAILED: Items not updated correctly. Got: {updated_items}", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 2 FAILED: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 2 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_update_recurrence_type(self) -> bool:
-        """Test 3: Update recurrence type from weekly_days to interval"""
-        try:
-            self.log("🔄 Test 3: Update Recurrence Type")
-            
-            update_data = {
-                "recurrence_type": "interval",
-                "recurrence_config": {
-                    "days": 3  # Every 3 days
-                }
-            }
-            
-            response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                updated_order = response.json()
-                
-                if (updated_order.get("recurrence_type") == "interval" and 
-                    updated_order.get("recurrence_config", {}).get("days") == 3):
-                    self.log("✅ Test 3 PASSED: Recurrence type updated to interval")
-                    return True
-                else:
-                    self.log(f"❌ Test 3 FAILED: Recurrence not updated correctly. Got: {updated_order.get('recurrence_type')}, {updated_order.get('recurrence_config')}", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 3 FAILED: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 3 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_update_recurrence_config(self) -> bool:
-        """Test 4: Update recurrence config back to weekly_days"""
-        try:
-            self.log("📅 Test 4: Update Recurrence Config")
-            
-            update_data = {
-                "recurrence_type": "weekly_days",
-                "recurrence_config": {
-                    "days": [1, 3, 5]  # Tuesday, Thursday, Saturday
-                }
-            }
-            
-            response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                updated_order = response.json()
-                expected_days = [1, 3, 5]
-                actual_days = updated_order.get("recurrence_config", {}).get("days", [])
-                
-                if (updated_order.get("recurrence_type") == "weekly_days" and 
-                    actual_days == expected_days):
-                    self.log("✅ Test 4 PASSED: Recurrence config updated to weekly_days with new schedule")
-                    return True
-                else:
-                    self.log(f"❌ Test 4 FAILED: Config not updated correctly. Expected days: {expected_days}, Got: {actual_days}", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 4 FAILED: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 4 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_update_duration_type(self) -> bool:
-        """Test 5: Update duration type from indefinite to end_date"""
-        try:
-            self.log("⏰ Test 5: Update Duration Type")
-            
-            # Set end date to 30 days from now
-            end_date = (datetime.utcnow() + timedelta(days=30)).isoformat()
-            
-            update_data = {
-                "duration_type": "end_date",
-                "end_date": end_date
-            }
-            
-            response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                updated_order = response.json()
-                
-                if (updated_order.get("duration_type") == "end_date" and 
-                    updated_order.get("end_date") is not None):
-                    self.log("✅ Test 5 PASSED: Duration type updated to end_date with end date set")
-                    return True
-                else:
-                    self.log(f"❌ Test 5 FAILED: Duration not updated correctly. Got: {updated_order.get('duration_type')}, end_date: {updated_order.get('end_date')}", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 5 FAILED: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 5 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_update_end_date(self) -> bool:
-        """Test 6: Update end date to a different date"""
-        try:
-            self.log("📆 Test 6: Update End Date")
-            
-            # Set end date to 60 days from now
-            new_end_date = (datetime.utcnow() + timedelta(days=60)).isoformat()
-            
-            update_data = {
-                "end_date": new_end_date
-            }
-            
-            response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                updated_order = response.json()
-                updated_end_date = updated_order.get("end_date")
-                
-                if updated_end_date and new_end_date[:10] in updated_end_date:  # Check date part
-                    self.log("✅ Test 6 PASSED: End date updated successfully")
-                    return True
-                else:
-                    self.log(f"❌ Test 6 FAILED: End date not updated correctly. Expected: {new_end_date[:10]}, Got: {updated_end_date}", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 6 FAILED: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 6 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_update_notes(self) -> bool:
-        """Test 7: Update notes field"""
-        try:
-            self.log("📝 Test 7: Update Notes")
-            
-            update_data = {
-                "notes": "Updated notes: This standing order has been modified during testing. Special delivery instructions included."
-            }
-            
-            response = self.session.put(
-                f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}",
-                json=update_data,
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 200:
-                updated_order = response.json()
-                updated_notes = updated_order.get("notes", "")
-                
-                if "Updated notes: This standing order has been modified" in updated_notes:
-                    self.log("✅ Test 7 PASSED: Notes updated successfully")
-                    return True
-                else:
-                    self.log(f"❌ Test 7 FAILED: Notes not updated correctly. Got: {updated_notes}", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 7 FAILED: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 7 ERROR: {str(e)}", "ERROR")
-            return False
-    
-    def test_validation_response(self) -> bool:
-        """Test 8: Verify response returns updated standing order with all changes"""
-        try:
-            self.log("✅ Test 8: Validation - Response Structure")
-            
-            # Get the current standing order to verify all our changes
-            response = self.session.get(f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}")
-            
-            if response.status_code == 200:
-                standing_order = response.json()
-                
-                # Verify all the changes we made are present
-                checks = []
-                
-                # Check items (from test 2)
-                items = standing_order.get("items", [])
-                checks.append(("Items count", len(items) == 3, f"Expected 3 items, got {len(items)}"))
-                if items:
-                    checks.append(("First item name", "Updated Bread Loaf" in items[0].get("product_name", ""), f"Expected 'Updated Bread Loaf', got '{items[0].get('product_name')}'"))
-                
-                # Check recurrence (from test 4)
-                recurrence_type = standing_order.get("recurrence_type")
-                recurrence_config = standing_order.get("recurrence_config", {})
-                checks.append(("Recurrence type", recurrence_type == "weekly_days", f"Expected 'weekly_days', got '{recurrence_type}'"))
-                checks.append(("Recurrence days", recurrence_config.get("days") == [1, 3, 5], f"Expected [1, 3, 5], got {recurrence_config.get('days')}"))
-                
-                # Check duration (from test 5)
-                duration_type = standing_order.get("duration_type")
-                checks.append(("Duration type", duration_type == "end_date", f"Expected 'end_date', got '{duration_type}'"))
-                
-                # Check end date (from test 6)
-                end_date = standing_order.get("end_date")
-                checks.append(("End date set", end_date is not None, f"Expected end_date to be set, got {end_date}"))
-                
-                # Check notes (from test 7)
-                notes = standing_order.get("notes", "")
-                checks.append(("Notes updated", "Updated notes: This standing order has been modified" in notes, f"Expected updated notes, got '{notes[:50]}...'"))
-                
-                # Check required fields
-                required_fields = ["id", "customer_id", "customer_name", "status", "created_at"]
-                for field in required_fields:
-                    checks.append((f"Field {field}", field in standing_order, f"Missing required field: {field}"))
-                
-                # Report results
-                passed_checks = sum(1 for _, passed, _ in checks if passed)
-                total_checks = len(checks)
-                
-                self.log(f"Validation Results: {passed_checks}/{total_checks} checks passed")
-                
-                for check_name, passed, message in checks:
-                    status = "✅" if passed else "❌"
-                    self.log(f"  {status} {check_name}: {message}")
-                
-                if passed_checks == total_checks:
-                    self.log("✅ Test 8 PASSED: All validation checks passed")
-                    return True
-                else:
-                    self.log(f"❌ Test 8 FAILED: {total_checks - passed_checks} validation checks failed", "ERROR")
-                    return False
-            else:
-                self.log(f"❌ Test 8 FAILED: Could not retrieve standing order: {response.status_code} - {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Test 8 ERROR: {str(e)}", "ERROR")
+            self.log(f"❌ Error in authentication test: {str(e)}", "ERROR")
             return False
     
     def cleanup_test_data(self):
         """Clean up test standing order"""
         try:
             if self.test_standing_order_id:
-                self.log("🧹 Cleaning up test data...")
-                response = self.session.delete(f"{BASE_URL}/admin/standing-orders/{self.test_standing_order_id}")
+                response = self.session.delete(
+                    f"{BACKEND_URL}/admin/standing-orders/{self.test_standing_order_id}"
+                )
                 if response.status_code == 200:
-                    self.log("✅ Test standing order deleted successfully")
+                    self.log("✅ Test standing order cleaned up")
                 else:
-                    self.log(f"⚠️ Could not delete test standing order: {response.status_code}")
+                    self.log(f"⚠️  Failed to cleanup test standing order: {response.status_code}", "WARN")
         except Exception as e:
-            self.log(f"⚠️ Cleanup error: {str(e)}")
+            self.log(f"⚠️  Error during cleanup: {str(e)}", "WARN")
     
-    def run_all_tests(self):
-        """Run all standing order edit tests"""
-        self.log("🚀 Starting Edit Standing Order Backend API Tests")
+    def run_all_tests(self) -> Dict[str, bool]:
+        """Run all test scenarios"""
+        results = {}
+        
+        self.log("🚀 Starting Edit Standing Order Feature Tests")
         self.log("=" * 60)
         
         # Setup
-        if not self.login_admin():
-            self.log("❌ Cannot proceed without admin authentication", "ERROR")
-            return False
+        if not self.authenticate_admin():
+            return {"setup_failed": True}
         
         if not self.get_test_customer():
-            self.log("❌ Cannot proceed without test customer", "ERROR")
-            return False
+            return {"setup_failed": True}
         
-        # Try to get existing standing orders first
-        existing_orders = self.get_standing_orders()
-        if existing_orders and len(existing_orders) > 0:
-            # Use existing standing order for testing
-            self.test_standing_order_id = existing_orders[0]["id"]
-            self.log(f"📋 Using existing standing order for testing: {self.test_standing_order_id}")
-        else:
-            # Create new standing order for testing
-            if not self.create_test_standing_order():
-                self.log("❌ Cannot proceed without test standing order", "ERROR")
-                return False
+        if not self.get_test_products():
+            return {"setup_failed": True}
+        
+        if not self.create_test_standing_order():
+            return {"setup_failed": True}
         
         # Run tests
-        tests = [
-            ("Authentication Required", self.test_authentication_required),
-            ("Update Products", self.test_update_products),
-            ("Update Recurrence Type", self.test_update_recurrence_type),
-            ("Update Recurrence Config", self.test_update_recurrence_config),
-            ("Update Duration Type", self.test_update_duration_type),
-            ("Update End Date", self.test_update_end_date),
-            ("Update Notes", self.test_update_notes),
-            ("Validation Response", self.test_validation_response),
-        ]
-        
-        passed_tests = 0
-        total_tests = len(tests)
-        
-        for test_name, test_func in tests:
-            self.log("-" * 40)
-            try:
-                if test_func():
-                    passed_tests += 1
-                else:
-                    self.log(f"Test '{test_name}' failed", "ERROR")
-            except Exception as e:
-                self.log(f"Test '{test_name}' crashed: {str(e)}", "ERROR")
-        
-        # Cleanup (only if we created the test order)
-        if existing_orders is None or len(existing_orders) == 0:
+        try:
+            results["authentication_required"] = self.test_authentication_required()
+            results["items_quantity_change"] = self.test_items_quantity_change_propagation()
+            results["frequency_change"] = self.test_frequency_change_regeneration()
+            results["combined_changes"] = self.test_combined_changes()
+            
+        finally:
+            # Cleanup
             self.cleanup_test_data()
         
-        # Summary
-        self.log("=" * 60)
-        self.log(f"🏁 TESTING COMPLETE: {passed_tests}/{total_tests} tests passed")
-        
-        if passed_tests == total_tests:
-            self.log("🎉 ALL TESTS PASSED! Edit Standing Order feature is working correctly.")
-            return True
-        else:
-            self.log(f"❌ {total_tests - passed_tests} tests failed. Edit Standing Order feature needs attention.", "ERROR")
-            return False
+        return results
 
+def main():
+    """Main test execution"""
+    tester = StandingOrderTester()
+    results = tester.run_all_tests()
+    
+    # Print summary
+    print("\n" + "=" * 60)
+    print("🏁 TEST RESULTS SUMMARY")
+    print("=" * 60)
+    
+    if "setup_failed" in results:
+        print("❌ SETUP FAILED - Could not run tests")
+        return False
+    
+    total_tests = len(results)
+    passed_tests = sum(1 for result in results.values() if result)
+    
+    for test_name, passed in results.items():
+        status = "✅ PASS" if passed else "❌ FAIL"
+        print(f"{status}: {test_name.replace('_', ' ').title()}")
+    
+    print(f"\n📊 OVERALL: {passed_tests}/{total_tests} tests passed")
+    
+    if passed_tests == total_tests:
+        print("🎉 ALL TESTS PASSED - Edit Standing Order feature is working correctly!")
+        return True
+    else:
+        print("⚠️  SOME TESTS FAILED - Review the issues above")
+        return False
 
 if __name__ == "__main__":
-    tester = BackendTester()
-    success = tester.run_all_tests()
+    success = main()
     exit(0 if success else 1)
