@@ -252,22 +252,35 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         standing_order_data: StandingOrderUpdate,
         current_user: User = Depends(get_current_admin)
     ):
-        """Update a standing order"""
+        """Update a standing order and propagate changes to all current/future generated orders"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
             raise HTTPException(status_code=404, detail="Standing order not found")
         
         update_data = {k: v for k, v in standing_order_data.dict().items() if v is not None}
+        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         
         # If cancelling, delete future auto-generated orders
         if update_data.get("status") == StandingOrderStatus.CANCELLED:
-            today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
             await db.orders.delete_many({
                 "standing_order_id": standing_order_id,
                 "delivery_date": {"$gte": today},
                 "is_standing_order": True
             })
         
+        # Check if frequency/recurrence changed - need to delete and regenerate
+        frequency_changed = (
+            "recurrence_type" in update_data or 
+            "recurrence_config" in update_data
+        )
+        
+        # Check if items changed - need to update existing orders
+        items_changed = "items" in update_data
+        
+        # Update the standing order configuration
         result = await db.standing_orders.update_one(
             {"id": standing_order_id},
             {"$set": update_data}
@@ -276,12 +289,67 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         if result.modified_count == 0 and not result.matched_count:
             raise HTTPException(status_code=404, detail="Standing order not found")
         
-        # If reactivating or changing recurrence, regenerate orders
-        if update_data.get("status") == StandingOrderStatus.ACTIVE or "recurrence_type" in update_data:
-            updated_standing_order = await db.standing_orders.find_one({"id": standing_order_id})
+        # Get the updated standing order
+        updated_standing_order = await db.standing_orders.find_one({"id": standing_order_id})
+        
+        # Handle frequency changes - delete future orders and regenerate on new schedule
+        if frequency_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
+            logger.info(f"Frequency changed for standing order {standing_order_id}, regenerating orders...")
+            
+            # Delete all future orders for this standing order
+            delete_result = await db.orders.delete_many({
+                "standing_order_id": standing_order_id,
+                "delivery_date": {"$gte": today},
+                "is_standing_order": True
+            })
+            logger.info(f"Deleted {delete_result.deleted_count} future orders")
+            
+            # Regenerate orders with new frequency
             await generate_orders_for_standing_order(db, updated_standing_order, days_ahead=10)
         
-        updated_standing_order = await db.standing_orders.find_one({"id": standing_order_id})
+        # Handle items/quantity changes - update all current and future generated orders
+        elif items_changed and update_data.get("status") != StandingOrderStatus.CANCELLED:
+            logger.info(f"Items changed for standing order {standing_order_id}, updating existing orders...")
+            
+            # Calculate new items with subtotals
+            new_items = update_data["items"]
+            items_with_subtotal = []
+            for item in new_items:
+                item_dict = item if isinstance(item, dict) else item.dict()
+                item_with_subtotal = {
+                    **item_dict, 
+                    "subtotal": item_dict["price"] * item_dict["quantity"]
+                }
+                items_with_subtotal.append(item_with_subtotal)
+            
+            new_total = sum(item["subtotal"] for item in items_with_subtotal)
+            
+            # Build notes for the order
+            order_notes = f"Auto-generated from standing order. {updated_standing_order.get('notes', '')}".strip()
+            
+            # Update all current and future orders with new items and totals
+            update_order_result = await db.orders.update_many(
+                {
+                    "standing_order_id": standing_order_id,
+                    "delivery_date": {"$gte": today},
+                    "is_standing_order": True
+                },
+                {
+                    "$set": {
+                        "items": items_with_subtotal,
+                        "total_amount": new_total,
+                        "final_amount": new_total,
+                        "notes": order_notes,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            logger.info(f"Updated {update_order_result.modified_count} existing orders with new items")
+        
+        # If reactivating, regenerate orders
+        if update_data.get("status") == StandingOrderStatus.ACTIVE:
+            await generate_orders_for_standing_order(db, updated_standing_order, days_ahead=10)
+        
         return StandingOrder(**updated_standing_order)
     
     
