@@ -256,13 +256,6 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         import logging
         logger = logging.getLogger(__name__)
         
-        # This should definitely appear in logs
-        logger.error(f"🔥🔥🔥 STANDING ORDER UPDATE FUNCTION CALLED: {standing_order_id}")
-        
-        # Force an error to see if this function is called
-        if standing_order_id == "ec659ed9-4d46-41c8-bcd5-0d90f141249d":
-            logger.error(f"🔥🔥🔥 TEST ERROR - This should appear in logs!")
-        
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
             raise HTTPException(status_code=404, detail="Standing order not found")
@@ -270,8 +263,22 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         update_data = {k: v for k, v in standing_order_data.dict().items() if v is not None}
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        logger.error(f"🔥 UPDATE DATA: {update_data}")
-        logger.error(f"🔥 UPDATE DATA: {update_data}")
+        # Check if frequency/recurrence changed - need to delete and regenerate
+        frequency_changed = (
+            "recurrence_type" in update_data or 
+            "recurrence_config" in update_data
+        )
+        
+        # Check if items changed - need to update existing orders
+        items_changed = "items" in update_data
+        
+        # Add debug info to the standing order for verification
+        update_data["debug_info"] = {
+            "last_update": datetime.utcnow().isoformat(),
+            "frequency_changed": frequency_changed,
+            "items_changed": items_changed,
+            "update_logic_executed": False
+        }
         
         # If cancelling, delete future auto-generated orders
         if update_data.get("status") == StandingOrderStatus.CANCELLED:
