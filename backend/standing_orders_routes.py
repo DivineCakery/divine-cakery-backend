@@ -259,6 +259,10 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         print(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
         logger.info(f"🔥 STANDING ORDER UPDATE CALLED: {standing_order_id}")
         
+        # Force flush stdout
+        import sys
+        sys.stdout.flush()
+        
         standing_order = await db.standing_orders.find_one({"id": standing_order_id})
         if not standing_order:
             raise HTTPException(status_code=404, detail="Standing order not found")
@@ -268,6 +272,7 @@ def setup_standing_orders_routes(api_router, db, get_current_admin):
         
         print(f"🔥 UPDATE DATA: {update_data}")
         logger.info(f"🔥 UPDATE DATA: {update_data}")
+        sys.stdout.flush()
         
         # If cancelling, delete future auto-generated orders
         if update_data.get("status") == StandingOrderStatus.CANCELLED:
