@@ -55,7 +55,7 @@ async def generate_orders_for_standing_order(db, standing_order: dict, days_ahea
     if not customer:
         return generated_orders
     
-    for day_offset in range(1, days_ahead + 1):
+    for day_offset in range(0, days_ahead + 1):
         delivery_date = today + timedelta(days=day_offset)
         
         # Check if order should be created for this date
