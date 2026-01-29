@@ -3129,19 +3129,33 @@ async def get_daily_items_report(
     Optional filter by dough_type_id to show only products of a specific dough type
     """
     from datetime import datetime as dt, timedelta
+    import pytz
     
-    # Parse date or use today
+    # Parse date or use today (in IST)
+    ist = pytz.timezone('Asia/Kolkata')
+    
     if date:
         try:
+            # Parse the date string as IST date
             delivery_date = dt.strptime(date, "%Y-%m-%d")
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     else:
-        delivery_date = dt.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        # Use today in IST
+        now_ist = dt.now(ist)
+        delivery_date = now_ist.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
     
-    # Set date range for the delivery date
-    date_start = delivery_date.replace(hour=0, minute=0, second=0, microsecond=0)
-    date_end = date_start + timedelta(days=1)
+    # Convert IST date range to UTC for query
+    # IST is UTC+5:30, so IST midnight = UTC 18:30 previous day
+    # Create IST-aware datetime for the selected date at midnight
+    ist_start = ist.localize(delivery_date.replace(hour=0, minute=0, second=0, microsecond=0))
+    ist_end = ist_start + timedelta(days=1)
+    
+    # Convert to UTC for database query
+    date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
+    date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
+    
+    logger.info(f"Daily items report: IST date={date}, UTC range={date_start} to {date_end}")
     
     # Get all orders with this delivery date, excluding cancelled
     orders = await db.orders.find({
