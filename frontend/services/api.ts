@@ -2,15 +2,12 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
-// Backend URL - Prioritize process.env for Emergent deployment,
-// fallback to Constants.expoConfig for production builds (Play Store)
-const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 
-                     Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || 
-                     'http://localhost:8001';
+// Backend URL - TEMPORARY DIRECT FIX for Emergent deployment
+// This ensures the preview uses the correct backend with IST timezone fix
+const EMERGENT_PREVIEW_URL = 'https://stanorder-update.preview.emergentagent.com';
+const API_BASE_URL = EMERGENT_PREVIEW_URL;
 
 console.log('API_BASE_URL configured as:', API_BASE_URL);
-console.log('process.env.EXPO_PUBLIC_BACKEND_URL:', process.env.EXPO_PUBLIC_BACKEND_URL);
-console.log('Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL:', Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL);
 
 class ApiService {
   constructor() {
