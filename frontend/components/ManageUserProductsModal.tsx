@@ -27,6 +27,7 @@ interface Product {
   name: string;
   category: string;
   price: number;
+  is_available?: boolean;
 }
 
 export default function ManageUserProductsModal({
