@@ -92,7 +92,12 @@ export default function ManageUserProductsModal({
   const selectAll = () => {
     const filteredProducts = getFilteredProducts();
     const newSelected = new Set(selectedProductIds);
-    filteredProducts.forEach(p => newSelected.add(p.id));
+    // Only select available products
+    filteredProducts.forEach(p => {
+      if (p.is_available !== false) {
+        newSelected.add(p.id);
+      }
+    });
     setSelectedProductIds(newSelected);
   };
 
