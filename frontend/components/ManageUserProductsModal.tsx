@@ -137,9 +137,15 @@ export default function ManageUserProductsModal({
 
   const renderProduct = ({ item }: { item: Product }) => {
     const isSelected = selectedProductIds.has(item.id);
+    const isUnavailable = item.is_available === false;
+    
     return (
       <TouchableOpacity
-        style={[styles.productItem, isSelected && styles.productItemSelected]}
+        style={[
+          styles.productItem, 
+          isSelected && styles.productItemSelected,
+          isUnavailable && styles.productItemUnavailable
+        ]}
         onPress={() => toggleProduct(item.id)}
         activeOpacity={0.7}
       >
@@ -147,12 +153,23 @@ export default function ManageUserProductsModal({
           <Ionicons
             name={isSelected ? 'checkbox' : 'square-outline'}
             size={24}
-            color={isSelected ? '#4CAF50' : '#999'}
+            color={isSelected ? '#4CAF50' : isUnavailable ? '#ccc' : '#999'}
           />
         </View>
         <View style={styles.productInfo}>
-          <Text style={styles.productName}>{item.name}</Text>
-          <Text style={styles.productCategory}>{item.category} • ₹{item.price}</Text>
+          <View style={styles.productNameRow}>
+            <Text style={[styles.productName, isUnavailable && styles.productNameUnavailable]}>
+              {item.name}
+            </Text>
+            {isUnavailable && (
+              <View style={styles.unavailableBadge}>
+                <Text style={styles.unavailableBadgeText}>Unavailable</Text>
+              </View>
+            )}
+          </View>
+          <Text style={[styles.productCategory, isUnavailable && styles.productCategoryUnavailable]}>
+            {item.category} • ₹{item.price}
+          </Text>
         </View>
       </TouchableOpacity>
     );
