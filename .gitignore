@@ -110,3 +110,7 @@ backup/
 adaptive-icon-backup.png
 backend/product_images.zip
 divine-cakery-frontend.tar.gz
+-e 
+# Environment files
+*.env
+*.env.*
