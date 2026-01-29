@@ -414,15 +414,42 @@ const styles = StyleSheet.create({
   productInfo: {
     flex: 1,
   },
+  productNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   productName: {
     fontSize: 15,
     fontWeight: '600',
     color: '#333',
   },
+  productNameUnavailable: {
+    color: '#999',
+  },
+  unavailableBadge: {
+    backgroundColor: '#ffebee',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  unavailableBadgeText: {
+    fontSize: 11,
+    color: '#f44336',
+    fontWeight: '600',
+  },
   productCategory: {
     fontSize: 13,
     color: '#666',
     marginTop: 2,
+  },
+  productCategoryUnavailable: {
+    color: '#bbb',
+  },
+  productItemUnavailable: {
+    backgroundColor: '#f9f9f9',
+    borderColor: '#eee',
   },
   emptyContainer: {
     alignItems: 'center',
