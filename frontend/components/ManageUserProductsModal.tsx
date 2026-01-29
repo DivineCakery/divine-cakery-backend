@@ -71,6 +71,15 @@ export default function ManageUserProductsModal({
   };
 
   const toggleProduct = (productId: string) => {
+    // Find the product to check if it's available
+    const product = allProducts.find(p => p.id === productId);
+    
+    // If trying to ADD an unavailable product, show warning
+    if (product && !selectedProductIds.has(productId) && product.is_available === false) {
+      showAlert('Warning', `"${product.name}" is currently unavailable. Please make it available first before adding to whitelist.`);
+      return;
+    }
+    
     const newSelected = new Set(selectedProductIds);
     if (newSelected.has(productId)) {
       newSelected.delete(productId);
