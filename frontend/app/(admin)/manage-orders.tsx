@@ -13,6 +13,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
