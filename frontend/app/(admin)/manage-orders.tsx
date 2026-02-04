@@ -1832,4 +1832,110 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 10,
   },
+  // New larger mobile-friendly product picker styles
+  productPickerModal: {
+    flex: 1,
+    backgroundColor: '#FFF8DC',
+  },
+  productPickerContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  productPickerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#8B4513',
+  },
+  productPickerCloseButton: {
+    padding: 4,
+  },
+  productSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  productSearchInputLarge: {
+    flex: 1,
+    fontSize: 18,
+    paddingVertical: 14,
+    color: '#333',
+  },
+  productListLarge: {
+    flex: 1,
+  },
+  productPickerItemLarge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    marginBottom: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  productPickerItemInOrderLarge: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+  },
+  productPickerInfoLarge: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  productPickerNameLarge: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  productPickerPriceLarge: {
+    fontSize: 16,
+    color: '#8B4513',
+    fontWeight: '500',
+  },
+  productPickerCategory: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 4,
+  },
+  productPickerActionLarge: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inOrderBadgeLarge: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  inOrderTextLarge: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  addProductBadge: {
+    padding: 4,
+  },
+  noProductsFoundLarge: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  noProductsTextLarge: {
+    fontSize: 20,
+    color: '#999',
+    marginTop: 16,
+    fontWeight: '500',
+  },
+  noProductsHint: {
+    fontSize: 14,
+    color: '#bbb',
+    marginTop: 8,
+  },
 });
