@@ -2,7 +2,7 @@
   "expo": {
     "name": "Divine Cakery",
     "slug": "divine-cakery",
-    "version": "1.0.23",
+    "version": "1.0.24",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "frontend",
@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "com.divinecakery.app",
-      "versionCode": 112,
+      "versionCode": 113,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
@@ -54,7 +54,7 @@
       "eas": {
         "projectId": "7f7621c8-13c8-4afa-833d-5c1a6dcfffd0"
       },
-      "EXPO_PUBLIC_BACKEND_URL": "https://stanorder-update.preview.emergentagent.com"
+      "EXPO_PUBLIC_BACKEND_URL": "https://divine-cakery-backend.onrender.com"
     }
   }
 }
