@@ -1616,6 +1616,10 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
+  webDatePickerContainer: {
+    width: '100%',
+    marginVertical: 20,
+  },
   modalButtons: {
     flexDirection: 'row',
     gap: 10,
