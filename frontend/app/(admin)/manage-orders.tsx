@@ -787,6 +787,88 @@ export default function ManageOrdersScreen() {
             </View>
           </View>
         </Modal>
+      ) : Platform.OS === 'web' ? (
+        /* Web Date Picker Modal */
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={cancelDateChange}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Delivery Date</Text>
+              <View style={styles.webDatePickerContainer}>
+                <input
+                  type="date"
+                  value={editingDeliveryDate.toISOString().split('T')[0]}
+                  onChange={async (e) => {
+                    const newDate = new Date(e.target.value);
+                    if (!isNaN(newDate.getTime())) {
+                      setEditingDeliveryDate(newDate);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    fontSize: '18px',
+                    border: '2px solid #8B4513',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    backgroundColor: '#fff',
+                  }}
+                />
+              </View>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelModalButton]}
+                  onPress={cancelDateChange}
+                >
+                  <Text style={styles.modalButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmModalButton]}
+                  onPress={async () => {
+                    if (!editingOrderId) {
+                      cancelDateChange();
+                      return;
+                    }
+                    
+                    try {
+                      await apiService.updateOrder(editingOrderId, { 
+                        delivery_date: editingDeliveryDate.toISOString() 
+                      });
+                      
+                      const order = orders.find((o: any) => o.id === editingOrderId);
+                      
+                      if (order && order.user_phone) {
+                        const formattedDate = editingDeliveryDate.toLocaleDateString('en-IN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        });
+                        const message = `Hello! Your order #${order.id} delivery date has been updated to ${formattedDate}. Thank you for your patience! - Divine Cakery`;
+                        const phoneNumber = order.user_phone.replace(/\D/g, '');
+                        const webUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                        window.open(webUrl, '_blank');
+                      }
+                      
+                      await fetchOrders();
+                      showAlert('Success', 'Delivery date updated successfully');
+                      setEditingOrderId(null);
+                      setShowDatePicker(false);
+                    } catch (error) {
+                      console.error('Error updating delivery date:', error);
+                      showAlert('Error', 'Failed to update delivery date');
+                    }
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       ) : (
         showDatePicker && (
           <DateTimePicker
