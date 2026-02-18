@@ -627,7 +627,9 @@ Do not share this code."""
             "message": "OTP generated successfully",
             "whatsapp_url": whatsapp_url,
             "phone": phone,
-            "otp_id": otp_id
+            "otp_id": otp_id,
+            "otp": otp,  # Include OTP for admin-assisted flow
+            "username": user.get('username', '')
         }
         
     except HTTPException:
