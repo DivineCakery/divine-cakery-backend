@@ -74,7 +74,7 @@ export default function LoginScreen() {
             <MaterialCommunityIcons name="account" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Username"
+              placeholder="Username: single word"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
