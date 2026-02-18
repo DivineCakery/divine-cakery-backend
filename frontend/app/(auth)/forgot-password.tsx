@@ -15,6 +15,7 @@ import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
+import { DIVINE_WHATSAPP_ADMIN_ALERT } from '../../constants/whatsapp';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -31,16 +32,37 @@ export default function ForgotPasswordScreen() {
     try {
       const response = await apiService.requestPasswordReset(identifier);
       
-      // Open WhatsApp with pre-filled OTP message
-      const canOpen = await Linking.canOpenURL(response.whatsapp_url);
-      if (canOpen) {
-        await Linking.openURL(response.whatsapp_url);
+      // Create message for admin with OTP and customer details
+      const adminMessage = `🔐 *Password Reset Request*
+
+*Customer:* ${response.username || identifier}
+*Phone:* ${response.phone || 'N/A'}
+*OTP:* ${response.otp}
+*Valid for:* 10 minutes
+
+Please send this OTP to the customer via WhatsApp or call.`;
+
+      // Open WhatsApp to admin with the OTP details
+      const adminPhoneNumber = DIVINE_WHATSAPP_ADMIN_ALERT;
+      const whatsappUrl = `whatsapp://send?phone=${adminPhoneNumber}&text=${encodeURIComponent(adminMessage)}`;
+      
+      try {
+        const canOpen = await Linking.canOpenURL(whatsappUrl);
+        if (canOpen) {
+          await Linking.openURL(whatsappUrl);
+        } else {
+          // Fallback to web WhatsApp
+          const webUrl = `https://wa.me/${adminPhoneNumber}?text=${encodeURIComponent(adminMessage)}`;
+          await Linking.openURL(webUrl);
+        }
+      } catch (linkError) {
+        console.log('Could not open WhatsApp for admin notification:', linkError);
       }
       
       // Navigate to reset password screen
       showAlert(
-        'OTP Sent',
-        `An OTP has been sent to ${response.phone}. Please check your WhatsApp and enter the OTP in the next screen.`,
+        'OTP Request Sent',
+        `Your password reset request has been sent to Divine Cakery support.\n\nYou will receive an OTP on your registered phone number (${response.phone || 'your phone'}) shortly.\n\nPlease wait for the OTP and enter it in the next screen.`,
         [
           {
             text: 'Continue',
@@ -85,7 +107,7 @@ export default function ForgotPasswordScreen() {
 
           <Text style={styles.subtitle}>Forgot your password?</Text>
           <Text style={styles.description}>
-            Enter your username or phone number, and we'll send you an OTP via WhatsApp to reset your password.
+            Enter your username or phone number. Our support team will send you an OTP via WhatsApp to reset your password.
           </Text>
 
           <View style={styles.inputContainer}>
@@ -108,9 +130,19 @@ export default function ForgotPasswordScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Send OTP via WhatsApp</Text>
+              <>
+                <Ionicons name="mail-outline" size={20} color="#fff" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Request OTP</Text>
+              </>
             )}
           </TouchableOpacity>
+
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle-outline" size={20} color="#8B4513" />
+            <Text style={styles.infoText}>
+              After requesting, our team will send you a 6-digit OTP via WhatsApp. This usually takes a few minutes.
+            </Text>
+          </View>
 
           <TouchableOpacity
             style={styles.backToLoginButton}
@@ -196,14 +228,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF8DC',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 24,
+    alignItems: 'flex-start',
+  },
+  infoText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
   },
   backToLoginButton: {
     alignItems: 'center',
