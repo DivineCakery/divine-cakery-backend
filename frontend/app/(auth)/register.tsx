@@ -151,7 +151,7 @@ export default function RegisterScreen() {
             <MaterialCommunityIcons name="map-marker" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Address *"
+              placeholder="Address with Door Number *"
               value={formData.address}
               onChangeText={(text) => setFormData({ ...formData, address: text })}
               multiline
