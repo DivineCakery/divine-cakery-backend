@@ -510,6 +510,18 @@ backend:
           agent: "testing"
           comment: "🎉 COMPREHENSIVE TESTING COMPLETE: All 4 critical test scenarios passed with 100% success rate! ✅ Order Payment Flow: Order payments correctly create orders without updating wallet (verified order creation with proper order_number, customer_id, items, delivery_date) ✅ Wallet Top-up Flow: Wallet top-ups correctly update wallet balance without creating orders ✅ Transaction Differentiation: Webhook correctly routes based on transaction_type ✅ Order Data Completeness: All order fields properly saved from transaction notes. CRITICAL FIXES APPLIED: 1) Fixed Razorpay 255-character notes limit by excluding large order_data from Razorpay payload 2) Fixed webhook order creation to use 'user_id' field instead of 'customer_id' 3) Enhanced get_orders endpoint to handle both field names for backward compatibility. Feature is production-ready and fully functional."
 
+  - task: "Forgot Password (Admin-Assisted OTP) Flow"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py, /app/backend/models.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 COMPREHENSIVE FORGOT PASSWORD FLOW TESTING COMPLETE: All 4 main steps and 6 security tests passed with 100% success rate! ✅ STEP 1 - PASSWORD RESET REQUEST: POST /api/auth/request-password-reset correctly generates 6-digit OTP, returns all required fields (otp, whatsapp_url, phone, otp_id, username), supports both username and phone number identification ✅ STEP 2 - OTP VERIFICATION: POST /api/auth/verify-otp successfully validates OTP and generates reset token with proper expiration (15 minutes) ✅ STEP 3 - PASSWORD RESET: POST /api/auth/reset-password correctly updates user password with reset token and returns success message ✅ STEP 4 - LOGIN VERIFICATION: POST /api/auth/login successfully authenticates with new password and returns access token. SECURITY FEATURES VERIFIED: ✅ OTP Reuse Prevention: Used OTPs marked as 'used' in database and cannot be reused ✅ Reset Token Reuse Prevention: Used reset tokens marked as 'used' and cannot be reused ✅ Error Handling: Proper HTTP status codes (404 for non-existent users, 400 for invalid OTPs/tokens) ✅ Phone Number Support: Users can request password reset using either username or phone number ✅ WhatsApp Integration: Auto-generated WhatsApp URL with pre-filled OTP message for admin assistance. Admin-assisted OTP flow is production-ready and fully secure. Tested with user: OLDSKOOLOWNER, phone: +919745669111."
+
 frontend:
   - task: "Checkout page - Stop loading after Razorpay browser closes"
     implemented: true
