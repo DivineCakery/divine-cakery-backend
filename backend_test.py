@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 # Get backend URL from environment
-BACKEND_URL = "https://stanorder-update.preview.emergentagent.com/api"
+BACKEND_URL = "https://reports-timezone-bug.preview.emergentagent.com/api"
 
 # Admin credentials
 ADMIN_USERNAME = "testadmin"
