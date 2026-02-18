@@ -140,7 +140,7 @@ export default function RegisterScreen() {
             <MaterialCommunityIcons name="store" size={24} color="#8B4513" style={styles.icon} />
             <TextInput
               style={styles.input}
-              placeholder="Business Name *"
+              placeholder="Business Name/ Personal Name *"
               value={formData.business_name}
               onChangeText={(text) => setFormData({ ...formData, business_name: text })}
               editable={!loading}
