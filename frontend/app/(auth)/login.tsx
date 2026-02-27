@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,14 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+const REMEMBER_ME_KEY = '@divine_cakery_remember_me';
+const SAVED_CREDENTIALS_KEY = '@divine_cakery_credentials';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -23,6 +27,61 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Load saved credentials on mount
+  useEffect(() => {
+    loadSavedCredentials();
+  }, []);
+
+  const loadSavedCredentials = async () => {
+    try {
+      const savedRememberMe = await AsyncStorage.getItem(REMEMBER_ME_KEY);
+      if (savedRememberMe === 'true') {
+        setRememberMe(true);
+        const savedCredentials = await AsyncStorage.getItem(SAVED_CREDENTIALS_KEY);
+        if (savedCredentials) {
+          const { username: savedUsername, password: savedPassword } = JSON.parse(savedCredentials);
+          setUsername(savedUsername || '');
+          setPassword(savedPassword || '');
+        }
+      }
+    } catch (error) {
+      console.log('Error loading saved credentials:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  const saveCredentials = async () => {
+    try {
+      if (rememberMe) {
+        await AsyncStorage.setItem(REMEMBER_ME_KEY, 'true');
+        await AsyncStorage.setItem(SAVED_CREDENTIALS_KEY, JSON.stringify({ username, password }));
+      } else {
+        await AsyncStorage.removeItem(REMEMBER_ME_KEY);
+        await AsyncStorage.removeItem(SAVED_CREDENTIALS_KEY);
+      }
+    } catch (error) {
+      console.log('Error saving credentials:', error);
+    }
+  };
+
+  const handleRememberMeToggle = async () => {
+    const newValue = !rememberMe;
+    setRememberMe(newValue);
+    
+    // If turning off, clear saved credentials
+    if (!newValue) {
+      try {
+        await AsyncStorage.removeItem(REMEMBER_ME_KEY);
+        await AsyncStorage.removeItem(SAVED_CREDENTIALS_KEY);
+      } catch (error) {
+        console.log('Error clearing credentials:', error);
+      }
+    }
+  };
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -33,6 +92,9 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(username, password);
+      
+      // Save credentials if remember me is checked
+      await saveCredentials();
       
       // Get the updated user from store to determine navigation
       const user = useAuthStore.getState().user;
@@ -54,6 +116,14 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#8B4513" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -107,6 +177,20 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Remember Me Checkbox */}
+          <TouchableOpacity
+            style={styles.rememberMeContainer}
+            onPress={handleRememberMeToggle}
+            disabled={loading}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+              {rememberMe && (
+                <MaterialCommunityIcons name="check" size={16} color="#fff" />
+              )}
+            </View>
+            <Text style={styles.rememberMeText}>Remember Me</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleLogin}
@@ -144,6 +228,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFD700',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -203,6 +291,32 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     padding: 5,
+  },
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    marginTop: 5,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#8B4513',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checkboxChecked: {
+    backgroundColor: '#8B4513',
+    borderColor: '#8B4513',
+  },
+  rememberMeText: {
+    fontSize: 14,
+    color: '#8B4513',
+    fontWeight: '500',
   },
   button: {
     backgroundColor: '#8B4513',
