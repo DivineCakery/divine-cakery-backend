@@ -660,6 +660,18 @@ backend:
           agent: "testing"
           comment: "✅ TESTED: Preparation list report filtering working correctly. Without filter returns 53 items with proper structure (date, day_name, total_items, items). With dough_type_id filter returns 0 items (expected for new dough type). Response structure maintained correctly with all required fields including dough_type fields in items."
 
+  - task: "Admin Password Reset Functionality for Users"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 ADMIN PASSWORD RESET FUNCTIONALITY TESTING COMPLETE: All 5 critical test scenarios passed with 100% success rate! ✅ ADMIN AUTHENTICATION: Successfully logged in as admin user (testadmin/admin123) ✅ USER LIST RETRIEVAL: Retrieved 67 users successfully via GET /api/admin/users with proper role and ID information ✅ TEST USER IDENTIFICATION: Found suitable customer test user (VARIETYKATTAN) for password reset testing ✅ PASSWORD UPDATE: Successfully updated user password via PUT /api/admin/users/{user_id} with 'new_password' field - backend correctly hashes and stores new password ✅ PASSWORD VERIFICATION: User successfully logged in with new password (TestNewPass123), confirming password hashing and storage working properly. BACKEND LOGS VERIFIED: Password change logged correctly ('Password changed for user X by admin testadmin'), database update confirmed ('User X updated by admin testadmin: [hashed_password]'), and login verification successful ('Password verified for user: VARIETYKATTAN'). The admin password reset functionality is production-ready and fully functional. Admins can reset any user's password and users can immediately login with their new passwords."
+
 frontend:
   - task: "Dough Types - Manage categories UI with tabs"
     implemented: true
