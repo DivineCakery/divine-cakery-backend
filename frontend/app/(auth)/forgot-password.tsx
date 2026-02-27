@@ -14,37 +14,44 @@ import {
 import { showAlert } from '../../utils/alerts';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import apiService from '../../services/api';
-import { DIVINE_WHATSAPP_ADMIN_ALERT } from '../../constants/whatsapp';
+
+const DIVINE_CAKERY_WHATSAPP = '919544183334';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleRequestReset = async () => {
+  const handleSubmitRequest = async () => {
     if (!identifier.trim()) {
       showAlert('Error', 'Please enter your username or phone number');
       return;
     }
 
+    if (!newPassword.trim()) {
+      showAlert('Error', 'Please enter your preferred new password');
+      return;
+    }
+
+    if (newPassword.length < 4) {
+      showAlert('Error', 'Password must be at least 4 characters');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await apiService.requestPasswordReset(identifier);
-      
-      // Create message for admin with OTP and customer details
-      const adminMessage = `🔐 *Password Reset Request*
+      // Create message for Divine Cakery support
+      const supportMessage = `🔐 *Password Reset Request*
 
-*Customer:* ${response.username || identifier}
-*Phone:* ${response.phone || 'N/A'}
-*OTP:* ${response.otp}
-*Valid for:* 10 minutes
+*Username/Phone:* ${identifier}
+*Preferred New Password:* ${newPassword}
 
-Please send this OTP to the customer via WhatsApp or call.`;
+Customer is requesting a password reset. Please update in admin panel and confirm to customer.`;
 
-      // Open WhatsApp to admin with the OTP details
-      const adminPhoneNumber = DIVINE_WHATSAPP_ADMIN_ALERT;
-      const whatsappUrl = `whatsapp://send?phone=${adminPhoneNumber}&text=${encodeURIComponent(adminMessage)}`;
+      // Open WhatsApp to Divine Cakery support
+      const whatsappUrl = `whatsapp://send?phone=${DIVINE_CAKERY_WHATSAPP}&text=${encodeURIComponent(supportMessage)}`;
       
       try {
         const canOpen = await Linking.canOpenURL(whatsappUrl);
@@ -52,33 +59,28 @@ Please send this OTP to the customer via WhatsApp or call.`;
           await Linking.openURL(whatsappUrl);
         } else {
           // Fallback to web WhatsApp
-          const webUrl = `https://wa.me/${adminPhoneNumber}?text=${encodeURIComponent(adminMessage)}`;
+          const webUrl = `https://wa.me/${DIVINE_CAKERY_WHATSAPP}?text=${encodeURIComponent(supportMessage)}`;
           await Linking.openURL(webUrl);
         }
       } catch (linkError) {
-        console.log('Could not open WhatsApp for admin notification:', linkError);
+        console.log('Could not open WhatsApp:', linkError);
+        showAlert('Error', 'Could not open WhatsApp. Please contact support directly at 9544183334');
+        return;
       }
       
-      // Navigate to reset password screen
       showAlert(
-        'OTP Request Sent',
-        `Your password reset request has been sent to Divine Cakery support.\n\nYou will receive an OTP on your registered phone number (${response.phone || 'your phone'}) shortly.\n\nPlease wait for the OTP and enter it in the next screen.`,
+        'Request Sent',
+        'Your password reset request has been sent to Divine Cakery support.\n\nPlease send the WhatsApp message and wait for confirmation. Our team will reset your password and notify you.',
         [
           {
-            text: 'Continue',
-            onPress: () => router.push({
-              pathname: '/(auth)/reset-password',
-              params: { identifier }
-            })
+            text: 'OK',
+            onPress: () => router.back()
           }
         ]
       );
     } catch (error: any) {
-      console.error('Error requesting password reset:', error);
-      showAlert(
-        'Error',
-        error.response?.data?.detail || 'Failed to request password reset. Please try again.'
-      );
+      console.error('Error:', error);
+      showAlert('Error', 'Something went wrong. Please try again or contact support at 9544183334');
     } finally {
       setLoading(false);
     }
@@ -107,9 +109,10 @@ Please send this OTP to the customer via WhatsApp or call.`;
 
           <Text style={styles.subtitle}>Forgot your password?</Text>
           <Text style={styles.description}>
-            Enter your username or phone number. Our support team will send you an OTP via WhatsApp to reset your password.
+            Please enter details requested below. Our support team will reset and send you the password by WhatsApp.
           </Text>
 
+          {/* Username/Phone Input */}
           <View style={styles.inputContainer}>
             <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
@@ -122,17 +125,41 @@ Please send this OTP to the customer via WhatsApp or call.`;
             />
           </View>
 
+          {/* New Password Input */}
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Preferred New Password"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleRequestReset}
+            onPress={handleSubmitRequest}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <Ionicons name="mail-outline" size={20} color="#fff" style={styles.buttonIcon} />
-                <Text style={styles.buttonText}>Request OTP</Text>
+                <Ionicons name="logo-whatsapp" size={20} color="#fff" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Send Request via WhatsApp</Text>
               </>
             )}
           </TouchableOpacity>
@@ -140,7 +167,7 @@ Please send this OTP to the customer via WhatsApp or call.`;
           <View style={styles.infoBox}>
             <Ionicons name="information-circle-outline" size={20} color="#8B4513" />
             <Text style={styles.infoText}>
-              After requesting, our team will send you a 6-digit OTP via WhatsApp. This usually takes a few minutes.
+              After submitting, please send the WhatsApp message. Our team will reset your password and confirm via WhatsApp within a few minutes.
             </Text>
           </View>
 
@@ -210,7 +237,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    marginBottom: 24,
+    marginBottom: 16,
     paddingHorizontal: 12,
     backgroundColor: '#f9f9f9',
   },
@@ -222,11 +249,15 @@ const styles = StyleSheet.create({
     height: 48,
     fontSize: 16,
   },
+  eyeIcon: {
+    padding: 8,
+  },
   button: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#25D366',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 8,
     marginBottom: 16,
     flexDirection: 'row',
     justifyContent: 'center',
