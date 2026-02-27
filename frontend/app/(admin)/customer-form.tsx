@@ -136,8 +136,9 @@ export default function CustomerFormScreen() {
 
       if (isEdit) {
         // Only include password if it's being changed
+        // Backend expects 'new_password' field for updates
         if (formData.password) {
-          customerData.password = formData.password;
+          customerData.new_password = formData.password;
         }
         await apiService.updateUserByAdmin(userId, customerData);
         showAlert('Success', 'User updated successfully', [
