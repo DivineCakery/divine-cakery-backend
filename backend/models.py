@@ -437,3 +437,36 @@ class StockResetEventCreate(BaseModel):
 class AllowedProductsUpdate(BaseModel):
     product_ids: List[str]
 
+
+
+
+# Cleaning Tasks Models
+class CleaningTask(BaseModel):
+    id: str
+    task: str
+    is_completed: bool = False
+
+class DailyCleaningTasks(BaseModel):
+    tasks: List[str]
+
+class WeeklyCleaningTasks(BaseModel):
+    monday: str
+    tuesday: str
+    wednesday: str
+    thursday: str
+    friday: str
+    saturday: Optional[str] = None
+    sunday: str
+
+class CleaningTasksConfig(BaseModel):
+    daily_tasks: List[str]
+    weekly_tasks: WeeklyCleaningTasks
+
+class CleaningTasksUpdate(BaseModel):
+    daily_tasks: Optional[List[str]] = None
+    weekly_tasks: Optional[dict] = None
+
+class StaffMember(BaseModel):
+    id: str
+    name: str
+    is_active: bool = True
