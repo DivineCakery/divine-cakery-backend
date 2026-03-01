@@ -269,6 +269,21 @@ export default function DashboardScreen() {
               <Ionicons name="chevron-forward" size={24} color="#999" />
             </TouchableOpacity>
           )}
+
+          {/* Staff Checklist - Available for Full and Limited Access (Order Agents) */}
+          {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited') && (
+            <TouchableOpacity
+              style={[styles.settingsButton, { marginTop: 10, borderColor: '#4CAF50', borderWidth: 1 }]}
+              onPress={() => router.push('/(admin)/top-room-report' as any)}
+            >
+              <Ionicons name="clipboard-outline" size={24} color="#4CAF50" />
+              <View style={styles.settingsButtonText}>
+                <Text style={[styles.settingsButtonTitle, { color: '#4CAF50' }]}>Staff Checklist</Text>
+                <Text style={styles.settingsButtonSubtitle}>Top Room Report & Cleaning Tasks</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#4CAF50" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </ScrollView>
