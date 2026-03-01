@@ -25,12 +25,6 @@ interface StaffMember {
   is_active: boolean;
 }
 
-interface CleaningTask {
-  id: number;
-  task: string;
-  completed: boolean;
-}
-
 export default function TopRoomReportScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -38,16 +32,18 @@ export default function TopRoomReportScreen() {
   
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
-  const [dailyTasks, setDailyTasks] = useState<CleaningTask[]>([]);
   
   // Form state
   const [filledBy, setFilledBy] = useState('');
   const [workedStaff, setWorkedStaff] = useState<string[]>([]);
   const [absentStaff, setAbsentStaff] = useState<string[]>([]);
   
-  // Completion checkboxes
+  // Completion checkboxes (serial numbered 1-4)
   const [dailyProductionCompleted, setDailyProductionCompleted] = useState(false);
   const [dailyProductionNotes, setDailyProductionNotes] = useState('');
+  
+  const [dailyCleaningCompleted, setDailyCleaningCompleted] = useState(false);
+  const [dailyCleaningNotes, setDailyCleaningNotes] = useState('');
   
   const [weeklyCleaningCompleted, setWeeklyCleaningCompleted] = useState(false);
   const [weeklyCleaningNotes, setWeeklyCleaningNotes] = useState('');
@@ -71,31 +67,14 @@ export default function TopRoomReportScreen() {
 
   const fetchData = async () => {
     try {
-      const [staffResponse, tasksResponse] = await Promise.all([
-        apiService.getStaffList(),
-        apiService.getCleaningTasks()
-      ]);
+      const staffResponse = await apiService.getStaffList();
       setStaffList(staffResponse.staff || []);
-      
-      // Convert daily tasks to tracked tasks with serial numbers
-      const tasks = (tasksResponse.daily_tasks || []).map((task: string, index: number) => ({
-        id: index + 1,
-        task: task,
-        completed: false
-      }));
-      setDailyTasks(tasks);
     } catch (error) {
       console.error('Error fetching data:', error);
       showAlert('Error', 'Failed to load data');
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleTaskCompletion = (taskId: number) => {
-    setDailyTasks(dailyTasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
   };
 
   const toggleStaffSelection = (staffName: string, list: string[], setList: (val: string[]) => void) => {
@@ -147,8 +126,20 @@ export default function TopRoomReportScreen() {
     );
   };
 
-  const allDailyTasksCompleted = dailyTasks.every(task => task.completed);
-  const incompleteTasks = dailyTasks.filter(task => !task.completed);
+  // Check if all 4 items are addressed
+  const allItemsAddressed = 
+    dailyProductionCompleted && 
+    dailyCleaningCompleted && 
+    weeklyCleaningCompleted && 
+    (wastageReported || wastageNotes.trim() === ''); // Wastage can be "No" without notes
+
+  // Count completed items
+  const completedCount = [
+    dailyProductionCompleted,
+    dailyCleaningCompleted,
+    weeklyCleaningCompleted,
+    true // Wastage is always "addressed" - either yes with notes or no
+  ].filter(Boolean).length;
 
   const generateReport = () => {
     const today = new Date().toLocaleDateString('en-IN', { 
@@ -166,24 +157,26 @@ export default function TopRoomReportScreen() {
     report += `✅ *Worked:* ${workedStaff.length > 0 ? workedStaff.join(', ') : 'None'}\n`;
     report += `❌ *Absent/Sick:* ${absentStaff.length > 0 ? absentStaff.join(', ') : 'None'}\n\n`;
     
-    report += `📦 *Daily Production:* ${dailyProductionCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
+    report += `*--- CHECKLIST ---*\n\n`;
+    
+    report += `1️⃣ *Daily Production:* ${dailyProductionCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
     if (!dailyProductionCompleted && dailyProductionNotes) {
-      report += `   Items not completed: ${dailyProductionNotes}\n`;
+      report += `   _Items not completed: ${dailyProductionNotes}_\n`;
     }
     
-    report += `\n🧹 *Daily Cleaning Tasks:* ${allDailyTasksCompleted ? '✅ All Completed' : '⚠️ Some Incomplete'}\n`;
-    dailyTasks.forEach(task => {
-      report += `   ${task.id}. ${task.completed ? '✅' : '❌'} ${task.task}\n`;
-    });
+    report += `\n2️⃣ *Daily Cleaning:* ${dailyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
+    if (!dailyCleaningCompleted && dailyCleaningNotes) {
+      report += `   _Tasks not completed: ${dailyCleaningNotes}_\n`;
+    }
     
-    report += `\n🧽 *Weekly Deep Cleaning:* ${weeklyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
+    report += `\n3️⃣ *Weekly Deep Cleaning:* ${weeklyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
     if (!weeklyCleaningCompleted && weeklyCleaningNotes) {
-      report += `   Tasks not completed: ${weeklyCleaningNotes}\n`;
+      report += `   _Tasks not completed: ${weeklyCleaningNotes}_\n`;
     }
     
-    report += `\n🗑️ *Wastage Reported:* ${wastageReported ? '✅ Yes' : '❌ No'}\n`;
+    report += `\n4️⃣ *Wastage Reported:* ${wastageReported ? '✅ Yes' : '❌ No'}\n`;
     if (wastageReported && wastageNotes) {
-      report += `   Items wasted: ${wastageNotes}\n`;
+      report += `   _Items wasted: ${wastageNotes}_\n`;
     }
     
     report += `\n---\n_Report generated from Divine Cakery App_`;
@@ -197,12 +190,24 @@ export default function TopRoomReportScreen() {
       return;
     }
 
-    if (!allDailyTasksCompleted) {
-      const incompleteList = incompleteTasks.map(t => `${t.id}. ${t.task}`).join('\n');
-      showAlert(
-        'Incomplete Tasks',
-        `Please complete all daily cleaning tasks before submitting:\n\n${incompleteList}`
-      );
+    // Validate that incomplete items have notes
+    if (!dailyProductionCompleted && !dailyProductionNotes.trim()) {
+      showAlert('Error', 'Please specify which items were not completed for Daily Production');
+      return;
+    }
+    
+    if (!dailyCleaningCompleted && !dailyCleaningNotes.trim()) {
+      showAlert('Error', 'Please specify which tasks were not completed for Daily Cleaning');
+      return;
+    }
+    
+    if (!weeklyCleaningCompleted && !weeklyCleaningNotes.trim()) {
+      showAlert('Error', 'Please specify which tasks were not completed for Weekly Deep Cleaning');
+      return;
+    }
+    
+    if (wastageReported && !wastageNotes.trim()) {
+      showAlert('Error', 'Please specify the items wasted');
       return;
     }
 
@@ -364,12 +369,15 @@ export default function TopRoomReportScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Daily Production */}
+        {/* Serial numbered checklist items */}
+        
+        {/* 1. Daily Production */}
         <View style={styles.checkboxSection}>
           <TouchableOpacity 
             style={styles.checkboxRow}
             onPress={() => setDailyProductionCompleted(!dailyProductionCompleted)}
           >
+            <Text style={styles.serialNumber}>1.</Text>
             <View style={[styles.checkbox, dailyProductionCompleted && styles.checkboxChecked]}>
               {dailyProductionCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}
             </View>
@@ -386,43 +394,36 @@ export default function TopRoomReportScreen() {
           )}
         </View>
 
-        {/* Daily Cleaning Tasks with Serial Numbers */}
-        <View style={styles.tasksSection}>
-          <View style={styles.tasksSectionHeader}>
-            <MaterialCommunityIcons name="broom" size={20} color="#8B4513" />
-            <Text style={styles.tasksSectionTitle}>Daily Cleaning Tasks</Text>
-            <Text style={styles.tasksProgress}>
-              {dailyTasks.filter(t => t.completed).length}/{dailyTasks.length}
-            </Text>
-          </View>
-          {dailyTasks.map((task) => (
-            <TouchableOpacity 
-              key={task.id}
-              style={styles.taskItem}
-              onPress={() => toggleTaskCompletion(task.id)}
-            >
-              <View style={[styles.taskCheckbox, task.completed && styles.taskCheckboxChecked]}>
-                {task.completed && <Ionicons name="checkmark" size={14} color="#fff" />}
-              </View>
-              <Text style={styles.taskNumber}>{task.id}.</Text>
-              <Text style={[styles.taskText, task.completed && styles.taskTextCompleted]}>
-                {task.task}
-              </Text>
-            </TouchableOpacity>
-          ))}
-          {!allDailyTasksCompleted && (
-            <Text style={styles.warningText}>
-              ⚠️ Complete all tasks to submit report
-            </Text>
+        {/* 2. Daily Cleaning */}
+        <View style={styles.checkboxSection}>
+          <TouchableOpacity 
+            style={styles.checkboxRow}
+            onPress={() => setDailyCleaningCompleted(!dailyCleaningCompleted)}
+          >
+            <Text style={styles.serialNumber}>2.</Text>
+            <View style={[styles.checkbox, dailyCleaningCompleted && styles.checkboxChecked]}>
+              {dailyCleaningCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <Text style={styles.checkboxLabel}>Daily Cleaning completed</Text>
+          </TouchableOpacity>
+          {!dailyCleaningCompleted && (
+            <TextInput
+              style={styles.notesInput}
+              placeholder="Which task not completed..."
+              value={dailyCleaningNotes}
+              onChangeText={setDailyCleaningNotes}
+              multiline
+            />
           )}
         </View>
 
-        {/* Weekly Deep Cleaning */}
+        {/* 3. Weekly Deep Cleaning */}
         <View style={styles.checkboxSection}>
           <TouchableOpacity 
             style={styles.checkboxRow}
             onPress={() => setWeeklyCleaningCompleted(!weeklyCleaningCompleted)}
           >
+            <Text style={styles.serialNumber}>3.</Text>
             <View style={[styles.checkbox, weeklyCleaningCompleted && styles.checkboxChecked]}>
               {weeklyCleaningCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}
             </View>
@@ -439,12 +440,13 @@ export default function TopRoomReportScreen() {
           )}
         </View>
 
-        {/* Wastage Reported */}
+        {/* 4. Wastage Reported */}
         <View style={styles.checkboxSection}>
           <TouchableOpacity 
             style={styles.checkboxRow}
             onPress={() => setWastageReported(!wastageReported)}
           >
+            <Text style={styles.serialNumber}>4.</Text>
             <View style={[styles.checkbox, wastageReported && styles.checkboxChecked]}>
               {wastageReported && <Ionicons name="checkmark" size={16} color="#fff" />}
             </View>
@@ -467,16 +469,13 @@ export default function TopRoomReportScreen() {
           onPress={() => router.push('/(admin)/cleaning-tasks')}
         >
           <MaterialCommunityIcons name="clipboard-list-outline" size={24} color="#8B4513" />
-          <Text style={styles.viewTasksButtonText}>View Full Cleaning Schedule</Text>
+          <Text style={styles.viewTasksButtonText}>View Cleaning Tasks</Text>
           <Ionicons name="chevron-forward" size={20} color="#8B4513" />
         </TouchableOpacity>
 
         {/* Submit Button */}
         <TouchableOpacity 
-          style={[
-            styles.submitButton,
-            !allDailyTasksCompleted && styles.submitButtonDisabled
-          ]}
+          style={styles.submitButton}
           onPress={handleSubmit}
         >
           <Ionicons name="logo-whatsapp" size={24} color="#fff" />
@@ -724,6 +723,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  serialNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#8B4513',
+    marginRight: 10,
+    width: 24,
+  },
   checkbox: {
     width: 24,
     height: 24,
@@ -741,9 +747,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     fontWeight: '500',
+    flex: 1,
   },
   notesInput: {
     marginTop: 12,
+    marginLeft: 34,
     backgroundColor: '#f9f9f9',
     borderRadius: 6,
     padding: 10,
@@ -751,78 +759,6 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     minHeight: 60,
     textAlignVertical: 'top',
-  },
-  tasksSection: {
-    marginBottom: 16,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  tasksSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  tasksSectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#8B4513',
-    marginLeft: 8,
-    flex: 1,
-  },
-  tasksProgress: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '600',
-  },
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
-  },
-  taskCheckbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#8B4513',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  taskCheckboxChecked: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
-  },
-  taskNumber: {
-    fontSize: 12,
-    color: '#8B4513',
-    fontWeight: '600',
-    marginRight: 6,
-    width: 20,
-  },
-  taskText: {
-    flex: 1,
-    fontSize: 12,
-    color: '#333',
-    lineHeight: 18,
-  },
-  taskTextCompleted: {
-    color: '#999',
-    textDecorationLine: 'line-through',
-  },
-  warningText: {
-    color: '#f44336',
-    fontSize: 12,
-    marginTop: 8,
-    textAlign: 'center',
   },
   viewTasksButton: {
     flexDirection: 'row',
@@ -848,9 +784,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#25D366',
     borderRadius: 8,
     padding: 16,
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#ccc',
   },
   submitButtonText: {
     color: '#fff',
