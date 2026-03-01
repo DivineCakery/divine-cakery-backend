@@ -536,6 +536,32 @@ class ApiService {
     const response = await this.api.put(`/admin/users/${userId}/allowed-products`, { product_ids: productIds });
     return response.data;
   }
+
+  // Staff Checklist APIs
+  async getCleaningTasks() {
+    const response = await this.api.get('/admin/cleaning-tasks');
+    return response.data;
+  }
+
+  async updateCleaningTasks(data: { daily_tasks?: string[]; weekly_tasks?: any }) {
+    const response = await this.api.put('/admin/cleaning-tasks', data);
+    return response.data;
+  }
+
+  async getStaffList() {
+    const response = await this.api.get('/admin/staff-list');
+    return response.data;
+  }
+
+  async addStaffMember(name: string) {
+    const response = await this.api.post('/admin/staff-list/add', { name });
+    return response.data;
+  }
+
+  async removeStaffMember(staffId: string) {
+    const response = await this.api.delete(`/admin/staff-list/${staffId}`);
+    return response.data;
+  }
 }
 
 export default new ApiService();
