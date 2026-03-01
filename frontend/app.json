@@ -30,7 +30,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -46,17 +46,11 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "@react-native-community/datetimepicker",
-      "expo-image"
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": false
     },
-    "extra": {
-      "eas": {
-        "projectId": "7f7621c8-13c8-4afa-833d-5c1a6dcfffd0"
-      },
-      "EXPO_PUBLIC_BACKEND_URL": "https://divine-cakery-backend.onrender.com"
-    }
+
   }
 }
