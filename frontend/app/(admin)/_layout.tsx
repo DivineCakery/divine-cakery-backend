@@ -163,6 +163,18 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="top-room-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="cleaning-tasks"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
