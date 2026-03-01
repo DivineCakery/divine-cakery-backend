@@ -270,8 +270,8 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Staff Checklist - Available for Full and Limited Access (Order Agents) */}
-          {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited') && (
+          {/* Staff Checklist - Available for Full, Limited Access (Order Agents) and Reports Only */}
+          {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited' || accessLevel.toLowerCase() === 'reports') && (
             <TouchableOpacity
               style={[styles.settingsButton, { marginTop: 10, borderColor: '#4CAF50', borderWidth: 1 }]}
               onPress={() => router.push('/(admin)/top-room-report' as any)}
