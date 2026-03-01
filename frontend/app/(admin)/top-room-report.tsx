@@ -8,7 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
   Linking,
-  Platform,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -25,11 +25,20 @@ interface StaffMember {
   is_active: boolean;
 }
 
+interface CleaningTask {
+  id: number;
+  task: string;
+  completed: boolean;
+}
+
 export default function TopRoomReportScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const isAdmin = user?.admin_access_level === 'full';
+  
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [dailyTasks, setDailyTasks] = useState<CleaningTask[]>([]);
   
   // Form state
   const [filledBy, setFilledBy] = useState('');
@@ -39,9 +48,6 @@ export default function TopRoomReportScreen() {
   // Completion checkboxes
   const [dailyProductionCompleted, setDailyProductionCompleted] = useState(false);
   const [dailyProductionNotes, setDailyProductionNotes] = useState('');
-  
-  const [dailyCleaningCompleted, setDailyCleaningCompleted] = useState(false);
-  const [dailyCleaningNotes, setDailyCleaningNotes] = useState('');
   
   const [weeklyCleaningCompleted, setWeeklyCleaningCompleted] = useState(false);
   const [weeklyCleaningNotes, setWeeklyCleaningNotes] = useState('');
@@ -53,21 +59,43 @@ export default function TopRoomReportScreen() {
   const [showFilledByDropdown, setShowFilledByDropdown] = useState(false);
   const [showWorkedDropdown, setShowWorkedDropdown] = useState(false);
   const [showAbsentDropdown, setShowAbsentDropdown] = useState(false);
+  
+  // Staff management modal
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [newStaffName, setNewStaffName] = useState('');
+  const [addingStaff, setAddingStaff] = useState(false);
 
   useEffect(() => {
-    fetchStaffList();
+    fetchData();
   }, []);
 
-  const fetchStaffList = async () => {
+  const fetchData = async () => {
     try {
-      const response = await apiService.getStaffList();
-      setStaffList(response.staff || []);
+      const [staffResponse, tasksResponse] = await Promise.all([
+        apiService.getStaffList(),
+        apiService.getCleaningTasks()
+      ]);
+      setStaffList(staffResponse.staff || []);
+      
+      // Convert daily tasks to tracked tasks with serial numbers
+      const tasks = (tasksResponse.daily_tasks || []).map((task: string, index: number) => ({
+        id: index + 1,
+        task: task,
+        completed: false
+      }));
+      setDailyTasks(tasks);
     } catch (error) {
-      console.error('Error fetching staff list:', error);
-      showAlert('Error', 'Failed to load staff list');
+      console.error('Error fetching data:', error);
+      showAlert('Error', 'Failed to load data');
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleTaskCompletion = (taskId: number) => {
+    setDailyTasks(dailyTasks.map(task => 
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    ));
   };
 
   const toggleStaffSelection = (staffName: string, list: string[], setList: (val: string[]) => void) => {
@@ -77,6 +105,50 @@ export default function TopRoomReportScreen() {
       setList([...list, staffName]);
     }
   };
+
+  const handleAddStaff = async () => {
+    if (!newStaffName.trim()) {
+      showAlert('Error', 'Please enter staff name');
+      return;
+    }
+    
+    setAddingStaff(true);
+    try {
+      const response = await apiService.addStaffMember(newStaffName.trim());
+      setStaffList([...staffList, response.member]);
+      setNewStaffName('');
+      showAlert('Success', 'Staff member added');
+    } catch (error: any) {
+      showAlert('Error', error.response?.data?.detail || 'Failed to add staff member');
+    } finally {
+      setAddingStaff(false);
+    }
+  };
+
+  const handleRemoveStaff = async (staffId: string, staffName: string) => {
+    showAlert(
+      'Remove Staff',
+      `Are you sure you want to remove ${staffName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.removeStaffMember(staffId);
+              setStaffList(staffList.filter(s => s.id !== staffId));
+            } catch (error) {
+              showAlert('Error', 'Failed to remove staff member');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const allDailyTasksCompleted = dailyTasks.every(task => task.completed);
+  const incompleteTasks = dailyTasks.filter(task => !task.completed);
 
   const generateReport = () => {
     const today = new Date().toLocaleDateString('en-IN', { 
@@ -99,17 +171,17 @@ export default function TopRoomReportScreen() {
       report += `   Items not completed: ${dailyProductionNotes}\n`;
     }
     
-    report += `🧹 *Daily Cleaning:* ${dailyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
-    if (!dailyCleaningCompleted && dailyCleaningNotes) {
-      report += `   Tasks not completed: ${dailyCleaningNotes}\n`;
-    }
+    report += `\n🧹 *Daily Cleaning Tasks:* ${allDailyTasksCompleted ? '✅ All Completed' : '⚠️ Some Incomplete'}\n`;
+    dailyTasks.forEach(task => {
+      report += `   ${task.id}. ${task.completed ? '✅' : '❌'} ${task.task}\n`;
+    });
     
-    report += `🧽 *Weekly Deep Cleaning:* ${weeklyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
+    report += `\n🧽 *Weekly Deep Cleaning:* ${weeklyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
     if (!weeklyCleaningCompleted && weeklyCleaningNotes) {
       report += `   Tasks not completed: ${weeklyCleaningNotes}\n`;
     }
     
-    report += `🗑️ *Wastage Reported:* ${wastageReported ? '✅ Yes' : '❌ No'}\n`;
+    report += `\n🗑️ *Wastage Reported:* ${wastageReported ? '✅ Yes' : '❌ No'}\n`;
     if (wastageReported && wastageNotes) {
       report += `   Items wasted: ${wastageNotes}\n`;
     }
@@ -122,6 +194,15 @@ export default function TopRoomReportScreen() {
   const handleSubmit = async () => {
     if (!filledBy) {
       showAlert('Error', 'Please select who filled this report');
+      return;
+    }
+
+    if (!allDailyTasksCompleted) {
+      const incompleteList = incompleteTasks.map(t => `${t.id}. ${t.task}`).join('\n');
+      showAlert(
+        'Incomplete Tasks',
+        `Please complete all daily cleaning tasks before submitting:\n\n${incompleteList}`
+      );
       return;
     }
 
@@ -157,53 +238,57 @@ export default function TopRoomReportScreen() {
     if (!visible) return null;
     
     return (
-      <View style={styles.dropdownContainer}>
-        <View style={styles.dropdownHeader}>
-          <Text style={styles.dropdownTitle}>Select Staff</Text>
-          <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
-        <ScrollView style={styles.dropdownList}>
-          {staffList.filter(s => s.is_active).map((staff) => (
-            <TouchableOpacity
-              key={staff.id}
-              style={[
-                styles.dropdownItem,
-                selectedItems.includes(staff.name) && styles.dropdownItemSelected
-              ]}
-              onPress={() => {
-                onSelect(staff.name);
-                if (!multiSelect) onClose();
-              }}
-            >
-              <Text style={[
-                styles.dropdownItemText,
-                selectedItems.includes(staff.name) && styles.dropdownItemTextSelected
-              ]}>
-                {staff.name}
-              </Text>
-              {selectedItems.includes(staff.name) && (
-                <Ionicons name="checkmark" size={20} color="#8B4513" />
+      <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+        <View style={styles.dropdownOverlay}>
+          <View style={styles.dropdownContainer}>
+            <View style={styles.dropdownHeader}>
+              <Text style={styles.dropdownTitle}>Select Staff</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.dropdownList}>
+              {staffList.filter(s => s.is_active).map((staff) => (
+                <TouchableOpacity
+                  key={staff.id}
+                  style={[
+                    styles.dropdownItem,
+                    selectedItems.includes(staff.name) && styles.dropdownItemSelected
+                  ]}
+                  onPress={() => {
+                    onSelect(staff.name);
+                    if (!multiSelect) onClose();
+                  }}
+                >
+                  <Text style={[
+                    styles.dropdownItemText,
+                    selectedItems.includes(staff.name) && styles.dropdownItemTextSelected
+                  ]}>
+                    {staff.name}
+                  </Text>
+                  {selectedItems.includes(staff.name) && (
+                    <Ionicons name="checkmark" size={20} color="#8B4513" />
+                  )}
+                </TouchableOpacity>
+              ))}
+              {staffList.filter(s => s.is_active).length === 0 && (
+                <Text style={styles.noStaffText}>No staff members added yet.</Text>
               )}
-            </TouchableOpacity>
-          ))}
-          {staffList.filter(s => s.is_active).length === 0 && (
-            <Text style={styles.noStaffText}>No staff members added yet. Admin can add staff from the Cleaning Tasks page.</Text>
-          )}
-        </ScrollView>
-        {multiSelect && (
-          <TouchableOpacity style={styles.dropdownDoneBtn} onPress={onClose}>
-            <Text style={styles.dropdownDoneBtnText}>Done</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            </ScrollView>
+            {multiSelect && (
+              <TouchableOpacity style={styles.dropdownDoneBtn} onPress={onClose}>
+                <Text style={styles.dropdownDoneBtnText}>Done</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </Modal>
     );
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#8B4513" />
         </View>
@@ -221,7 +306,22 @@ export default function TopRoomReportScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={true}
+      >
+        {/* Staff Management Button (Admin Only) */}
+        {isAdmin && (
+          <TouchableOpacity 
+            style={styles.staffManageButton}
+            onPress={() => setShowStaffModal(true)}
+          >
+            <Ionicons name="people" size={20} color="#fff" />
+            <Text style={styles.staffManageButtonText}>Manage Staff List ({staffList.length})</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Filled By */}
         <View style={styles.section}>
           <Text style={styles.label}>Filled by: *</Text>
@@ -286,25 +386,34 @@ export default function TopRoomReportScreen() {
           )}
         </View>
 
-        {/* Daily Cleaning */}
-        <View style={styles.checkboxSection}>
-          <TouchableOpacity 
-            style={styles.checkboxRow}
-            onPress={() => setDailyCleaningCompleted(!dailyCleaningCompleted)}
-          >
-            <View style={[styles.checkbox, dailyCleaningCompleted && styles.checkboxChecked]}>
-              {dailyCleaningCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}
-            </View>
-            <Text style={styles.checkboxLabel}>Daily Cleaning completed</Text>
-          </TouchableOpacity>
-          {!dailyCleaningCompleted && (
-            <TextInput
-              style={styles.notesInput}
-              placeholder="Which task not completed..."
-              value={dailyCleaningNotes}
-              onChangeText={setDailyCleaningNotes}
-              multiline
-            />
+        {/* Daily Cleaning Tasks with Serial Numbers */}
+        <View style={styles.tasksSection}>
+          <View style={styles.tasksSectionHeader}>
+            <MaterialCommunityIcons name="broom" size={20} color="#8B4513" />
+            <Text style={styles.tasksSectionTitle}>Daily Cleaning Tasks</Text>
+            <Text style={styles.tasksProgress}>
+              {dailyTasks.filter(t => t.completed).length}/{dailyTasks.length}
+            </Text>
+          </View>
+          {dailyTasks.map((task) => (
+            <TouchableOpacity 
+              key={task.id}
+              style={styles.taskItem}
+              onPress={() => toggleTaskCompletion(task.id)}
+            >
+              <View style={[styles.taskCheckbox, task.completed && styles.taskCheckboxChecked]}>
+                {task.completed && <Ionicons name="checkmark" size={14} color="#fff" />}
+              </View>
+              <Text style={styles.taskNumber}>{task.id}.</Text>
+              <Text style={[styles.taskText, task.completed && styles.taskTextCompleted]}>
+                {task.task}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          {!allDailyTasksCompleted && (
+            <Text style={styles.warningText}>
+              ⚠️ Complete all tasks to submit report
+            </Text>
           )}
         </View>
 
@@ -358,44 +467,105 @@ export default function TopRoomReportScreen() {
           onPress={() => router.push('/(admin)/cleaning-tasks')}
         >
           <MaterialCommunityIcons name="clipboard-list-outline" size={24} color="#8B4513" />
-          <Text style={styles.viewTasksButtonText}>View Cleaning Tasks</Text>
+          <Text style={styles.viewTasksButtonText}>View Full Cleaning Schedule</Text>
           <Ionicons name="chevron-forward" size={20} color="#8B4513" />
         </TouchableOpacity>
 
         {/* Submit Button */}
         <TouchableOpacity 
-          style={styles.submitButton}
+          style={[
+            styles.submitButton,
+            !allDailyTasksCompleted && styles.submitButtonDisabled
+          ]}
           onPress={handleSubmit}
         >
           <Ionicons name="logo-whatsapp" size={24} color="#fff" />
           <Text style={styles.submitButtonText}>Submit via WhatsApp</Text>
         </TouchableOpacity>
+
+        {/* Extra space for bottom padding */}
+        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Dropdowns */}
-      {showFilledByDropdown && renderDropdown(
-        true,
+      {renderDropdown(
+        showFilledByDropdown,
         () => setShowFilledByDropdown(false),
         filledBy ? [filledBy] : [],
         (name) => setFilledBy(name),
         false
       )}
       
-      {showWorkedDropdown && renderDropdown(
-        true,
+      {renderDropdown(
+        showWorkedDropdown,
         () => setShowWorkedDropdown(false),
         workedStaff,
         (name) => toggleStaffSelection(name, workedStaff, setWorkedStaff),
         true
       )}
       
-      {showAbsentDropdown && renderDropdown(
-        true,
+      {renderDropdown(
+        showAbsentDropdown,
         () => setShowAbsentDropdown(false),
         absentStaff,
         (name) => toggleStaffSelection(name, absentStaff, setAbsentStaff),
         true
       )}
+
+      {/* Staff Management Modal */}
+      <Modal
+        visible={showStaffModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowStaffModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Manage Staff List</Text>
+              <TouchableOpacity onPress={() => setShowStaffModal(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.addStaffRow}>
+              <TextInput
+                style={styles.staffInput}
+                value={newStaffName}
+                onChangeText={setNewStaffName}
+                placeholder="Enter staff name"
+              />
+              <TouchableOpacity 
+                style={styles.addStaffButton}
+                onPress={handleAddStaff}
+                disabled={addingStaff}
+              >
+                {addingStaff ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="add" size={24} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.staffList}>
+              {staffList.map((staff) => (
+                <View key={staff.id} style={styles.staffItem}>
+                  <Text style={styles.staffName}>{staff.name}</Text>
+                  <TouchableOpacity 
+                    onPress={() => handleRemoveStaff(staff.id, staff.name)}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#f44336" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              {staffList.length === 0 && (
+                <Text style={styles.noStaffModalText}>No staff members added yet</Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -431,7 +601,21 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 120,
+  },
+  staffManageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#8B4513',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  staffManageButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
   },
   section: {
     marginBottom: 16,
@@ -463,25 +647,22 @@ const styles = StyleSheet.create({
     color: '#999',
     flex: 1,
   },
-  dropdownContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  dropdownOverlay: {
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     padding: 20,
-    zIndex: 1000,
+  },
+  dropdownContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    maxHeight: '60%',
   },
   dropdownHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 16,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
@@ -491,8 +672,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   dropdownList: {
-    backgroundColor: '#fff',
-    maxHeight: 300,
+    maxHeight: 250,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -572,13 +752,84 @@ const styles = StyleSheet.create({
     minHeight: 60,
     textAlignVertical: 'top',
   },
+  tasksSection: {
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  tasksSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  tasksSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B4513',
+    marginLeft: 8,
+    flex: 1,
+  },
+  tasksProgress: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '600',
+  },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+  },
+  taskCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#8B4513',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  taskCheckboxChecked: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  taskNumber: {
+    fontSize: 12,
+    color: '#8B4513',
+    fontWeight: '600',
+    marginRight: 6,
+    width: 20,
+  },
+  taskText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#333',
+    lineHeight: 18,
+  },
+  taskTextCompleted: {
+    color: '#999',
+    textDecorationLine: 'line-through',
+  },
+  warningText: {
+    color: '#f44336',
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'center',
+  },
   viewTasksButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
-    marginTop: 8,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#8B4513',
@@ -597,12 +848,82 @@ const styles = StyleSheet.create({
     backgroundColor: '#25D366',
     borderRadius: 8,
     padding: 16,
-    marginTop: 8,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#ccc',
   },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '70%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  addStaffRow: {
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  staffInput: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  addStaffButton: {
+    backgroundColor: '#8B4513',
+    borderRadius: 8,
+    width: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  staffList: {
+    padding: 16,
+  },
+  staffItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  staffName: {
+    fontSize: 16,
+    color: '#333',
+  },
+  noStaffModalText: {
+    textAlign: 'center',
+    color: '#999',
+    fontStyle: 'italic',
+    paddingVertical: 20,
   },
 });
