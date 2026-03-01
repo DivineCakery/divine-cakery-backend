@@ -3121,6 +3121,159 @@ async def get_customer_delivery_notes():
     }
 
 
+
+# ==================== STAFF CHECKLIST ENDPOINTS ====================
+
+# Default cleaning tasks
+DEFAULT_DAILY_TASKS = [
+    "All counter tops and back splash cleaned and dried with mild detergent solution",
+    "All Sinks cleaned, drained and dried",
+    "Mini moulder, Sheeter and Refrigerator- daily cleaning done as per SOP",
+    "Wall tiles and areas where flour collects are cleaned with damp cloth",
+    "Items removed from shelves, cleaned and re-stocked",
+    "Floor including areas near casters and below machines and tables",
+    "Pizza trays all washed and kept for drying",
+    "Glass windows and doors- from both sides",
+    "Waste disposal as per SOP",
+    "All hot-dog and sandwich rings to be washed and left on table-top to air dry"
+]
+
+DEFAULT_WEEKLY_TASKS = {
+    "monday": "Mini Moulder Machine",
+    "tuesday": "Dough Sheeter",
+    "wednesday": "Fridge",
+    "thursday": "Tables and shelves",
+    "friday": "A/c Vents and fans",
+    "saturday": "",
+    "sunday": "Pest control"
+}
+
+
+@api_router.get("/admin/cleaning-tasks")
+async def get_cleaning_tasks(current_user: User = Depends(get_current_admin)):
+    """Get cleaning tasks configuration (admin/order agents only)"""
+    config = await db.cleaning_tasks.find_one({"type": "config"})
+    if not config:
+        # Return default tasks
+        return {
+            "daily_tasks": DEFAULT_DAILY_TASKS,
+            "weekly_tasks": DEFAULT_WEEKLY_TASKS
+        }
+    return {
+        "daily_tasks": config.get("daily_tasks", DEFAULT_DAILY_TASKS),
+        "weekly_tasks": config.get("weekly_tasks", DEFAULT_WEEKLY_TASKS)
+    }
+
+
+@api_router.put("/admin/cleaning-tasks")
+async def update_cleaning_tasks(
+    tasks_update: dict,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update cleaning tasks configuration (admin only - full access)"""
+    # Only full access admins can edit
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can edit cleaning tasks")
+    
+    update_data = {"type": "config"}
+    if "daily_tasks" in tasks_update:
+        update_data["daily_tasks"] = tasks_update["daily_tasks"]
+    if "weekly_tasks" in tasks_update:
+        update_data["weekly_tasks"] = tasks_update["weekly_tasks"]
+    
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_by"] = current_user.username
+    
+    await db.cleaning_tasks.update_one(
+        {"type": "config"},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"message": "Cleaning tasks updated successfully"}
+
+
+@api_router.get("/admin/staff-list")
+async def get_staff_list(current_user: User = Depends(get_current_admin)):
+    """Get list of staff members for dropdown selection"""
+    staff_config = await db.staff_members.find_one({"type": "staff_list"})
+    if not staff_config:
+        # Return default empty list or initialize with some staff
+        return {"staff": []}
+    return {"staff": staff_config.get("members", [])}
+
+
+@api_router.post("/admin/staff-list")
+async def update_staff_list(
+    staff_data: dict,
+    current_user: User = Depends(get_current_admin)
+):
+    """Update staff list (admin only)"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage staff list")
+    
+    members = staff_data.get("members", [])
+    
+    await db.staff_members.update_one(
+        {"type": "staff_list"},
+        {"$set": {
+            "type": "staff_list",
+            "members": members,
+            "updated_at": datetime.utcnow(),
+            "updated_by": current_user.username
+        }},
+        upsert=True
+    )
+    
+    return {"message": "Staff list updated successfully", "staff": members}
+
+
+@api_router.post("/admin/staff-list/add")
+async def add_staff_member(
+    staff_data: dict,
+    current_user: User = Depends(get_current_admin)
+):
+    """Add a new staff member"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage staff list")
+    
+    name = staff_data.get("name", "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Staff name is required")
+    
+    new_member = {
+        "id": str(uuid.uuid4()),
+        "name": name,
+        "is_active": True
+    }
+    
+    await db.staff_members.update_one(
+        {"type": "staff_list"},
+        {"$push": {"members": new_member}},
+        upsert=True
+    )
+    
+    return {"message": "Staff member added", "member": new_member}
+
+
+@api_router.delete("/admin/staff-list/{staff_id}")
+async def remove_staff_member(
+    staff_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Remove a staff member"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage staff list")
+    
+    await db.staff_members.update_one(
+        {"type": "staff_list"},
+        {"$pull": {"members": {"id": staff_id}}}
+    )
+    
+    return {"message": "Staff member removed"}
+
+
+
 @api_router.get("/admin/reports/daily-items")
 async def get_daily_items_report(
     date: str = None,
