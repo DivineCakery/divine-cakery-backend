@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 180,
   },
   staffManageButton: {
     flexDirection: 'row',
