@@ -594,7 +594,7 @@ export default function TopRoomReportScreen() {
               onPress={() => sendToWhatsApp('918075946225')}
             >
               <Ionicons name="logo-whatsapp" size={24} color="#fff" />
-              <Text style={styles.whatsappButtonText}>Send to 8075946225</Text>
+              <Text style={styles.whatsappButtonText}>Send to Divine Office</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -602,7 +602,7 @@ export default function TopRoomReportScreen() {
               onPress={() => sendToWhatsApp('919544183334')}
             >
               <Ionicons name="logo-whatsapp" size={24} color="#fff" />
-              <Text style={styles.whatsappButtonText}>Send to 9544183334</Text>
+              <Text style={styles.whatsappButtonText}>Send to Soman Nair</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
