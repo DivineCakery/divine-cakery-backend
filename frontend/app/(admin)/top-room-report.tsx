@@ -184,6 +184,9 @@ export default function TopRoomReportScreen() {
     return report;
   };
 
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState('');
+
   const handleSubmit = async () => {
     if (!filledBy) {
       showAlert('Error', 'Please select who filled this report');
@@ -212,25 +215,25 @@ export default function TopRoomReportScreen() {
     }
 
     const report = generateReport();
-    
-    // Send to both WhatsApp numbers
-    for (const number of WHATSAPP_NUMBERS) {
-      const whatsappUrl = `whatsapp://send?phone=${number}&text=${encodeURIComponent(report)}`;
-      
-      try {
-        const canOpen = await Linking.canOpenURL(whatsappUrl);
-        if (canOpen) {
-          await Linking.openURL(whatsappUrl);
-        } else {
-          const webUrl = `https://wa.me/${number}?text=${encodeURIComponent(report)}`;
-          await Linking.openURL(webUrl);
-        }
-      } catch (error) {
-        console.error('Error opening WhatsApp:', error);
-      }
-    }
+    setGeneratedReport(report);
+    setShowSubmitModal(true);
+  };
 
-    showAlert('Report Sent', 'Please send the WhatsApp messages to complete submission');
+  const sendToWhatsApp = async (phoneNumber: string) => {
+    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(generatedReport)}`;
+    
+    try {
+      const canOpen = await Linking.canOpenURL(whatsappUrl);
+      if (canOpen) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        const webUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(generatedReport)}`;
+        await Linking.openURL(webUrl);
+      }
+    } catch (error) {
+      console.error('Error opening WhatsApp:', error);
+      showAlert('Error', 'Could not open WhatsApp');
+    }
   };
 
   const renderDropdown = (
@@ -565,6 +568,52 @@ export default function TopRoomReportScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Submit Modal - Send to both WhatsApp numbers */}
+      <Modal
+        visible={showSubmitModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSubmitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.submitModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Send Report via WhatsApp</Text>
+              <TouchableOpacity onPress={() => setShowSubmitModal(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={styles.submitModalText}>
+              Please send the report to BOTH numbers below:
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.whatsappButton}
+              onPress={() => sendToWhatsApp('918075946225')}
+            >
+              <Ionicons name="logo-whatsapp" size={24} color="#fff" />
+              <Text style={styles.whatsappButtonText}>Send to 8075946225</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.whatsappButton}
+              onPress={() => sendToWhatsApp('919544183334')}
+            >
+              <Ionicons name="logo-whatsapp" size={24} color="#fff" />
+              <Text style={styles.whatsappButtonText}>Send to 9544183334</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.doneButton}
+              onPress={() => setShowSubmitModal(false)}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -858,5 +907,41 @@ const styles = StyleSheet.create({
     color: '#999',
     fontStyle: 'italic',
     paddingVertical: 20,
+  },
+  submitModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+  submitModalText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  whatsappButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  whatsappButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  doneButton: {
+    alignItems: 'center',
+    padding: 16,
+    marginTop: 8,
+  },
+  doneButtonText: {
+    color: '#666',
+    fontSize: 14,
   },
 });
