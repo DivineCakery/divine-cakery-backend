@@ -270,19 +270,27 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Staff Checklist - Available for Full, Limited Access (Order Agents) and Reports Only */}
+          {/* Daily Reports Section - Available for Full, Limited Access and Reports Only */}
           {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited' || accessLevel.toLowerCase() === 'reports') && (
-            <TouchableOpacity
-              style={[styles.settingsButton, { marginTop: 10, borderColor: '#4CAF50', borderWidth: 1 }]}
-              onPress={() => router.push('/(admin)/top-room-report' as any)}
-            >
-              <Ionicons name="clipboard-outline" size={24} color="#4CAF50" />
-              <View style={styles.settingsButtonText}>
-                <Text style={[styles.settingsButtonTitle, { color: '#4CAF50' }]}>Staff Checklist</Text>
-                <Text style={styles.settingsButtonSubtitle}>Top Room Report & Cleaning Tasks</Text>
+            <View style={styles.dailyReportsSection}>
+              <View style={styles.dailyReportsHeader}>
+                <Ionicons name="document-text-outline" size={22} color="#4CAF50" />
+                <Text style={styles.dailyReportsTitle}>Daily Reports</Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color="#4CAF50" />
-            </TouchableOpacity>
+              
+              {/* Top Room - Inside Daily Reports */}
+              <TouchableOpacity
+                style={styles.dailyReportItem}
+                onPress={() => router.push('/(admin)/top-room-report' as any)}
+              >
+                <Ionicons name="clipboard-outline" size={22} color="#4CAF50" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={[styles.settingsButtonTitle, { color: '#4CAF50' }]}>Top Room</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Daily checklist & cleaning tasks</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#4CAF50" />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -546,5 +554,40 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: 'bold',
+  },
+  dailyReportsSection: {
+    marginTop: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  dailyReportsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginBottom: 10,
+  },
+  dailyReportsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginLeft: 10,
+  },
+  dailyReportItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    backgroundColor: '#f9fff9',
+    borderRadius: 8,
   },
 });
