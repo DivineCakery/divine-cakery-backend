@@ -11,7 +11,7 @@ import pytz
 import uuid
 
 # Configuration
-BACKEND_URL = "https://reports-timezone-bug.preview.emergentagent.com/api"
+BACKEND_URL = "https://dough-to-sales-suite.preview.emergentagent.com/api"
 
 def create_test_customer():
     """Create a test customer account"""

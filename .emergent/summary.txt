@@ -1,171 +1,182 @@
 <analysis>
 
 **original_problem_statement**:
-The user's initial problem statement from the previous fork focused on a critical bug where standing orders were not visible in production. Throughout this session, the user requested a series of bug fixes and new features, including:
-1.  **Standing Order Start Date:** Change the start date for all standing orders belonging to the user 'HOTFOOD'.
-2.  **Order Visibility Bug:** Fix an issue where newly generated standing orders were not appearing on the main orders page due to a backend date-filtering logic error.
-3.  **User Deletion:** Delete several specified admin accounts.
-4.  **Dough Type Visibility Bug:** Hide the Dough Type category from all customer-facing views, as it should be admin-only.
-5.  **IST Timezone Bugs:**
-    *   Fix orders appearing on the wrong date in the admin panel due to incorrect timezone handling in both the frontend (sending UTC dates) and backend (querying with UTC dates).
-    *   Fix customer orders not appearing correctly after being placed.
-6.  **Role-Based Access Control:** For Reports Only admin users, hide the Daily Items tab, showing only the Preparation List.
-7.  **Decimal Quantity Input:** Allow numeric input fields on the Stock and Standing Orders pages to accept decimal values (e.g., 0.5).
-8.  **UI Compaction:** Redesign the admin Manage Orders page to use compact, expandable/collapsible cards for each order to reduce scrolling.
-9.  **Deployment Migration:** The user initiated a migration from Render.com to Emergent's native deployment to save costs, which led to a series of critical production issues.
-10. **Critical Production Issues (on Emergent):**
-    *   The server was sleeping during periods of inactivity (e.g., 4 AM IST), causing login failures for customers.
-    *   A significant number of orders failed to be created because the server was asleep, even though payments were received by Razorpay.
-    *   The Razorpay webhook handler was not processing most payment events, leading to a failure to create orders automatically.
-11. **Rollback to Render:** Due to the critical issues on Emergent, the user requested a full rollback of the codebase and configuration to the previous Render.com setup.
-12. **New Play Store Build (for Render):** Create a new Android build pointing back to the Render backend URL.
-13. **Standing Order Editing:** Add a feature for admins to edit existing standing orders.
+The user's primary goal is to add a comprehensive staff checklist feature to the admin section of the application. This involves creating multiple new report pages, each with its own set of tasks and the ability to send completion reports via WhatsApp.
+
+This session also addressed numerous other requests and critical bugs:
+1.  **Staff Checklist Feature**:
+    *   Create a Top Room Report page for staff to fill out daily.
+    *   This page should include dropdowns for staff names, checkboxes for tasks, and text fields for notes.
+    *   The report should be sent to two specific WhatsApp numbers.
+    *   Create a separate, admin-editable page for managing the list of cleaning tasks.
+    *   Expand this functionality to 6 other sections ('Dough Section', 'Packing Section', etc.).
+2.  **UI/UX Improvements**:
+    *   Update placeholder text on the login and registration pages.
+    *   Add a Remember Me feature to the login screen.
+    *   Restructure the admin dashboard to group all new reports under a collapsible Daily Reports section.
+3.  **Bug Fixes**:
+    *   Fix a critical production login failure caused by a missing backend URL in the app's configuration ().
+    *   Fix an issue where admin-initiated password resets were not working due to a mismatched field name between the frontend and backend.
+    *   Fix a bug where the WhatsApp report was only being sent to one of two required phone numbers.
+4.  **Feature Change**:
+    *   Completely redesign the Forgot Password flow from an OTP-based system to a manual, admin-assisted request flow via WhatsApp.
+5.  **Deployment & Maintenance**:
+    *   Create multiple new Android builds for the Play Store.
+    *   Address the core, recurring issue of the production backend on Render.com being out-of-date, which prevents new features from working in the live app.
+    *   Resolve recurring Expo preview URL failures due to environmental instability and package version conflicts.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The project has been successfully rolled back to its previous state, where the backend is hosted on Render.com. The codebase was reset to a commit from January 5th, and all configurations ( files, ) have been updated to point to the Render backend URL (). All fixes and features implemented before the attempted Emergent migration are present. A new Android build, **v1.0.23 (versionCode 111)**, has been initiated to be deployed to the Play Store, which contains all the fixes and points to the Render backend. The problematic Emergent deployment has been abandoned.
+The application consists of a FastAPI backend and an Expo (React Native) frontend. The production backend is hosted on Render.com and is critically out-of-date; it does not contain the necessary API endpoints for the new staff checklist feature. The local backend and frontend code contain numerous new features and bug fixes that have been implemented but are not all live. The Staff Checklist feature has been partially implemented, with the Top Room report page and its corresponding backend logic complete. The UI for adding six more report types has been added to the dashboard, but the pages themselves do not exist yet.
 
 **Last working item**:
-- Last item agent was working: Implementing the Edit Standing Order feature. The agent was actively modifying the  file to add the UI and logic for an edit modal.
+- Last item agent was working: Expanding the Daily Reports feature. The agent updated the admin dashboard UI () to be a collapsible section containing the existing Top Room report and placeholders for 6 new report types ('Dough Section', 'Packing Section', etc.).
 - Status: IN PROGRESS
 - Agent Testing Done: N
 - Which testing method agent to use? both
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: The Edit Standing Order feature is incomplete. (P0)
+-   Issue 1: Production Backend on Render.com is Out-of-Date (P0)
 
   Issues Detail:
-  - Issue 1:
-     - **Description**: The user wants to be able to edit existing standing orders from the  page. The frontend work was started but is not complete, and the backend counterpart does not exist yet.
-     - **Attempted fixes**: The agent added state variables, an Edit button to the order card, and placeholder handler functions (, ) in . The UI for the edit modal was being added when the session ended.
-     - **Next debug checklist**:
-        1.  **Frontend:** Complete the  component inside . It should be populated with the data from the standing order being edited.
-        2.  **Frontend:** Implement the  function to collect the edited data and call a new backend API endpoint.
-        3.  **Backend:** Create a new API endpoint, likely , in .
-        4.  **Backend:** The new endpoint should accept the updated standing order data, validate it, and update the corresponding document in the  collection in MongoDB.
-        5.  **Testing:** After implementation, test the full flow: open modal, change data (e.g., frequency, quantity, end date), save, and verify the changes are reflected.
-     - **Why fix this issue and what will be achieved with the fix?** This is a core admin functionality that will allow for flexible management of recurring customer orders without needing to delete and recreate them.
-     - **Status**:  IN PROGRESS
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** both
-     - **Blocked on other issue**: None
+  - Issue 1: 
+     - **Description**: The most critical issue is that the production backend on Render.com is running old code. It is missing all the new API endpoints created for the Staff Checklist feature (, ). This is why the user reported that the feature does not work in their live app (staff lists are empty, tasks don't load).
+     - **Attempted fixes**: The agent correctly diagnosed the issue by testing the production API endpoints and confirmed they returned Not Found. The agent has repeatedly instructed the user to push the local  code to the  branch of their  GitHub repository, which will trigger the required deployment on Render.com.
+     - **Next debug checklist**: 
+        1. Re-confirm with the user that they must push the backend code to their  GitHub repository.
+        2. Guide them to use the Save to GitHub feature in the Emergent UI and select the  branch. Advise them to use Force Push if prompted.
+        3. After the user confirms the push, monitor the deployment on Render.com.
+        4. Once deployed, verify that the production endpoints () are active and return data.
+     - **Why fix this issue and what will be achieved with the fix?**: This is the ONLY way to make the entire Staff Checklist feature functional for users of the live Play Store app. It will resolve the user's report of missing data and functionality.
+     - **Status**:  BLOCKED
+     - **Is recurring issue?** Y
+     - **Should Test frontend/backend/both after fix?** backend
+     - **Blocked on other issue**: Blocked on the user performing the git push action.
 
 **In progress Task List**:
--   Task 1: Complete Edit Standing Order feature (P0)
+-   Task 1: Complete the Duplicate Reports Feature (P0)
 
  Task Detail:
-  - Task 1:
-     - **Where to resume**:
-        - Frontend: . Finish the edit modal UI and implement the submission logic in .
-        - Backend: . Create the  endpoint to handle the update.
-     - **What will be achieved with this?**: Admins will be able to modify the details of an existing standing order.
-     - **Status**: IN PROGRESS
-     - **Should Test frontend/backend/both after fix?**: both
-     - **Blocked on something**: None
+  - Task 1: 
+     - **Description**: The user requested 6 additional report sections ('Dough Section', 'Packing Section', 'Angels/Prep Section', 'Cleaning/Facilities Team', 'Supervisor', 'Sales Team') that duplicate the functionality of the 'Top Room' report.
+     - **Where to resume**: The dashboard UI in  has been updated with a collapsible list of all 7 reports. The next steps are a full-stack implementation for the 6 new reports.
+        1. **Backend**: In , create new MongoDB collections and API endpoints for each of the 6 new report types to store their unique cleaning task lists. The existing  API can be reused.
+        2. **Frontend**: For each of the 6 new reports, create a new report page (e.g., ) and a new cleaning task management page (e.g., ), duplicating and adapting the logic from  and .
+        3. **Navigation**: Ensure the buttons on the dashboard navigate to the correct new pages.
+     - **What will be achieved with this?**: This will complete the user's primary feature request for comprehensive staff checklists across all departments.
+     - **Status**:  IN PROGRESS
+     - **Should Test frontend/backend/both after fix?** both
+     - **Blocked on something**: None.
 
 **Upcoming and Future Tasks**
-- None. The current in-progress task is the only remaining request from this session.
+- None. The priority is to deploy the backend and complete the in-progress checklist feature.
 
 **Completed work in this session**
 - List of all completed tasks with file and method name:
-  - **Rollback to Render:** Successfully reverted the codebase and configuration from the problematic Emergent deployment back to Render. This involved Unstaged changes after reset:
-M	frontend/yarn.lock, cleaning the working directory, and updating  and  files.
-  - **New Render-pointed Build:** Initiated a new Android build **v1.0.23 (111)** pointing to the Render backend to be uploaded to the Play Store.
-  - **Webhook Handler Fix:** Modified the webhook handler in  to correctly process , , and  events from Razorpay, preventing future order creation failures.
-  - **Critical Bug Fix (Customer Orders Missing):** Fixed an  in  caused by a misplaced  import that was preventing the customer My Orders page from loading.
-  - **UI/UX (Compact Orders Page):** Redesigned the  page to use collapsible/expandable cards, improving usability.
-  - **UI/UX (Decimal Quantities):** Enabled decimal inputs on the stock and standing order pages by changing  and using  in  and .
-  - **Role-Based Access Control (Reports):** Fixed a bug in  to correctly hide the Daily Items tab for 'reports-only' users.
-  - **Timezone Bug Fixes (IST):** Resolved multiple critical bugs related to IST vs. UTC date handling in both the frontend (, ) and backend (), ensuring orders appear on the correct day.
-  - **User Management:** Deleted specified admin users (, , , ).
+  - **Critical Production Login Fix**: Added the missing  to  to allow the production app to connect to the backend.
+  - **Staff Checklist Feature (Phase 1)**: Implemented the full-stack Top Room report feature, including backend APIs (,  in ) and frontend pages (, ).
+  - **Admin Password Reset Fix**: Corrected a bug in  where the wrong field name ( instead of ) was being sent, causing password changes to fail.
+  - **Simplified Forgot Password Flow**: Reworked  to remove OTPs and implement a manual request system via WhatsApp.
+  - **Remember Me Feature**: Added a Remember Me checkbox and  logic to .
+  - **WhatsApp Multi-send Fix**: Replaced a failing multi-send attempt with a modal containing two separate buttons in  to ensure reports can be sent to both required numbers.
+  - **Dashboard Restructuring**: Reorganized  to add a new collapsible Daily Reports section.
+  - **Placeholder Text Update**: Updated placeholder text in  and .
+  - **Android Build Creation**: Initiated multiple new EAS builds (v1.0.26, v1.0.28, v1.0.29).
+  - **Access Control Update**: Gave reports only users access to checklist features in .
+
 - Recently completed:
-  - Full project rollback to Render.com setup (DONE)
-  - New Play Store build (v1.0.23) for Render started (DONE)
-  - Razorpay webhook handler fix (DONE)
-  - Critical production bug fixes (DONE)
-  - Multiple UI/UX enhancements and bug fixes (DONE)
+  - Dashboard restructuring for Daily Reports (DONE)
+  - WhatsApp multi-send fix (DONE)
+  - Critical production login URL fix in  (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-- None. The agent addressed all issues raised by the user.
+- The primary issue of the out-of-date production backend has been identified multiple times but remains unresolved as it requires user action (git push).
 
 **Known issue recurrence from previous fork**
-- None.
+  - **Issue recurrence in previous fork**: Production Backend on Render.com is Out-of-Date.
+  - **Recurrence count**: This issue was the P0 priority in the previous handover and remains the P0 priority now. It has been the root cause of multiple user reports in this session.
+  - **Status**: BLOCKED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Deployment & Rollback:** The session involved a complex migration attempt to a new platform (Emergent) and a subsequent full rollback to the original platform (Render), demonstrating git/environment management.
-- **Webhook Integration:** Debugged and fixed a critical production issue with Razorpay webhooks, modifying the backend to handle multiple event types (, ).
-- **Timezone Management:** Handled multiple bugs related to timezone differences between the user (IST), server (UTC), and database (UTC). This involved careful date formatting on the frontend and date range conversion on the backend.
-- **Role-Based Access Control (RBAC):** Implemented UI changes based on a user's  stored in a Zustand state.
-- **EAS Build Process:** Managed app versioning in  and initiated multiple new Android builds for the Play Store.
+- **Environment Discrepancy (Local vs. Production)**: This is the most critical concept. The agent's local environment has an up-to-date backend, while the user's live app points to an old, undeployed backend on Render.com. This causes new features to fail in production.
+- **Expo Configuration ()**: A critical bug was caused by the  being removed from the  field in , breaking the production app.
+- **Stateful UI Components**: Implemented collapsible sections on the dashboard and multi-step modals for sending WhatsApp reports.
+- **Secure Storage**: Used  to implement the Remember Me functionality for storing user credentials on the device.
+- **Full-Stack Feature Development**: The checklist feature required creating new database models, FastAPI endpoints, frontend API services, and multiple React Native screens.
+- **Package Versioning Issues**: A significant amount of time was lost debugging  version incompatibilities, highlighting the fragility of the frontend environment.
 
 **key DB schema**
--   **users**: Utilized the  field for RBAC.
--   **transactions**: Investigated this collection to debug failed orders. Discovered it lacked order item data, making recovery difficult.
+  - **staff**:  (Implicitly created/managed via API)
+  - **cleaning_tasks**: 
 
 **changes in tech stack**
--   None. A migration to Emergent was attempted and then reverted. The stack remains FastAPI, Expo (React Native), and MongoDB, hosted on Render.com.
+  - None.
 
 **All files of reference**
--   : The primary file for the current in-progress task.
--   : The backend file that will need a new endpoint to support the edit feature.
--   : Contains numerous critical fixes implemented during the session (date logic, webhook handler).
--   : The source of truth for the backend URL and app version. It has been reverted to point to Render.
+- : Contains the new, **undeployed** backend logic for the checklist feature. **Must be deployed.**
+- : Contains the new UI for the Daily Reports section. This is the entry point for the new feature.
+- : The template file to be duplicated for the 6 new report pages.
+- : This file was the source of a critical production bug and contains the app version for new builds.
 
 **Areas that need refactoring**:
-- The  function in  creates a pending transaction before payment. The  is stored in the  field. To prevent data loss (as seen in this session), the  array should be stored in a structured field within the  document, not just in the free-form .
+- The current implementation plan involves creating 12 new files (2 for each of the 6 new reports). It would be more efficient to create a single generic  and  component that accepts a  prop to fetch and display the correct data. This would significantly reduce code duplication. The next agent should propose this refactor to the user before proceeding with duplicating files.
 
 **key api endpoints**
--   : Heavily modified to handle multiple Razorpay event types and correctly create orders.
--   : Modified to correctly handle IST date filtering.
--   : Modified to prevent customer roles from seeing admin-only categories.
--   **[NEW]** : This endpoint needs to be created to support the Edit Standing Order feature.
+- : **CREATED**, but **NOT DEPLOYED** to production.
+- : **CREATED**, but **NOT DEPLOYED** to production.
+- : **MODIFIED** to correctly use  field (bug fix). This change is also not yet on the production backend.
 
 **Critical Info for New Agent**
--   **You are working on a system that has been rolled back to Render.com.** The entire migration to Emergent was reverted due to critical production issues (server sleeping, failed orders). Do not attempt to use or deploy to Emergent.
--   Your immediate P0 task is to **complete the Edit Standing Order feature**. This requires both frontend work in  and creating a new  endpoint in .
--   A new Play Store build, **v1.0.23 (versionCode 111)**, was started at the end of the session. This build points to the correct Render backend. The user will upload this to the store.
--   The Razorpay webhook issue has been fixed in the code, and the user has pointed the webhooks back to the Render URL. This should prevent future lost orders.
+- **PRIORITY #1: DEPLOY THE BACKEND.** You must guide the user to push the  code to their  GitHub repository. The entire Staff Checklist feature is non-functional in production until this is done. Do not attempt to debug the feature on the live app until the backend is deployed.
+- **PRIORITY #2: COMPLETE THE STAFF CHECKLIST FEATURE.** The user is waiting for 6 more report pages. Before you start duplicating files, propose a refactor to use generic, reusable components to avoid massive code duplication. This will be more maintainable in the long run.
+- **BE AWARE OF ENVIRONMENT INSTABILITY.** The Expo preview has a history of crashing due to package version conflicts and ngrok issues. If the preview fails, check backend                          STOPPING  
+code-server                      STOPPED   Not started
+expo                             STOPPED   Mar 03 11:23 AM
+mongodb                          RUNNING   pid 153, uptime 0:00:02
+nginx-code-proxy                 RUNNING   pid 148, uptime 0:00:02 and be prepared to debug  or restart services.
 
 **documents created in this job**
 - None.
 
-**Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requests to add an 'edit' button to . (PENDING - In Progress)
-2.  **User:** Asks to create a new Play Store build (v1.0.23, code 111) pointing to Render, as previous versions were already uploaded. (COMPLETED - Build Started)
-3.  **User:** Requests restoration of Play Store build to version 108 and for the app to be deployed back to Render. (COMPLETED - Clarified and executed with a new build)
-4.  **User:** Requests a full rollback to the codebase from Jan 5 and a return to the Render deployment. (COMPLETED)
-5.  **User:** Asks how to redeploy as production on Emergent, expressing confusion about the preview link and sleeping servers. (ADDRESSED)
-6.  **User:** Asks to cancel the current deployment. (ADDRESSED - Not possible, must complete)
-7.  **User:** Asks to fix the webhook handler and ensure order data is saved with transactions. (COMPLETED)
-8.  **User:** Asks to mark pending transactions as completed for affected customers. (COMPLETED)
-9.  **User:** Confirms payments were received and asks if the lost orders can be recovered. (ADDRESSED - Data was not saved, but contact info provided)
-10. **User:** Reports customer 'LUVCUTLETS' placed orders that are not visible. (ADDRESSED - Root cause was server sleep + webhook issue)
+**Last 10 User Messages and any pending HUMAN messages** 
+1.  **User:** Requests to duplicate the Top Room report for 6 other sections and make the parent tab collapsible. (IN PROGRESS)
+2.  **User:** Requests to rename 'send to' buttons in the WhatsApp modal to names instead of numbers. (COMPLETED)
+3.  **User:** Requests to add a Daily Reports section on the dashboard and move the checklist into it. (COMPLETED)
+4.  **User:** Reports that the WhatsApp message is only being sent to one of two numbers. (COMPLETED)
+5.  **User:** Reports that new features (staff list, cleaning tasks) are not working in the live app. (ADDRESSED - Diagnosed as undeployed backend).
+6.  **User:** Reports that users cannot log in to the new production build. (COMPLETED - Fixed missing backend URL and created a new build).
+7.  **User:** Requests to give 'reports only' users access to the new checklist pages. (COMPLETED)
+8.  **User:** Reports a build failed and requests a fresh build with all recent changes. (COMPLETED)
+9.  **User:** Requests a new build for the Play Store. (COMPLETED)
+10. **User:** Requests a simplified version of the checklist report page. (COMPLETED)
 
 **Project Health Check:**
--   **Broken**: The Edit Standing Order feature is non-existent/half-implemented.
--   **Mocked**: None.
+-   **Broken**: The Staff Checklist feature is **non-functional** in the live production environment because the required backend code has not been deployed.
+-   **Mocked**: The Forgot Password flow is a manual, admin-assisted process that relies on WhatsApp.
 
 **3rd Party Integrations**
--   **Razorpay (Payments):** Requires User API Key. Webhooks now point to the Render backend.
--   **MongoDB Atlas (Database):** The single source of truth for data.
--   **Render.com (Hosting):** The live production environment for the backend. Auto-deploys from the  GitHub branch.
--   **EAS (Build Service):** Used for creating Android app builds.
+-   **Razorpay (Payments)** — requires User API Key.
+-   **MongoDB Atlas (Database)**.
+-   **Render.com (Hosting)** — Production backend hosting. Deploys from the  branch of the  GitHub repo.
+-   **EAS (Build Service)** — Used for creating Android app builds.
+-   **WhatsApp** — Used via  for user-initiated messaging.
 
 **Testing status**
--   Testing agent used after significant changes: NO (not since the major bug fixes and rollback).
--   Troubleshoot agent used after agent stuck in loop: NO.
--   Test files created: []
--   Known regressions: None. The rollback restored the app to a previously stable state.
+  - Testing agent used after significant changes: YES
+  - Troubleshoot agent used after agent stuck in loop: YES (Used multiple times to resolve severe expo-router and ngrok issues)
+  - Test files created: []
+  - Known regressions: The new checklist feature appears as a regression in production because the backend was never deployed.
 
 **Credentials to test flow:**
--   Admin user 'Soman' is a superadmin. Password was 'Soman@123' at one point but may have been changed.
+-   Admin user: 'Soman'
+-   Test user: 'demotrial', Password: 'Demo'
 
 **What agent forgot to execute**
-- The agent was in the process of implementing the Edit Standing Order feature. The backend part (the  API endpoint) was not started. The frontend part is incomplete. This is not forgotten, but the primary pending task.
+- The agent did not forget, but was blocked on user action: ensuring the backend code was pushed to GitHub to trigger the Render.com deployment. This is the single most important pending action and the cause of the main outstanding issue.
 
 </analysis>

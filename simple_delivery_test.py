@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import pytz
 
 # Configuration
-BACKEND_URL = "https://reports-timezone-bug.preview.emergentagent.com/api"
+BACKEND_URL = "https://dough-to-sales-suite.preview.emergentagent.com/api"
 
 def test_delivery_date_endpoint():
     """Test GET /api/delivery-date endpoint (Public)"""

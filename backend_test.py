@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://reports-timezone-bug.preview.emergentagent.com/api"
+BASE_URL = "https://dough-to-sales-suite.preview.emergentagent.com/api"
 ADMIN_USERNAME = "testadmin"
 ADMIN_PASSWORD = "admin123"  # Assuming default admin password
 TEST_NEW_PASSWORD = "TestNewPass123"

@@ -104,7 +104,7 @@ npx eas build --platform android --profile production
 
 Your app currently uses:
 ```
-EXPO_PUBLIC_BACKEND_URL=https://reports-timezone-bug.preview.emergentagent.com
+EXPO_PUBLIC_BACKEND_URL=https://dough-to-sales-suite.preview.emergentagent.com
 ```
 
 **For Production Build:**

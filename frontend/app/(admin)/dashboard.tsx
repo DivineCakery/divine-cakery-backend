@@ -22,6 +22,7 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
+  const [dailyReportsExpanded, setDailyReportsExpanded] = useState(false);
   const { logout, user } = useAuthStore();
 
   const accessLevel = user?.admin_access_level || 'full';
@@ -273,23 +274,92 @@ export default function DashboardScreen() {
           {/* Daily Reports Section - Available for Full, Limited Access and Reports Only */}
           {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited' || accessLevel.toLowerCase() === 'reports') && (
             <View style={styles.dailyReportsSection}>
-              <View style={styles.dailyReportsHeader}>
+              <TouchableOpacity 
+                style={styles.dailyReportsHeader}
+                onPress={() => setDailyReportsExpanded(!dailyReportsExpanded)}
+              >
                 <Ionicons name="document-text-outline" size={22} color="#4CAF50" />
                 <Text style={styles.dailyReportsTitle}>Daily Reports</Text>
-              </View>
-              
-              {/* Top Room - Inside Daily Reports */}
-              <TouchableOpacity
-                style={styles.dailyReportItem}
-                onPress={() => router.push('/(admin)/top-room-report' as any)}
-              >
-                <Ionicons name="clipboard-outline" size={22} color="#4CAF50" />
-                <View style={styles.settingsButtonText}>
-                  <Text style={[styles.settingsButtonTitle, { color: '#4CAF50' }]}>Top Room</Text>
-                  <Text style={styles.settingsButtonSubtitle}>Daily checklist & cleaning tasks</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#4CAF50" />
+                <Ionicons 
+                  name={dailyReportsExpanded ? "chevron-up" : "chevron-down"} 
+                  size={22} 
+                  color="#4CAF50" 
+                />
               </TouchableOpacity>
+              
+              {dailyReportsExpanded && (
+                <View style={styles.dailyReportsContent}>
+                  {/* Top Room */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/top-room-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Top Room</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+
+                  {/* Dough Section */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/dough-section-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Dough Section</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+
+                  {/* Packing Section */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/packing-section-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Packing Section</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+
+                  {/* Angels/Prep Section */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/angels-prep-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Angels/Prep Section</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+
+                  {/* Cleaning/Facilities Team */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/cleaning-facilities-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Cleaning/Facilities Team</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+
+                  {/* Supervisor */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/supervisor-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Supervisor</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+
+                  {/* Sales Team */}
+                  <TouchableOpacity
+                    style={styles.dailyReportItem}
+                    onPress={() => router.push('/(admin)/sales-team-report' as any)}
+                  >
+                    <Ionicons name="clipboard-outline" size={20} color="#4CAF50" />
+                    <Text style={styles.dailyReportItemText}>Sales Team</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#4CAF50" />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -559,7 +629,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 12,
     borderWidth: 2,
     borderColor: '#4CAF50',
     elevation: 2,
@@ -567,27 +636,41 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+    overflow: 'hidden',
   },
   dailyReportsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    marginBottom: 10,
+    padding: 14,
+    backgroundColor: '#f0fff0',
   },
   dailyReportsTitle: {
+    flex: 1,
     fontSize: 16,
     fontWeight: 'bold',
     color: '#4CAF50',
     marginLeft: 10,
   },
+  dailyReportsContent: {
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
   dailyReportItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     backgroundColor: '#f9fff9',
     borderRadius: 8,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#e0f0e0',
+  },
+  dailyReportItemText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '500',
+    marginLeft: 10,
   },
 });

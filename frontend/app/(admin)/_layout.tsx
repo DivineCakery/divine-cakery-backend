@@ -175,6 +175,78 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="dough-section-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="dough-section-tasks"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="packing-section-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="packing-section-tasks"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="angels-prep-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="angels-prep-tasks"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="cleaning-facilities-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="cleaning-facilities-tasks"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="supervisor-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="supervisor-tasks"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="sales-team-report"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="sales-team-tasks"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

@@ -562,6 +562,17 @@ class ApiService {
     const response = await this.api.delete(`/admin/staff-list/${staffId}`);
     return response.data;
   }
+
+  // Section-specific Tasks APIs (for Dough, Packing, Angels/Prep, etc.)
+  async getSectionTasks(sectionKey: string) {
+    const response = await this.api.get(`/admin/section-tasks/${sectionKey}`);
+    return response.data;
+  }
+
+  async updateSectionTasks(sectionKey: string, data: { daily_tasks?: string[]; weekly_tasks?: any }) {
+    const response = await this.api.put(`/admin/section-tasks/${sectionKey}`, data);
+    return response.data;
+  }
 }
 
 export default new ApiService();

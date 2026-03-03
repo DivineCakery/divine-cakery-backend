@@ -3274,6 +3274,52 @@ async def remove_staff_member(
 
 
 
+# ==================== SECTION-SPECIFIC TASK ENDPOINTS ====================
+# Generic endpoints for all report sections (Dough, Packing, Angels/Prep, etc.)
+# Each section stores its own daily/weekly task lists in the section_tasks collection.
+
+VALID_SECTIONS = [
+    "dough_section", "packing_section", "angels_prep",
+    "cleaning_facilities", "supervisor", "sales_team"
+]
+
+@api_router.get("/admin/section-tasks/{section_key}")
+async def get_section_tasks(section_key: str, current_user: User = Depends(get_current_admin)):
+    """Get tasks configuration for a specific report section"""
+    if section_key not in VALID_SECTIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
+    config = await db.section_tasks.find_one({"section": section_key})
+    if not config:
+        return {"daily_tasks": [], "weekly_tasks": {"monday":"","tuesday":"","wednesday":"","thursday":"","friday":"","saturday":"","sunday":""}}
+    return {
+        "daily_tasks": config.get("daily_tasks", []),
+        "weekly_tasks": config.get("weekly_tasks", {"monday":"","tuesday":"","wednesday":"","thursday":"","friday":"","saturday":"","sunday":""})
+    }
+
+@api_router.put("/admin/section-tasks/{section_key}")
+async def update_section_tasks(section_key: str, tasks_update: dict, current_user: User = Depends(get_current_admin)):
+    """Update tasks configuration for a specific report section"""
+    if section_key not in VALID_SECTIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can edit tasks")
+    update_data = {"section": section_key}
+    if "daily_tasks" in tasks_update:
+        update_data["daily_tasks"] = tasks_update["daily_tasks"]
+    if "weekly_tasks" in tasks_update:
+        update_data["weekly_tasks"] = tasks_update["weekly_tasks"]
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_by"] = current_user.username
+    await db.section_tasks.update_one(
+        {"section": section_key},
+        {"$set": update_data},
+        upsert=True
+    )
+    return {"message": f"{section_key} tasks updated successfully"}
+
+
+
+
 @api_router.get("/admin/reports/daily-items")
 async def get_daily_items_report(
     date: str = None,
