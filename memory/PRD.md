@@ -24,36 +24,38 @@ Build and maintain a wholesale bakery management system (Divine Cakery) with:
 5. Cleaning/Facilities Team, 6. Supervisor, 7. Sales Team
 
 ### Key Features
-- **Independent staff lists per section** — each section has its own staff (different workers in different areas)
-- **Editable checklist items** — admin can add/edit/remove numbered tasks (1-4+) per section via Tasks page
-- **Dynamic report generation** — report pages fetch checklist items from backend, not hardcoded
+- **Independent staff lists per section** — each section has its own staff
+- **Editable checklist items** — admin can add/edit/remove numbered tasks per section
+- **Dynamic report generation** — checklist items fetched from backend
 - **WhatsApp dual-send** — reports sent to both Divine Office and Soman Nair
 - **Daily/Weekly task lists** — editable per section
-- **Shared UI pattern** — all 7 sections follow same structure, each with own data
 
 ### API Endpoints
 - `GET/PUT /api/admin/section-tasks/{section_key}` — daily_tasks, weekly_tasks, checklist_items
 - `GET/POST/DELETE /api/admin/section-staff/{section_key}` — independent staff per section
-- `GET/PUT /api/admin/cleaning-tasks` — Original Top Room tasks (backward compat)
-- `GET/POST/DELETE /api/admin/staff-list` — Original shared staff (backward compat)
+- Valid sections: top_room, dough_section, packing_section, angels_prep, cleaning_facilities, supervisor, sales_team
 
-### Valid Section Keys
-top_room, dough_section, packing_section, angels_prep, cleaning_facilities, supervisor, sales_team
-
-### DB Collections
-- `section_tasks` — stores daily_tasks, weekly_tasks, checklist_items per section
-- `section_staff` — stores independent staff members per section
+## Payment Flow (Fixed)
+### OTP Issue Fix
+- **Problem**: In-app browser (Chrome Custom Tabs) closed when user minimized app to check OTP, aborting payment
+- **Fix**: Replaced `expo-web-browser` with `Linking.openURL` (opens in device's actual browser which persists through app switches)
+- **wallet.tsx**: Opens payment in external browser + AppState listener detects return → refreshes balance
+- **checkout.tsx**: Opens payment in external browser + AppState listener detects return → polls transaction status (15 attempts x 2s)
+- **Backend**: Zero changes — callback URL and payment processing unchanged
 
 ## Key Files
 ### Backend
-- `backend/server.py` — All endpoints including section-tasks and section-staff
+- `backend/server.py` — All endpoints
 
-### Frontend
+### Frontend - Payment
+- `app/(customer)/wallet.tsx` — Wallet top-up with external browser payment
+- `app/(customer)/checkout.tsx` — Checkout with external browser UPI payment
+
+### Frontend - Admin Reports
 - `app/(admin)/dashboard.tsx` — Collapsible "Daily Reports" section
-- `app/(admin)/_layout.tsx` — Tab navigation with hidden report pages
-- `app/(admin)/{section}-report.tsx` — 7 report pages (top-room, dough-section, packing-section, angels-prep, cleaning-facilities, supervisor, sales-team)
-- `app/(admin)/{section}-tasks.tsx` — 7 tasks pages (cleaning-tasks for top-room, plus 6 others)
-- `services/api.ts` — All API methods including getSectionStaff/Tasks, addSectionStaff, etc.
+- `app/(admin)/{section}-report.tsx` — 7 report pages
+- `app/(admin)/{section}-tasks.tsx` — 7 tasks pages
+- `services/api.ts` — All API methods
 
 ## Known Issues
 - **P0 BLOCKED**: Production backend on Render.com is out-of-date. User must push to `divine-cakery-backend` GitHub repo.

@@ -9,11 +9,11 @@ import {
   ScrollView,
   RefreshControl,
   Linking,
+  AppState,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_NUMBER } from '../../constants/whatsapp';
@@ -88,42 +88,48 @@ export default function WalletScreen() {
         throw new Error('Failed to create payment link');
       }
       
-      // Open Razorpay payment link in browser
-      const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url);
+      // Open payment link in device's default browser (persists through app switches)
+      await Linking.openURL(paymentData.payment_link_url);
       
-      if (result.type === 'cancel' || result.type === 'dismiss') {
-        showAlert('Payment Cancelled', 'Payment was cancelled. Please try again.');
-        setAddingMoney(false);
-        return;
-      }
+      // Listen for when user returns to the app after completing payment
+      const handleAppReturn = (nextAppState: string) => {
+        if (nextAppState === 'active') {
+          // User returned to app - refresh wallet balance
+          subscription.remove();
+          setTimeout(async () => {
+            await fetchWallet();
+            await refreshUser();
+            setAddingMoney(false);
+            setAmount('');
+            showAlert(
+              'Payment Status',
+              'If you completed the payment, your wallet balance will be updated shortly. Pull down to refresh if needed.',
+              [
+                {
+                  text: 'Refresh Now',
+                  onPress: async () => {
+                    await fetchWallet();
+                    await refreshUser();
+                  }
+                },
+                { text: 'OK', style: 'cancel' }
+              ]
+            );
+          }, 1500); // Small delay to allow callback processing
+        }
+      };
 
-      // Show manual verification option
-      showAlert(
-        'Payment Verification',
-        'If you completed the payment, please wait a moment and refresh your wallet balance. If payment was successful, your balance will be updated automatically.\n\nDid you complete the payment?',
-        [
-          {
-            text: 'Yes, Refresh',
-            onPress: async () => {
-              await fetchWallet();
-              await refreshUser();
-              setAmount('');
-              showAlert('Success', 'Wallet balance refreshed. If payment is completed, balance will be updated.');
-            }
-          },
-          {
-            text: 'No, Try Again',
-            style: 'cancel',
-            onPress: () => {
-              setAmount('');
-            }
-          }
-        ]
-      );
+      const subscription = AppState.addEventListener('change', handleAppReturn);
+
+      // Safety timeout: if user doesn't return within 5 min, clean up
+      setTimeout(() => {
+        subscription.remove();
+        setAddingMoney(false);
+      }, 300000);
+
     } catch (error: any) {
       console.error('Payment error:', error);
       showAlert('Error', error.response?.data?.detail || 'Failed to initiate payment');
-    } finally {
       setAddingMoney(false);
     }
   };

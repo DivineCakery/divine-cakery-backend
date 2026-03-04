@@ -8,11 +8,11 @@ import {
   ActivityIndicator,
   TextInput,
   Linking,
+  AppState,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
 import apiService from '../../services/api';
 import { useCartStore, useAuthStore } from '../../store';
 import { DIVINE_WHATSAPP_NUMBER, getOrderConfirmationMessage, DIVINE_WHATSAPP_CUSTOMER_SUPPORT } from '../../constants/whatsapp';
@@ -295,70 +295,79 @@ export default function CheckoutScreen() {
         const transactionId = paymentData.transaction_id;
         console.log('Payment transaction created:', transactionId);
         
-        // Open Razorpay payment link in browser
-        const result = await WebBrowser.openBrowserAsync(paymentData.payment_link_url, {
-          dismissButtonStyle: 'close',
-          showTitle: true,
-          toolbarColor: '#8B4513',
-        });
+        // Open payment link in device's default browser (persists through app switches/OTP checks)
+        await Linking.openURL(paymentData.payment_link_url);
         
-        // Browser has closed or been dismissed (user returned from payment screen)
-        // Now poll the transaction status to check if payment was successful
-        console.log('Payment browser closed with type:', result.type);
-        console.log('Checking transaction status...');
-        
-        // Poll for payment confirmation (max 10 attempts, 2 seconds apart = 20 seconds total)
-        let paymentConfirmed = false;
-        let pollAttempts = 0;
-        const maxAttempts = 10;
-        
-        while (pollAttempts < maxAttempts && !paymentConfirmed) {
-          try {
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-            
-            const txStatus = await apiService.getTransactionStatus(transactionId);
-            console.log(`Poll attempt ${pollAttempts + 1}: Transaction status:`, txStatus.status);
-            
-            if (txStatus.status === 'success' && txStatus.order_created) {
-              paymentConfirmed = true;
-              console.log('✅ Payment confirmed and order created!');
+        // Listen for when user returns to the app after payment
+        const pollPaymentStatus = async () => {
+          console.log('User returned to app - polling transaction status...');
+          
+          let paymentConfirmed = false;
+          let pollAttempts = 0;
+          const maxAttempts = 15; // 15 attempts x 2s = 30 seconds of polling
+          
+          while (pollAttempts < maxAttempts && !paymentConfirmed) {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 2000));
               
-              // Clear cart only after successful payment confirmation
-              clearCart();
-              await refreshUser();
+              const txStatus = await apiService.getTransactionStatus(transactionId);
+              console.log(`Poll attempt ${pollAttempts + 1}: Transaction status:`, txStatus.status);
               
-              setPlacing(false);
-              
-              showAlert(
-                'Order Placed Successfully!', 
-                'Your payment was successful. You can view your order in "My Orders".', 
-                [
-                  { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') }
-                ]
-              );
-              return; // Exit the function after successful payment
+              if (txStatus.status === 'success' && txStatus.order_created) {
+                paymentConfirmed = true;
+                console.log('Payment confirmed and order created!');
+                
+                clearCart();
+                await refreshUser();
+                setPlacing(false);
+                
+                showAlert(
+                  'Order Placed Successfully!', 
+                  'Your payment was successful. You can view your order in "My Orders".', 
+                  [
+                    { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') }
+                  ]
+                );
+                return;
+              }
+            } catch (error) {
+              console.error('Error polling transaction status:', error);
             }
-          } catch (error) {
-            console.error('Error polling transaction status:', error);
+            pollAttempts++;
           }
           
-          pollAttempts++;
-        }
-        
-        // If we reach here, payment status is uncertain
-        setPlacing(false);
-        await refreshUser();
-        
-        // Check if the browser was dismissed manually (user closed it) or if payment is still processing
-        showAlert(
-          'Payment Window Closed', 
-          'The payment window was closed before completion.\n\n• If you completed the payment, check "My Orders" to verify.\n• If you need to enter OTP, please try payment again.\n• Your cart items are saved - you can retry anytime.', 
-          [
-            { text: 'Retry Payment', onPress: () => handlePlaceOrder() },
-            { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') },
-            { text: 'Stay Here', style: 'cancel' }
-          ]
-        );
+          // Payment status uncertain after polling
+          setPlacing(false);
+          await refreshUser();
+          
+          showAlert(
+            'Payment Processing', 
+            'Your payment may still be processing.\n\n• If you completed the payment, check "My Orders" shortly.\n• If you need to enter OTP, go back to your browser to complete payment.\n• Your cart items are saved.', 
+            [
+              { text: 'Check My Orders', onPress: () => router.replace('/(customer)/orders') },
+              { text: 'Retry Payment', onPress: () => handlePlaceOrder() },
+              { text: 'Stay Here', style: 'cancel' }
+            ]
+          );
+        };
+
+        // Use AppState to detect when user comes back to the app
+        const handleAppReturn = (nextAppState: string) => {
+          if (nextAppState === 'active') {
+            subscription.remove();
+            // Small delay to let Razorpay callback process
+            setTimeout(() => pollPaymentStatus(), 2000);
+          }
+        };
+
+        const subscription = AppState.addEventListener('change', handleAppReturn);
+
+        // Safety timeout: clean up listener after 10 minutes
+        setTimeout(() => {
+          subscription.remove();
+          setPlacing(false);
+        }, 600000);
+
       } else {
         // Wallet or Pay Later payment
         const response = await apiService.createOrder(orderData);
@@ -544,7 +553,7 @@ export default function CheckoutScreen() {
             <View style={styles.paymentTip}>
               <Ionicons name="information-circle" size={20} color="#FF9800" />
               <Text style={styles.paymentTipText}>
-                💡 Tip: Keep the payment window open. If you need to check OTP, take a screenshot or note it down before switching apps.
+                Payment opens in your browser. You can freely switch to check OTP and come back — the payment page stays open.
               </Text>
             </View>
           )}
