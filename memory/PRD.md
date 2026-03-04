@@ -18,65 +18,45 @@ Build and maintain a wholesale bakery management system (Divine Cakery) with:
 - **Build**: EAS (Android builds)
 - **Payments**: Razorpay
 
-## Core Features (Implemented)
-- User auth (login, register, admin approval flow)
-- Product management with categories, images, stock
-- Order management (create, view, status updates)
-- Wallet system with Razorpay top-up
-- Standing/recurring orders
-- Admin dashboard with stats
-- Staff checklist - 7 report sections (Top Room + 6 new)
-- Cleaning task management per section (editable)
-- WhatsApp report sending (dual numbers)
-- Forgot password (admin-assisted via WhatsApp)
-- Remember Me login feature
-- Delivery date calculation (IST-based)
-- Email notifications for new registrations
-
 ## Staff Checklist Feature (Complete)
 ### Report Sections (7 total)
-1. **Top Room** - `/api/admin/cleaning-tasks` (original, uses `cleaning_tasks` collection)
-2. **Dough Section** - `/api/admin/section-tasks/dough_section`
-3. **Packing Section** - `/api/admin/section-tasks/packing_section`
-4. **Angels/Prep Section** - `/api/admin/section-tasks/angels_prep`
-5. **Cleaning/Facilities Team** - `/api/admin/section-tasks/cleaning_facilities`
-6. **Supervisor** - `/api/admin/section-tasks/supervisor`
-7. **Sales Team** - `/api/admin/section-tasks/sales_team`
+1. Top Room, 2. Dough Section, 3. Packing Section, 4. Angels/Prep Section,
+5. Cleaning/Facilities Team, 6. Supervisor, 7. Sales Team
 
-### Each Report Section Has:
-- Report page: staff dropdown (filled by, worked, absent), 4-item checklist, WhatsApp submit
-- Tasks page: editable daily tasks list + weekly tasks (Mon-Sun), admin edit/save
-- Shared staff list across all sections
-- Same WhatsApp numbers (Divine Office + Soman Nair)
+### Key Features
+- **Independent staff lists per section** — each section has its own staff (different workers in different areas)
+- **Editable checklist items** — admin can add/edit/remove numbered tasks (1-4+) per section via Tasks page
+- **Dynamic report generation** — report pages fetch checklist items from backend, not hardcoded
+- **WhatsApp dual-send** — reports sent to both Divine Office and Soman Nair
+- **Daily/Weekly task lists** — editable per section
+- **Shared UI pattern** — all 7 sections follow same structure, each with own data
 
 ### API Endpoints
-- `GET/PUT /api/admin/section-tasks/{section_key}` - Generic for 6 new sections
-- `GET/PUT /api/admin/cleaning-tasks` - Original Top Room tasks
-- `GET/POST/DELETE /api/admin/staff-list` - Shared staff management
+- `GET/PUT /api/admin/section-tasks/{section_key}` — daily_tasks, weekly_tasks, checklist_items
+- `GET/POST/DELETE /api/admin/section-staff/{section_key}` — independent staff per section
+- `GET/PUT /api/admin/cleaning-tasks` — Original Top Room tasks (backward compat)
+- `GET/POST/DELETE /api/admin/staff-list` — Original shared staff (backward compat)
+
+### Valid Section Keys
+top_room, dough_section, packing_section, angels_prep, cleaning_facilities, supervisor, sales_team
+
+### DB Collections
+- `section_tasks` — stores daily_tasks, weekly_tasks, checklist_items per section
+- `section_staff` — stores independent staff members per section
 
 ## Key Files
 ### Backend
-- `backend/server.py` - Main API (all endpoints including section-tasks)
-- `backend/models.py` - Pydantic models
+- `backend/server.py` — All endpoints including section-tasks and section-staff
 
-### Frontend - Admin Section
-- `app/(admin)/dashboard.tsx` - Collapsible "Daily Reports" section
-- `app/(admin)/_layout.tsx` - Tab navigation with hidden report pages
-- `app/(admin)/top-room-report.tsx` - Original report template
-- `app/(admin)/cleaning-tasks.tsx` - Original tasks template
-- `app/(admin)/dough-section-report.tsx` + `dough-section-tasks.tsx`
-- `app/(admin)/packing-section-report.tsx` + `packing-section-tasks.tsx`
-- `app/(admin)/angels-prep-report.tsx` + `angels-prep-tasks.tsx`
-- `app/(admin)/cleaning-facilities-report.tsx` + `cleaning-facilities-tasks.tsx`
-- `app/(admin)/supervisor-report.tsx` + `supervisor-tasks.tsx`
-- `app/(admin)/sales-team-report.tsx` + `sales-team-tasks.tsx`
-- `services/api.ts` - API service with getSectionTasks/updateSectionTasks
+### Frontend
+- `app/(admin)/dashboard.tsx` — Collapsible "Daily Reports" section
+- `app/(admin)/_layout.tsx` — Tab navigation with hidden report pages
+- `app/(admin)/{section}-report.tsx` — 7 report pages (top-room, dough-section, packing-section, angels-prep, cleaning-facilities, supervisor, sales-team)
+- `app/(admin)/{section}-tasks.tsx` — 7 tasks pages (cleaning-tasks for top-room, plus 6 others)
+- `services/api.ts` — All API methods including getSectionStaff/Tasks, addSectionStaff, etc.
 
 ## Known Issues
-- **P0 BLOCKED**: Production backend on Render.com is out-of-date. User must push backend code to `divine-cakery-backend` GitHub repo (main branch) to deploy.
-
-## Backlog
-- None currently. All requested features implemented.
+- **P0 BLOCKED**: Production backend on Render.com is out-of-date. User must push to `divine-cakery-backend` GitHub repo.
 
 ## Credentials (Dev)
-- Admin: username=Soman, password=Demo
+- Admin: username=Soman, password=Soman@123
