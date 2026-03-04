@@ -9,7 +9,7 @@ import {
   ScrollView,
   RefreshControl,
   Linking,
-  AppState,
+  Modal,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,6 +26,10 @@ export default function WalletScreen() {
   const [amount, setAmount] = useState('');
   const [addingMoney, setAddingMoney] = useState(false);
   const { user, refreshUser, logout } = useAuthStore();
+  
+  // Payment pending state
+  const [showPaymentPending, setShowPaymentPending] = useState(false);
+  const [checkingBalance, setCheckingBalance] = useState(false);
 
   const handleLogout = () => {
     showAlert('Logout', 'Are you sure you want to logout?', [
@@ -81,56 +85,42 @@ export default function WalletScreen() {
     setAddingMoney(true);
 
     try {
-      // Create Razorpay payment link
       const paymentData = await apiService.createPaymentOrder(amountNum);
       
       if (!paymentData.payment_link_url) {
         throw new Error('Failed to create payment link');
       }
       
-      // Open payment link in device's default browser (persists through app switches)
+      // Open payment link in device's default browser (stays open during app switches)
       await Linking.openURL(paymentData.payment_link_url);
       
-      // Listen for when user returns to the app after completing payment
-      const handleAppReturn = (nextAppState: string) => {
-        if (nextAppState === 'active') {
-          // User returned to app - refresh wallet balance
-          subscription.remove();
-          setTimeout(async () => {
-            await fetchWallet();
-            await refreshUser();
-            setAddingMoney(false);
-            setAmount('');
-            showAlert(
-              'Payment Status',
-              'If you completed the payment, your wallet balance will be updated shortly. Pull down to refresh if needed.',
-              [
-                {
-                  text: 'Refresh Now',
-                  onPress: async () => {
-                    await fetchWallet();
-                    await refreshUser();
-                  }
-                },
-                { text: 'OK', style: 'cancel' }
-              ]
-            );
-          }, 1500); // Small delay to allow callback processing
-        }
-      };
-
-      const subscription = AppState.addEventListener('change', handleAppReturn);
-
-      // Safety timeout: if user doesn't return within 5 min, clean up
-      setTimeout(() => {
-        subscription.remove();
-        setAddingMoney(false);
-      }, 300000);
-
+      // Show the "Payment Pending" modal
+      setAddingMoney(false);
+      setAmount('');
+      setShowPaymentPending(true);
+      
     } catch (error: any) {
       console.error('Payment error:', error);
       showAlert('Error', error.response?.data?.detail || 'Failed to initiate payment');
       setAddingMoney(false);
+    }
+  };
+
+  const handleCheckBalance = async () => {
+    setCheckingBalance(true);
+    try {
+      await fetchWallet();
+      await refreshUser();
+      // Small delay for callback processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await fetchWallet();
+      await refreshUser();
+      setCheckingBalance(false);
+      setShowPaymentPending(false);
+      showAlert('Balance Refreshed', 'Your wallet balance has been updated. If payment was completed, the new balance should reflect now.');
+    } catch (error) {
+      setCheckingBalance(false);
+      showAlert('Error', 'Failed to refresh balance. Please try again.');
     }
   };
 
@@ -253,6 +243,47 @@ export default function WalletScreen() {
           </View>
         </View>
       </View>
+
+      {/* Payment Pending Modal */}
+      <Modal visible={showPaymentPending} animationType="slide" transparent onRequestClose={() => {}}>
+        <View style={styles.paymentPendingOverlay}>
+          <View style={styles.paymentPendingContent}>
+            <View style={styles.paymentPendingIcon}>
+              <Ionicons name="card-outline" size={48} color="#8B4513" />
+            </View>
+            <Text style={styles.paymentPendingTitle}>Complete Your Payment</Text>
+            <Text style={styles.paymentPendingText}>
+              The payment page is open in your browser.{'\n\n'}
+              1. Switch to your browser to complete payment{'\n'}
+              2. Enter OTP if required{'\n'}
+              3. Come back here and tap the button below
+            </Text>
+            
+            <TouchableOpacity
+              style={[styles.checkBalanceButton, checkingBalance && styles.checkBalanceButtonDisabled]}
+              onPress={handleCheckBalance}
+              disabled={checkingBalance}
+            >
+              {checkingBalance ? (
+                <View style={styles.checkingRow}>
+                  <ActivityIndicator color="#fff" size="small" />
+                  <Text style={styles.checkBalanceButtonText}>  Checking balance...</Text>
+                </View>
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={24} color="#fff" />
+                  <Text style={styles.checkBalanceButtonText}>  I've Completed Payment</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.cancelPendingButton} onPress={() => setShowPaymentPending(false)} disabled={checkingBalance}>
+              <Text style={styles.cancelPendingButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 }
@@ -444,5 +475,75 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     fontSize: 14,
     color: '#666',
+  },
+  // Payment Pending Modal styles
+  paymentPendingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  paymentPendingContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  paymentPendingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF8DC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  paymentPendingTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  paymentPendingText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 22,
+    marginBottom: 24,
+    textAlign: 'left',
+  },
+  checkBalanceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    borderRadius: 12,
+    padding: 16,
+    width: '100%',
+    marginBottom: 12,
+  },
+  checkBalanceButtonDisabled: {
+    backgroundColor: '#999',
+  },
+  checkBalanceButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  checkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cancelPendingButton: {
+    padding: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  cancelPendingButtonText: {
+    color: '#999',
+    fontSize: 14,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   TextInput,
   Linking,
   AppState,
+  Platform,
+  Modal,
 } from 'react-native';
 import { showAlert } from '../../utils/alerts';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -34,6 +36,11 @@ export default function CheckoutScreen() {
   const [payLaterEnabled, setPayLaterEnabled] = useState(false);
   const [payLaterMaxLimit, setPayLaterMaxLimit] = useState(0);
   const [deliveryDateInfo, setDeliveryDateInfo] = useState<any>(null);
+  
+  // Payment pending state
+  const [showPaymentPending, setShowPaymentPending] = useState(false);
+  const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
 
   const subtotal = getTotalAmount();
   const appliedDeliveryCharge = orderType === 'delivery' && !user?.delivery_charge_waived ? deliveryCharge : 0;
@@ -100,8 +107,62 @@ export default function CheckoutScreen() {
       console.log('Checkout screen focused - refreshing wallet');
       fetchWallet();
       refreshUser(); // Update user data in store including wallet balance
-    }, [])
+      // Also check pending payment when user returns to this screen
+      if (showPaymentPending && pendingTransactionId) {
+        handleCheckPayment();
+      }
+    }, [showPaymentPending, pendingTransactionId])
   );
+
+  // Poll for payment status - called when user taps "I've Completed Payment"
+  const handleCheckPayment = async () => {
+    if (!pendingTransactionId) return;
+    setCheckingPayment(true);
+    
+    let paymentConfirmed = false;
+    let pollAttempts = 0;
+    const maxAttempts = 15;
+    
+    while (pollAttempts < maxAttempts && !paymentConfirmed) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const txStatus = await apiService.getTransactionStatus(pendingTransactionId);
+        console.log(`Poll attempt ${pollAttempts + 1}: status=${txStatus.status}, order=${txStatus.order_created}`);
+        
+        if (txStatus.status === 'success' && txStatus.order_created) {
+          paymentConfirmed = true;
+          clearCart();
+          await refreshUser();
+          setShowPaymentPending(false);
+          setPendingTransactionId(null);
+          setCheckingPayment(false);
+          
+          showAlert('Order Placed Successfully!', 'Your payment was successful.', [
+            { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') }
+          ]);
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking payment:', error);
+      }
+      pollAttempts++;
+    }
+    
+    setCheckingPayment(false);
+    showAlert(
+      'Payment Not Yet Confirmed',
+      'We haven\'t received confirmation yet.\n\n' +
+      'If you completed payment, please wait a moment and try checking again.\n\n' +
+      'If you still need to enter OTP or complete payment, go back to your browser.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleCancelPendingPayment = () => {
+    setShowPaymentPending(false);
+    setPendingTransactionId(null);
+    setCheckingPayment(false);
+  };
 
   const fetchWallet = async () => {
     try {
@@ -262,10 +323,6 @@ export default function CheckoutScreen() {
 
       if (paymentMethod === 'upi') {
         // UPI/Razorpay payment
-        // Note: delivery_date will be calculated by backend using IST timezone
-        // when the payment callback creates the order
-        
-        // Prepare payment order with transaction_type and order data in notes
         const paymentData = await apiService.createPaymentOrder({
           amount: totalAmount,
           transaction_type: 'order_payment',
@@ -295,78 +352,16 @@ export default function CheckoutScreen() {
         const transactionId = paymentData.transaction_id;
         console.log('Payment transaction created:', transactionId);
         
-        // Open payment link in device's default browser (persists through app switches/OTP checks)
+        // Store transaction ID and show pending modal
+        setPendingTransactionId(transactionId);
+        setPlacing(false);
+        
+        // Open payment link in device's default browser (stays open during app switches)
         await Linking.openURL(paymentData.payment_link_url);
         
-        // Listen for when user returns to the app after payment
-        const pollPaymentStatus = async () => {
-          console.log('User returned to app - polling transaction status...');
-          
-          let paymentConfirmed = false;
-          let pollAttempts = 0;
-          const maxAttempts = 15; // 15 attempts x 2s = 30 seconds of polling
-          
-          while (pollAttempts < maxAttempts && !paymentConfirmed) {
-            try {
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              
-              const txStatus = await apiService.getTransactionStatus(transactionId);
-              console.log(`Poll attempt ${pollAttempts + 1}: Transaction status:`, txStatus.status);
-              
-              if (txStatus.status === 'success' && txStatus.order_created) {
-                paymentConfirmed = true;
-                console.log('Payment confirmed and order created!');
-                
-                clearCart();
-                await refreshUser();
-                setPlacing(false);
-                
-                showAlert(
-                  'Order Placed Successfully!', 
-                  'Your payment was successful. You can view your order in "My Orders".', 
-                  [
-                    { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') }
-                  ]
-                );
-                return;
-              }
-            } catch (error) {
-              console.error('Error polling transaction status:', error);
-            }
-            pollAttempts++;
-          }
-          
-          // Payment status uncertain after polling
-          setPlacing(false);
-          await refreshUser();
-          
-          showAlert(
-            'Payment Processing', 
-            'Your payment may still be processing.\n\n• If you completed the payment, check "My Orders" shortly.\n• If you need to enter OTP, go back to your browser to complete payment.\n• Your cart items are saved.', 
-            [
-              { text: 'Check My Orders', onPress: () => router.replace('/(customer)/orders') },
-              { text: 'Retry Payment', onPress: () => handlePlaceOrder() },
-              { text: 'Stay Here', style: 'cancel' }
-            ]
-          );
-        };
-
-        // Use AppState to detect when user comes back to the app
-        const handleAppReturn = (nextAppState: string) => {
-          if (nextAppState === 'active') {
-            subscription.remove();
-            // Small delay to let Razorpay callback process
-            setTimeout(() => pollPaymentStatus(), 2000);
-          }
-        };
-
-        const subscription = AppState.addEventListener('change', handleAppReturn);
-
-        // Safety timeout: clean up listener after 10 minutes
-        setTimeout(() => {
-          subscription.remove();
-          setPlacing(false);
-        }, 600000);
+        // Show the "Payment Pending" modal - user will tap button when done
+        setShowPaymentPending(true);
+        return; // Exit early - the modal handles the rest
 
       } else {
         // Wallet or Pay Later payment
@@ -667,6 +662,47 @@ export default function CheckoutScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Payment Pending Modal - stays open until user confirms or cancels */}
+      <Modal visible={showPaymentPending} animationType="slide" transparent onRequestClose={() => {}}>
+        <View style={styles.paymentPendingOverlay}>
+          <View style={styles.paymentPendingContent}>
+            <View style={styles.paymentPendingIcon}>
+              <Ionicons name="card-outline" size={48} color="#8B4513" />
+            </View>
+            <Text style={styles.paymentPendingTitle}>Complete Your Payment</Text>
+            <Text style={styles.paymentPendingText}>
+              The payment page is open in your browser.{'\n\n'}
+              1. Switch to your browser to complete payment{'\n'}
+              2. Enter OTP if required{'\n'}
+              3. Come back here and tap the button below
+            </Text>
+            
+            <TouchableOpacity
+              style={[styles.checkPaymentButton, checkingPayment && styles.checkPaymentButtonDisabled]}
+              onPress={handleCheckPayment}
+              disabled={checkingPayment}
+            >
+              {checkingPayment ? (
+                <View style={styles.checkingRow}>
+                  <ActivityIndicator color="#fff" size="small" />
+                  <Text style={styles.checkPaymentButtonText}>  Checking payment status...</Text>
+                </View>
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={24} color="#fff" />
+                  <Text style={styles.checkPaymentButtonText}>  I've Completed Payment</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.cancelPaymentButton} onPress={handleCancelPendingPayment} disabled={checkingPayment}>
+              <Text style={styles.cancelPaymentButtonText}>Cancel Payment</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </ScrollView>
   );
 }
@@ -979,5 +1015,75 @@ const styles = StyleSheet.create({
   },
   paymentSubtextDisabled: {
     color: '#ccc',
+  },
+  // Payment Pending Modal styles
+  paymentPendingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  paymentPendingContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  paymentPendingIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF8DC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  paymentPendingTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  paymentPendingText: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 22,
+    marginBottom: 24,
+    textAlign: 'left',
+  },
+  checkPaymentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    borderRadius: 12,
+    padding: 16,
+    width: '100%',
+    marginBottom: 12,
+  },
+  checkPaymentButtonDisabled: {
+    backgroundColor: '#999',
+  },
+  checkPaymentButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  checkingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cancelPaymentButton: {
+    padding: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  cancelPaymentButtonText: {
+    color: '#999',
+    fontSize: 14,
   },
 });
