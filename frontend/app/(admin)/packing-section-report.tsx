@@ -16,6 +16,7 @@ const TASKS_ROUTE = '/(admin)/packing-section-tasks';
 const WHATSAPP_NUMBERS = ['918075946225', '919544183334'];
 
 interface StaffMember { id: string; name: string; is_active: boolean; }
+interface ChecklistItem { id: string; label: string; notes_when: 'checked' | 'unchecked'; notes_placeholder: string; }
 
 export default function PackingSectionReportScreen() {
   const router = useRouter();
@@ -23,17 +24,12 @@ export default function PackingSectionReportScreen() {
   const isAdmin = user?.admin_access_level === 'full';
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [filledBy, setFilledBy] = useState('');
   const [workedStaff, setWorkedStaff] = useState<string[]>([]);
   const [absentStaff, setAbsentStaff] = useState<string[]>([]);
-  const [dailyProductionCompleted, setDailyProductionCompleted] = useState(false);
-  const [dailyProductionNotes, setDailyProductionNotes] = useState('');
-  const [dailyCleaningCompleted, setDailyCleaningCompleted] = useState(false);
-  const [dailyCleaningNotes, setDailyCleaningNotes] = useState('');
-  const [weeklyCleaningCompleted, setWeeklyCleaningCompleted] = useState(false);
-  const [weeklyCleaningNotes, setWeeklyCleaningNotes] = useState('');
-  const [wastageReported, setWastageReported] = useState(false);
-  const [wastageNotes, setWastageNotes] = useState('');
+  // Dynamic checklist state: { [itemId]: { completed: boolean, notes: string } }
+  const [checklistState, setChecklistState] = useState<Record<string, { completed: boolean; notes: string }>>({});
   const [showFilledByDropdown, setShowFilledByDropdown] = useState(false);
   const [showWorkedDropdown, setShowWorkedDropdown] = useState(false);
   const [showAbsentDropdown, setShowAbsentDropdown] = useState(false);
@@ -44,25 +40,50 @@ export default function PackingSectionReportScreen() {
   const [generatedReport, setGeneratedReport] = useState('');
 
   useEffect(() => { fetchData(); }, []);
+
   const fetchData = async () => {
-    try { const staffResponse = await apiService.getStaffList(); setStaffList(staffResponse.staff || []); }
-    catch (error) { showAlert('Error', 'Failed to load data'); } finally { setLoading(false); }
+    try {
+      const [staffResponse, tasksResponse] = await Promise.all([
+        apiService.getSectionStaff(SECTION_KEY),
+        apiService.getSectionTasks(SECTION_KEY)
+      ]);
+      setStaffList(staffResponse.staff || []);
+      const items = tasksResponse.checklist_items || [];
+      setChecklistItems(items);
+      const initialState: Record<string, { completed: boolean; notes: string }> = {};
+      items.forEach((item: ChecklistItem) => { initialState[item.id] = { completed: false, notes: '' }; });
+      setChecklistState(initialState);
+    } catch (error) { showAlert('Error', 'Failed to load data'); }
+    finally { setLoading(false); }
   };
+
   const toggleStaffSelection = (staffName: string, list: string[], setList: (val: string[]) => void) => {
-    if (list.includes(staffName)) setList(list.filter(name => name !== staffName)); else setList([...list, staffName]);
+    if (list.includes(staffName)) setList(list.filter(n => n !== staffName)); else setList([...list, staffName]);
   };
+  const toggleChecklist = (itemId: string) => {
+    setChecklistState(prev => ({ ...prev, [itemId]: { ...prev[itemId], completed: !prev[itemId]?.completed } }));
+  };
+  const updateChecklistNotes = (itemId: string, notes: string) => {
+    setChecklistState(prev => ({ ...prev, [itemId]: { ...prev[itemId], notes } }));
+  };
+
   const handleAddStaff = async () => {
     if (!newStaffName.trim()) { showAlert('Error', 'Please enter staff name'); return; }
     setAddingStaff(true);
-    try { const response = await apiService.addStaffMember(newStaffName.trim()); setStaffList([...staffList, response.member]); setNewStaffName(''); showAlert('Success', 'Staff member added'); }
-    catch (error: any) { showAlert('Error', error.response?.data?.detail || 'Failed to add staff member'); } finally { setAddingStaff(false); }
+    try { const response = await apiService.addSectionStaff(SECTION_KEY, newStaffName.trim()); setStaffList([...staffList, response.member]); setNewStaffName(''); showAlert('Success', 'Staff member added'); }
+    catch (error: any) { showAlert('Error', error.response?.data?.detail || 'Failed to add staff member'); }
+    finally { setAddingStaff(false); }
   };
   const handleRemoveStaff = async (staffId: string, staffName: string) => {
     showAlert('Remove Staff', `Are you sure you want to remove ${staffName}?`, [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: async () => { try { await apiService.removeStaffMember(staffId); setStaffList(staffList.filter(s => s.id !== staffId)); } catch { showAlert('Error', 'Failed to remove staff member'); } } }
+      { text: 'Remove', style: 'destructive', onPress: async () => {
+        try { await apiService.removeSectionStaff(SECTION_KEY, staffId); setStaffList(staffList.filter(s => s.id !== staffId)); }
+        catch { showAlert('Error', 'Failed to remove staff member'); }
+      }}
     ]);
   };
+
   const generateReport = () => {
     const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     let report = `📋 *${SECTION_TITLE.toUpperCase()} REPORT*\n📅 ${today}\n\n`;
@@ -70,30 +91,36 @@ export default function PackingSectionReportScreen() {
     report += `✅ *Worked:* ${workedStaff.length > 0 ? workedStaff.join(', ') : 'None'}\n`;
     report += `❌ *Absent/Sick:* ${absentStaff.length > 0 ? absentStaff.join(', ') : 'None'}\n\n`;
     report += `*--- CHECKLIST ---*\n\n`;
-    report += `1️⃣ *Daily Production:* ${dailyProductionCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
-    if (!dailyProductionCompleted && dailyProductionNotes) report += `   _Items not completed: ${dailyProductionNotes}_\n`;
-    report += `\n2️⃣ *Daily Cleaning:* ${dailyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
-    if (!dailyCleaningCompleted && dailyCleaningNotes) report += `   _Tasks not completed: ${dailyCleaningNotes}_\n`;
-    report += `\n3️⃣ *Weekly Deep Cleaning:* ${weeklyCleaningCompleted ? '✅ Completed' : '❌ Not Completed'}\n`;
-    if (!weeklyCleaningCompleted && weeklyCleaningNotes) report += `   _Tasks not completed: ${weeklyCleaningNotes}_\n`;
-    report += `\n4️⃣ *Wastage Reported:* ${wastageReported ? '✅ Yes' : '❌ No'}\n`;
-    if (wastageReported && wastageNotes) report += `   _Items wasted: ${wastageNotes}_\n`;
-    report += `\n---\n_Report generated from Divine Cakery App_`;
+    const numEmojis = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+    checklistItems.forEach((item, idx) => {
+      const state = checklistState[item.id];
+      const emoji = numEmojis[idx] || `${idx+1}.`;
+      report += `${emoji} *${item.label}:* ${state?.completed ? '✅ Yes' : '❌ No'}\n`;
+      const showNotes = item.notes_when === 'checked' ? state?.completed : !state?.completed;
+      if (showNotes && state?.notes) report += `   _${state.notes}_\n`;
+      report += '\n';
+    });
+    report += `---\n_Report generated from Divine Cakery App_`;
     return report;
   };
+
   const handleSubmit = async () => {
     if (!filledBy) { showAlert('Error', 'Please select who filled this report'); return; }
-    if (!dailyProductionCompleted && !dailyProductionNotes.trim()) { showAlert('Error', 'Please specify which items were not completed for Daily Production'); return; }
-    if (!dailyCleaningCompleted && !dailyCleaningNotes.trim()) { showAlert('Error', 'Please specify which tasks were not completed for Daily Cleaning'); return; }
-    if (!weeklyCleaningCompleted && !weeklyCleaningNotes.trim()) { showAlert('Error', 'Please specify which tasks were not completed for Weekly Deep Cleaning'); return; }
-    if (wastageReported && !wastageNotes.trim()) { showAlert('Error', 'Please specify the items wasted'); return; }
+    for (const item of checklistItems) {
+      const state = checklistState[item.id];
+      const needsNotes = item.notes_when === 'checked' ? state?.completed : !state?.completed;
+      if (needsNotes && !state?.notes?.trim()) {
+        showAlert('Error', `Please add notes for "${item.label}"`); return;
+      }
+    }
     setGeneratedReport(generateReport()); setShowSubmitModal(true);
   };
   const sendToWhatsApp = async (phoneNumber: string) => {
-    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(generatedReport)}`;
-    try { const canOpen = await Linking.canOpenURL(whatsappUrl); if (canOpen) await Linking.openURL(whatsappUrl); else await Linking.openURL(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(generatedReport)}`); }
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(generatedReport)}`;
+    try { const canOpen = await Linking.canOpenURL(url); if (canOpen) await Linking.openURL(url); else await Linking.openURL(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(generatedReport)}`); }
     catch { showAlert('Error', 'Could not open WhatsApp'); }
   };
+
   const renderDropdown = (visible: boolean, onClose: () => void, selectedItems: string[], onSelect: (name: string) => void, multiSelect = false) => {
     if (!visible) return null;
     return (
@@ -114,7 +141,9 @@ export default function PackingSectionReportScreen() {
       </Modal>
     );
   };
+
   if (loading) return (<SafeAreaView style={styles.container} edges={['top']}><View style={styles.loadingContainer}><ActivityIndicator size="large" color="#8B4513" /></View></SafeAreaView>);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -126,25 +155,42 @@ export default function PackingSectionReportScreen() {
         <View style={styles.section}><Text style={styles.label}>Filled by: *</Text><TouchableOpacity style={styles.dropdown} onPress={() => setShowFilledByDropdown(true)}><Text style={filledBy ? styles.dropdownText : styles.dropdownPlaceholder}>{filledBy || 'Select staff member'}</Text><Ionicons name="chevron-down" size={20} color="#666" /></TouchableOpacity></View>
         <View style={styles.section}><Text style={styles.label}>Worked:</Text><TouchableOpacity style={styles.dropdown} onPress={() => setShowWorkedDropdown(true)}><Text style={workedStaff.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}>{workedStaff.length > 0 ? workedStaff.join(', ') : 'Select staff members'}</Text><Ionicons name="chevron-down" size={20} color="#666" /></TouchableOpacity></View>
         <View style={styles.section}><Text style={styles.label}>Absent/Sick:</Text><TouchableOpacity style={styles.dropdown} onPress={() => setShowAbsentDropdown(true)}><Text style={absentStaff.length > 0 ? styles.dropdownText : styles.dropdownPlaceholder}>{absentStaff.length > 0 ? absentStaff.join(', ') : 'Select staff members'}</Text><Ionicons name="chevron-down" size={20} color="#666" /></TouchableOpacity></View>
-        <View style={styles.checkboxSection}><TouchableOpacity style={styles.checkboxRow} onPress={() => setDailyProductionCompleted(!dailyProductionCompleted)}><Text style={styles.serialNumber}>1.</Text><View style={[styles.checkbox, dailyProductionCompleted && styles.checkboxChecked]}>{dailyProductionCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}</View><Text style={styles.checkboxLabel}>Daily Production completed</Text></TouchableOpacity>{!dailyProductionCompleted && <TextInput style={styles.notesInput} placeholder="Items not completed..." value={dailyProductionNotes} onChangeText={setDailyProductionNotes} multiline />}</View>
-        <View style={styles.checkboxSection}><TouchableOpacity style={styles.checkboxRow} onPress={() => setDailyCleaningCompleted(!dailyCleaningCompleted)}><Text style={styles.serialNumber}>2.</Text><View style={[styles.checkbox, dailyCleaningCompleted && styles.checkboxChecked]}>{dailyCleaningCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}</View><Text style={styles.checkboxLabel}>Daily Cleaning completed</Text></TouchableOpacity>{!dailyCleaningCompleted && <TextInput style={styles.notesInput} placeholder="Which task not completed..." value={dailyCleaningNotes} onChangeText={setDailyCleaningNotes} multiline />}</View>
-        <View style={styles.checkboxSection}><TouchableOpacity style={styles.checkboxRow} onPress={() => setWeeklyCleaningCompleted(!weeklyCleaningCompleted)}><Text style={styles.serialNumber}>3.</Text><View style={[styles.checkbox, weeklyCleaningCompleted && styles.checkboxChecked]}>{weeklyCleaningCompleted && <Ionicons name="checkmark" size={16} color="#fff" />}</View><Text style={styles.checkboxLabel}>Weekly Deep Cleaning completed</Text></TouchableOpacity>{!weeklyCleaningCompleted && <TextInput style={styles.notesInput} placeholder="Which task not completed..." value={weeklyCleaningNotes} onChangeText={setWeeklyCleaningNotes} multiline />}</View>
-        <View style={styles.checkboxSection}><TouchableOpacity style={styles.checkboxRow} onPress={() => setWastageReported(!wastageReported)}><Text style={styles.serialNumber}>4.</Text><View style={[styles.checkbox, wastageReported && styles.checkboxChecked]}>{wastageReported && <Ionicons name="checkmark" size={16} color="#fff" />}</View><Text style={styles.checkboxLabel}>Wastage reported</Text></TouchableOpacity>{wastageReported && <TextInput style={styles.notesInput} placeholder="Items wasted..." value={wastageNotes} onChangeText={setWastageNotes} multiline />}</View>
-        <TouchableOpacity style={styles.viewTasksButton} onPress={() => router.push(TASKS_ROUTE as any)}><MaterialCommunityIcons name="clipboard-list-outline" size={24} color="#8B4513" /><Text style={styles.viewTasksButtonText}>View {SECTION_TITLE} Tasks</Text><Ionicons name="chevron-forward" size={20} color="#8B4513" /></TouchableOpacity>
+
+        {/* Dynamic Checklist Items */}
+        {checklistItems.map((item, idx) => {
+          const state = checklistState[item.id] || { completed: false, notes: '' };
+          const showNotes = item.notes_when === 'checked' ? state.completed : !state.completed;
+          return (
+            <View key={item.id} style={styles.checkboxSection}>
+              <TouchableOpacity style={styles.checkboxRow} onPress={() => toggleChecklist(item.id)}>
+                <Text style={styles.serialNumber}>{idx + 1}.</Text>
+                <View style={[styles.checkbox, state.completed && styles.checkboxChecked]}>{state.completed && <Ionicons name="checkmark" size={16} color="#fff" />}</View>
+                <Text style={styles.checkboxLabel}>{item.label}</Text>
+              </TouchableOpacity>
+              {showNotes && <TextInput style={styles.notesInput} placeholder={item.notes_placeholder} value={state.notes} onChangeText={(text) => updateChecklistNotes(item.id, text)} multiline />}
+            </View>
+          );
+        })}
+        {checklistItems.length === 0 && <View style={styles.checkboxSection}><Text style={styles.noStaffText}>No checklist items configured. Admin can add them in Tasks page.</Text></View>}
+
+        <TouchableOpacity style={styles.viewTasksButton} onPress={() => router.push(TASKS_ROUTE as any)}><MaterialCommunityIcons name="clipboard-list-outline" size={24} color="#8B4513" /><Text style={styles.viewTasksButtonText}>View/Edit {SECTION_TITLE} Tasks</Text><Ionicons name="chevron-forward" size={20} color="#8B4513" /></TouchableOpacity>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}><Ionicons name="logo-whatsapp" size={24} color="#fff" /><Text style={styles.submitButtonText}>Submit via WhatsApp</Text></TouchableOpacity>
         <View style={{ height: 100 }} />
       </ScrollView>
+
       {renderDropdown(showFilledByDropdown, () => setShowFilledByDropdown(false), filledBy ? [filledBy] : [], (name) => setFilledBy(name), false)}
       {renderDropdown(showWorkedDropdown, () => setShowWorkedDropdown(false), workedStaff, (name) => toggleStaffSelection(name, workedStaff, setWorkedStaff), true)}
       {renderDropdown(showAbsentDropdown, () => setShowAbsentDropdown(false), absentStaff, (name) => toggleStaffSelection(name, absentStaff, setAbsentStaff), true)}
-      <Modal visible={showStaffModal} animationType="slide" transparent={true} onRequestClose={() => setShowStaffModal(false)}>
+
+      <Modal visible={showStaffModal} animationType="slide" transparent onRequestClose={() => setShowStaffModal(false)}>
         <View style={styles.modalOverlay}><View style={styles.modalContent}>
-          <View style={styles.modalHeader}><Text style={styles.modalTitle}>Manage Staff List</Text><TouchableOpacity onPress={() => setShowStaffModal(false)}><Ionicons name="close" size={24} color="#333" /></TouchableOpacity></View>
+          <View style={styles.modalHeader}><Text style={styles.modalTitle}>Manage {SECTION_TITLE} Staff</Text><TouchableOpacity onPress={() => setShowStaffModal(false)}><Ionicons name="close" size={24} color="#333" /></TouchableOpacity></View>
           <View style={styles.addStaffRow}><TextInput style={styles.staffInput} value={newStaffName} onChangeText={setNewStaffName} placeholder="Enter staff name" /><TouchableOpacity style={styles.addStaffButton} onPress={handleAddStaff} disabled={addingStaff}>{addingStaff ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="add" size={24} color="#fff" />}</TouchableOpacity></View>
           <ScrollView style={styles.staffList}>{staffList.map((staff) => (<View key={staff.id} style={styles.staffItem}><Text style={styles.staffName}>{staff.name}</Text><TouchableOpacity onPress={() => handleRemoveStaff(staff.id, staff.name)}><Ionicons name="trash-outline" size={20} color="#f44336" /></TouchableOpacity></View>))}{staffList.length === 0 && <Text style={styles.noStaffModalText}>No staff members added yet</Text>}</ScrollView>
         </View></View>
       </Modal>
-      <Modal visible={showSubmitModal} animationType="slide" transparent={true} onRequestClose={() => setShowSubmitModal(false)}>
+
+      <Modal visible={showSubmitModal} animationType="slide" transparent onRequestClose={() => setShowSubmitModal(false)}>
         <View style={styles.modalOverlay}><View style={styles.submitModalContent}>
           <View style={styles.modalHeader}><Text style={styles.modalTitle}>Send Report via WhatsApp</Text><TouchableOpacity onPress={() => setShowSubmitModal(false)}><Ionicons name="close" size={24} color="#333" /></TouchableOpacity></View>
           <Text style={styles.submitModalText}>Please send the report to BOTH numbers below:</Text>

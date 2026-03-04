@@ -563,14 +563,30 @@ class ApiService {
     return response.data;
   }
 
-  // Section-specific Tasks APIs (for Dough, Packing, Angels/Prep, etc.)
+  // Section-specific Tasks APIs (for all sections including Top Room)
   async getSectionTasks(sectionKey: string) {
     const response = await this.api.get(`/admin/section-tasks/${sectionKey}`);
     return response.data;
   }
 
-  async updateSectionTasks(sectionKey: string, data: { daily_tasks?: string[]; weekly_tasks?: any }) {
+  async updateSectionTasks(sectionKey: string, data: { daily_tasks?: string[]; weekly_tasks?: any; checklist_items?: any[] }) {
     const response = await this.api.put(`/admin/section-tasks/${sectionKey}`, data);
+    return response.data;
+  }
+
+  // Section-specific Staff APIs (independent staff per section)
+  async getSectionStaff(sectionKey: string) {
+    const response = await this.api.get(`/admin/section-staff/${sectionKey}`);
+    return response.data;
+  }
+
+  async addSectionStaff(sectionKey: string, name: string) {
+    const response = await this.api.post(`/admin/section-staff/${sectionKey}/add`, { name });
+    return response.data;
+  }
+
+  async removeSectionStaff(sectionKey: string, staffId: string) {
+    const response = await this.api.delete(`/admin/section-staff/${sectionKey}/${staffId}`);
     return response.data;
   }
 }

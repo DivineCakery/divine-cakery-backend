@@ -3279,26 +3279,35 @@ async def remove_staff_member(
 # Each section stores its own daily/weekly task lists in the section_tasks collection.
 
 VALID_SECTIONS = [
-    "dough_section", "packing_section", "angels_prep",
+    "top_room", "dough_section", "packing_section", "angels_prep",
     "cleaning_facilities", "supervisor", "sales_team"
+]
+
+DEFAULT_CHECKLIST_ITEMS = [
+    {"id": "default_1", "label": "Daily Production completed", "notes_when": "unchecked", "notes_placeholder": "Items not completed..."},
+    {"id": "default_2", "label": "Daily Cleaning completed", "notes_when": "unchecked", "notes_placeholder": "Which task not completed..."},
+    {"id": "default_3", "label": "Weekly Deep Cleaning completed", "notes_when": "unchecked", "notes_placeholder": "Which task not completed..."},
+    {"id": "default_4", "label": "Wastage reported", "notes_when": "checked", "notes_placeholder": "Items wasted..."}
 ]
 
 @api_router.get("/admin/section-tasks/{section_key}")
 async def get_section_tasks(section_key: str, current_user: User = Depends(get_current_admin)):
-    """Get tasks configuration for a specific report section"""
+    """Get tasks and checklist configuration for a specific report section"""
     if section_key not in VALID_SECTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
+    empty_weekly = {"monday":"","tuesday":"","wednesday":"","thursday":"","friday":"","saturday":"","sunday":""}
     config = await db.section_tasks.find_one({"section": section_key})
     if not config:
-        return {"daily_tasks": [], "weekly_tasks": {"monday":"","tuesday":"","wednesday":"","thursday":"","friday":"","saturday":"","sunday":""}}
+        return {"daily_tasks": [], "weekly_tasks": empty_weekly, "checklist_items": DEFAULT_CHECKLIST_ITEMS}
     return {
         "daily_tasks": config.get("daily_tasks", []),
-        "weekly_tasks": config.get("weekly_tasks", {"monday":"","tuesday":"","wednesday":"","thursday":"","friday":"","saturday":"","sunday":""})
+        "weekly_tasks": config.get("weekly_tasks", empty_weekly),
+        "checklist_items": config.get("checklist_items", DEFAULT_CHECKLIST_ITEMS)
     }
 
 @api_router.put("/admin/section-tasks/{section_key}")
 async def update_section_tasks(section_key: str, tasks_update: dict, current_user: User = Depends(get_current_admin)):
-    """Update tasks configuration for a specific report section"""
+    """Update tasks and checklist configuration for a specific report section"""
     if section_key not in VALID_SECTIONS:
         raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
     if current_user.admin_access_level != "full":
@@ -3308,6 +3317,8 @@ async def update_section_tasks(section_key: str, tasks_update: dict, current_use
         update_data["daily_tasks"] = tasks_update["daily_tasks"]
     if "weekly_tasks" in tasks_update:
         update_data["weekly_tasks"] = tasks_update["weekly_tasks"]
+    if "checklist_items" in tasks_update:
+        update_data["checklist_items"] = tasks_update["checklist_items"]
     update_data["updated_at"] = datetime.utcnow()
     update_data["updated_by"] = current_user.username
     await db.section_tasks.update_one(
@@ -3316,6 +3327,50 @@ async def update_section_tasks(section_key: str, tasks_update: dict, current_use
         upsert=True
     )
     return {"message": f"{section_key} tasks updated successfully"}
+
+# ==================== SECTION-SPECIFIC STAFF ENDPOINTS ====================
+# Each section has its own independent staff list
+
+@api_router.get("/admin/section-staff/{section_key}")
+async def get_section_staff(section_key: str, current_user: User = Depends(get_current_admin)):
+    """Get staff list for a specific section"""
+    if section_key not in VALID_SECTIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
+    config = await db.section_staff.find_one({"section": section_key})
+    if not config:
+        return {"staff": []}
+    return {"staff": config.get("members", [])}
+
+@api_router.post("/admin/section-staff/{section_key}/add")
+async def add_section_staff(section_key: str, staff_data: dict, current_user: User = Depends(get_current_admin)):
+    """Add a staff member to a specific section"""
+    if section_key not in VALID_SECTIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage staff")
+    name = staff_data.get("name", "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Staff name is required")
+    new_member = {"id": str(uuid.uuid4()), "name": name, "is_active": True}
+    await db.section_staff.update_one(
+        {"section": section_key},
+        {"$push": {"members": new_member}, "$set": {"section": section_key}},
+        upsert=True
+    )
+    return {"message": "Staff member added", "member": new_member}
+
+@api_router.delete("/admin/section-staff/{section_key}/{staff_id}")
+async def remove_section_staff(section_key: str, staff_id: str, current_user: User = Depends(get_current_admin)):
+    """Remove a staff member from a specific section"""
+    if section_key not in VALID_SECTIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid section: {section_key}")
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage staff")
+    await db.section_staff.update_one(
+        {"section": section_key},
+        {"$pull": {"members": {"id": staff_id}}}
+    )
+    return {"message": "Staff member removed"}
 
 
 
