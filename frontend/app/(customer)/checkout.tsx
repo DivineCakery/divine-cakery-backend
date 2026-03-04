@@ -41,6 +41,7 @@ export default function CheckoutScreen() {
   const [showPaymentPending, setShowPaymentPending] = useState(false);
   const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
   const [checkingPayment, setCheckingPayment] = useState(false);
+  const [paymentCheckMessage, setPaymentCheckMessage] = useState('');
 
   const subtotal = getTotalAmount();
   const appliedDeliveryCharge = orderType === 'delivery' && !user?.delivery_charge_waived ? deliveryCharge : 0;
@@ -118,6 +119,7 @@ export default function CheckoutScreen() {
   const handleCheckPayment = async () => {
     if (!pendingTransactionId) return;
     setCheckingPayment(true);
+    setPaymentCheckMessage('');
     
     let paymentConfirmed = false;
     let pollAttempts = 0;
@@ -136,6 +138,7 @@ export default function CheckoutScreen() {
           setShowPaymentPending(false);
           setPendingTransactionId(null);
           setCheckingPayment(false);
+          setPaymentCheckMessage('');
           
           showAlert('Order Placed Successfully!', 'Your payment was successful.', [
             { text: 'View My Orders', onPress: () => router.replace('/(customer)/orders') }
@@ -148,20 +151,16 @@ export default function CheckoutScreen() {
       pollAttempts++;
     }
     
+    // Payment not confirmed yet — show gentle inline message, NO scary alert
     setCheckingPayment(false);
-    showAlert(
-      'Payment Not Yet Confirmed',
-      'We haven\'t received confirmation yet.\n\n' +
-      'If you completed payment, please wait a moment and try checking again.\n\n' +
-      'If you still need to enter OTP or complete payment, go back to your browser.',
-      [{ text: 'OK' }]
-    );
+    setPaymentCheckMessage('Still processing... Please wait a moment and tap "Check Again".');
   };
 
   const handleCancelPendingPayment = () => {
     setShowPaymentPending(false);
     setPendingTransactionId(null);
     setCheckingPayment(false);
+    setPaymentCheckMessage('');
   };
 
   const fetchWallet = async () => {
@@ -678,6 +677,10 @@ export default function CheckoutScreen() {
               3. Come back here and tap the button below
             </Text>
             
+            {paymentCheckMessage ? (
+              <Text style={styles.paymentCheckMessage}>{paymentCheckMessage}</Text>
+            ) : null}
+            
             <TouchableOpacity
               style={[styles.checkPaymentButton, checkingPayment && styles.checkPaymentButtonDisabled]}
               onPress={handleCheckPayment}
@@ -686,12 +689,12 @@ export default function CheckoutScreen() {
               {checkingPayment ? (
                 <View style={styles.checkingRow}>
                   <ActivityIndicator color="#fff" size="small" />
-                  <Text style={styles.checkPaymentButtonText}>  Checking payment status...</Text>
+                  <Text style={styles.checkPaymentButtonText}>  Verifying payment...</Text>
                 </View>
               ) : (
                 <>
                   <Ionicons name="checkmark-circle" size={24} color="#fff" />
-                  <Text style={styles.checkPaymentButtonText}>  I've Completed Payment</Text>
+                  <Text style={styles.checkPaymentButtonText}>  {paymentCheckMessage ? 'Check Again' : "I've Completed Payment"}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -1072,6 +1075,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  paymentCheckMessage: {
+    fontSize: 13,
+    color: '#FF9800',
+    textAlign: 'center',
+    marginBottom: 16,
+    fontStyle: 'italic',
   },
   checkingRow: {
     flexDirection: 'row',
