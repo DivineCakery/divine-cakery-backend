@@ -89,7 +89,7 @@ export default function TopRoomReportScreen() {
     let report = `📋 *${SECTION_TITLE.toUpperCase()} REPORT*\n📅 ${today}\n\n`;
     report += `👤 *Filled by:* ${filledBy || 'Not specified'}\n\n`;
     report += `✅ *Worked:* ${workedStaff.length > 0 ? workedStaff.join(', ') : 'None'}\n`;
-    report += `❌ *Absent/Sick:* ${absentStaff.length > 0 ? absentStaff.join(', ') : 'None'}\n\n`;
+    report += `${absentStaff.length > 0 ? '❌' : '✅'} *Absent/Sick:* ${absentStaff.length > 0 ? absentStaff.join(', ') : 'None'}\n\n`;
     report += `*--- CHECKLIST ---*\n\n`;
     const numEmojis = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
     checklistItems.forEach((item, idx) => {
