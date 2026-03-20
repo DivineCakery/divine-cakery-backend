@@ -89,7 +89,6 @@ export default function ReportsScreen() {
 
   // Generate A4 PDF HTML for Preparation Report
   const generatePrepReportHtml = () => {
-    const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const deptLabel = DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || '';
     const grouped: Record<string, any[]> = {};
     prepReportItems.forEach((item: any) => {
@@ -106,45 +105,32 @@ export default function ReportsScreen() {
         const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
         const notDone = Math.max(0, total - prep);
         tableRows += `<tr>
-          <td style="font-weight:${idx === 0 ? 'bold' : 'normal'};color:${idx === 0 ? '#5D3415' : 'transparent'}">${idx === 0 ? dough : dough}</td>
+          <td style="font-weight:${idx === 0 ? 'bold' : 'normal'};color:${idx === 0 ? '#333' : 'transparent'}">${idx === 0 ? dough : dough}</td>
           <td>${item.product_name}</td>
           <td style="text-align:center">${item.orders_today || 0}</td>
           <td style="text-align:center">${item.orders_tomorrow || 0}</td>
-          <td style="text-align:center;background:#FFF8DC">${prep || ''}</td>
-          <td style="text-align:center;font-weight:bold;color:${notDone > 0 ? '#f44336' : '#4CAF50'}">${notDone > 0 ? notDone : '-'}</td>
+          <td style="text-align:center">${prep || ''}</td>
+          <td style="text-align:center;font-weight:bold;color:${notDone > 0 ? '#c00' : '#333'}">${notDone > 0 ? notDone : '-'}</td>
         </tr>`;
       });
     });
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-      @page { size: A4; margin: 15mm; }
-      body { font-family: Arial, sans-serif; font-size: 12px; color: #333; }
-      .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
-      .header h1 { color: #8B4513; font-size: 22px; margin: 0; }
-      .header p { color: #666; margin: 4px 0; font-size: 13px; }
-      .info { display: flex; justify-content: space-between; margin-bottom: 15px; }
-      .info div { font-size: 13px; }
-      .info strong { color: #8B4513; }
-      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-      th { background: #8B4513; color: #fff; padding: 8px 6px; font-size: 11px; text-align: left; }
-      td { padding: 6px; border-bottom: 1px solid #eee; font-size: 11px; }
-      tr:nth-child(even) { background: #fafafa; }
-      .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
+      @page { size: A4; margin: 10mm; }
+      body { font-family: Arial, sans-serif; font-size: 11px; color: #333; margin: 0; }
+      .title { font-size: 15px; font-weight: bold; margin: 0 0 4px; }
+      .info { font-size: 11px; margin: 0 0 2px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+      th { background: #444; color: #fff; padding: 4px 5px; font-size: 10px; text-align: left; }
+      td { padding: 3px 5px; border-bottom: 1px solid #ddd; font-size: 10px; }
+      tr:nth-child(even) { background: #f5f5f5; }
     </style></head><body>
-      <div class="header">
-        <h1>DIVINE CAKERY</h1>
-        <p>Preparation Report</p>
-        <p>${today}</p>
-      </div>
-      <div class="info">
-        <div><strong>Department:</strong> ${deptLabel}</div>
-        <div><strong>Reported by:</strong> ${reportedBy || '-'}</div>
-      </div>
+      <div class="title">Preparation Report</div>
+      <div class="info"><b>Department:</b> ${deptLabel} &nbsp; <b>Reported by:</b> ${reportedBy || '-'}</div>
       <table>
-        <thead><tr><th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tomorrow</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Completed</th></tr></thead>
+        <thead><tr><th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tmrw</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Done</th></tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
-      <div class="footer">Report generated from Divine Cakery App</div>
     </body></html>`;
   };
 
