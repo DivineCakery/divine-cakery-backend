@@ -9,12 +9,42 @@ import {
   TouchableOpacity,
   Platform,
   Modal,
+  TextInput,
+  Linking,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 import { showAlert } from '../../utils/alerts';
+
+// Department-to-dough mapping (hardcoded per requirements)
+const DEPARTMENTS = [
+  { key: 'dough_section', label: 'Dough Section' },
+  { key: 'top_room', label: 'Top Room' },
+  { key: 'angels_section', label: 'Angels Section' },
+];
+
+const DEPARTMENT_DOUGHS: Record<string, string[]> = {
+  top_room: [
+    'Multigrain dough', 'Egg bun dough', 'Milk bun dough', 'Pizza dough',
+    'Fruity dough', 'Lavash', 'Grissini', 'Bread roll dough', 'Potato bun dough',
+    'Red burger dough', 'Black burger dough', 'Ciabatta', 'French baguette',
+    'Croissants', 'Puffs dough', 'Cookies/biscotti',
+  ],
+  dough_section: [
+    'Milk dough', 'Brioche Dough', 'Burger Dough', 'White Dough', 'Brown Dough',
+    'Pav Dough', 'Sweet dough', 'Butter bread dough', 'Butter brioche dough',
+  ],
+  angels_section: ['Crumbs dough'],
+};
+
+// Staff section key mapping for "Reported by" dropdown
+const DEPT_STAFF_KEY: Record<string, string> = {
+  top_room: 'top_room',
+  dough_section: 'dough_section',
+  angels_section: 'angels_prep',
+};
 
 export default function ReportsScreen() {
   const router = useRouter();
@@ -34,7 +64,18 @@ export default function ReportsScreen() {
   const isReportsOnly = accessLevel === 'reports';
   
   // For reports-only users, default to preparation tab and don't allow daily items
-  const [activeTab, setActiveTab] = useState<'daily' | 'preparation'>('preparation');
+  const [activeTab, setActiveTab] = useState<'daily' | 'preparation' | 'prepReport'>('preparation');
+  
+  // Preparation Report state
+  const [selectedDepartment, setSelectedDepartment] = useState('dough_section');
+  const [reportedBy, setReportedBy] = useState('');
+  const [departmentStaff, setDepartmentStaff] = useState<any[]>([]);
+  const [prepReportItems, setPrepReportItems] = useState<any[]>([]);
+  const [preparedQuantities, setPreparedQuantities] = useState<Record<string, string>>({});
+  const [showDeptDropdown, setShowDeptDropdown] = useState(false);
+  const [showReportedByDropdown, setShowReportedByDropdown] = useState(false);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [prepReportText, setPrepReportText] = useState('');
   
   // Update activeTab when user loads (and enforce preparation tab for reports-only users)
   useEffect(() => {
@@ -58,8 +99,15 @@ export default function ReportsScreen() {
       setLoading(true);
       fetchReports();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTab, selectedDate, selectedDoughType])
+    }, [activeTab, selectedDate, selectedDoughType, selectedDepartment])
   );
+
+  // Fetch department staff when department changes (for Prep Report)
+  useEffect(() => {
+    if (activeTab === 'prepReport') {
+      fetchDepartmentStaff();
+    }
+  }, [selectedDepartment, activeTab]);
 
   const fetchDoughTypes = async () => {
     try {
@@ -67,7 +115,18 @@ export default function ReportsScreen() {
       setDoughTypes(data);
     } catch (error) {
       console.error('Error fetching dough types:', error);
-      // Don't show error - dough types are optional
+    }
+  };
+
+  const fetchDepartmentStaff = async () => {
+    try {
+      const staffKey = DEPT_STAFF_KEY[selectedDepartment] || selectedDepartment;
+      const response = await apiService.getSectionStaff(staffKey);
+      setDepartmentStaff(response.staff || []);
+      setReportedBy('');
+    } catch (error) {
+      console.error('Error fetching department staff:', error);
+      setDepartmentStaff([]);
     }
   };
 
@@ -90,10 +149,21 @@ export default function ReportsScreen() {
         const data = await apiService.getDailyItemsReport(dateStr, selectedDoughType || undefined);
         console.log('✅ Daily report data:', JSON.stringify(data, null, 2));
         setReport(data);
-      } else {
+      } else if (activeTab === 'preparation') {
         const data = await apiService.getPreparationListReport(dateStr, selectedDoughType || undefined);
         console.log('✅ Preparation List Data:', JSON.stringify(data, null, 2));
         setPreparationList(data);
+      } else if (activeTab === 'prepReport') {
+        // Fetch full preparation list (no dough filter) and filter client-side by department
+        const data = await apiService.getPreparationListReport(dateStr);
+        const deptDoughs = DEPARTMENT_DOUGHS[selectedDepartment] || [];
+        // Filter items: only those whose dough_type_name is in this department's list AND have orders
+        const filtered = (data.items || []).filter((item: any) => {
+          const doughName = (item.dough_type_name || '').toLowerCase();
+          return deptDoughs.some(d => d.toLowerCase() === doughName) && (item.orders_today > 0 || item.orders_tomorrow > 0);
+        });
+        setPrepReportItems(filtered);
+        setPreparedQuantities({});
       }
     } catch (error: any) {
       console.error('❌ Error fetching report:', error);
@@ -209,7 +279,19 @@ export default function ReportsScreen() {
         >
           <Ionicons name="list" size={20} color={activeTab === 'preparation' ? '#fff' : '#8B4513'} />
           <Text style={[styles.tabText, activeTab === 'preparation' && styles.activeTabText]}>
-            Preparation List
+            Prep List
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'prepReport' && styles.activeTab]}
+          onPress={() => {
+            setActiveTab('prepReport');
+            setLoading(true);
+          }}
+        >
+          <Ionicons name="document-text" size={20} color={activeTab === 'prepReport' ? '#fff' : '#8B4513'} />
+          <Text style={[styles.tabText, activeTab === 'prepReport' && styles.activeTabText]}>
+            Prep Report
           </Text>
         </TouchableOpacity>
       </View>
@@ -326,7 +408,7 @@ export default function ReportsScreen() {
               )}
             </View>
           </>
-        ) : (
+        ) : activeTab === 'preparation' ? (
           /* Preparation List View - Compact */
           <View style={styles.preparationSection}>
             {/* Compact Date + Filter Row */}
@@ -440,10 +522,185 @@ export default function ReportsScreen() {
               </View>
             )}
           </View>
-        )}
-      </View>
+        ) : activeTab === 'prepReport' ? (
+          /* Preparation Report View */
+          <View style={styles.preparationSection}>
+            {/* Department Dropdown */}
+            <View style={styles.prepReportField}>
+              <Text style={styles.prepReportLabel}>Department:</Text>
+              <TouchableOpacity style={styles.prepReportDropdown} onPress={() => setShowDeptDropdown(true)}>
+                <Text style={styles.prepReportDropdownText}>{DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || 'Select'}</Text>
+                <Ionicons name="chevron-down" size={18} color="#666" />
+              </TouchableOpacity>
+            </View>
+            {/* Reported By Dropdown */}
+            <View style={styles.prepReportField}>
+              <Text style={styles.prepReportLabel}>Reported by:</Text>
+              <TouchableOpacity style={styles.prepReportDropdown} onPress={() => setShowReportedByDropdown(true)}>
+                <Text style={reportedBy ? styles.prepReportDropdownText : styles.prepReportDropdownPlaceholder}>{reportedBy || 'Select staff'}</Text>
+                <Ionicons name="chevron-down" size={18} color="#666" />
+              </TouchableOpacity>
+            </View>
 
-      {/* Dough Type Dropdown Modal */}
+            {/* Table */}
+            {prepReportItems.length > 0 ? (
+              <View style={styles.prepTable}>
+                {/* Table Header */}
+                <View style={styles.prepTableHeader}>
+                  <Text style={[styles.prepTableHeaderCell, { flex: 2 }]}>Dough</Text>
+                  <Text style={[styles.prepTableHeaderCell, { flex: 3 }]}>Items</Text>
+                  <Text style={[styles.prepTableHeaderCell, { flex: 1 }]}>Today</Text>
+                  <Text style={[styles.prepTableHeaderCell, { flex: 1 }]}>Tmrw</Text>
+                  <Text style={[styles.prepTableHeaderCell, { flex: 1.2 }]}>Prepared</Text>
+                  <Text style={[styles.prepTableHeaderCell, { flex: 1.5 }]}>Not Done</Text>
+                </View>
+                {/* Group items by dough type */}
+                {(() => {
+                  const grouped: Record<string, any[]> = {};
+                  prepReportItems.forEach((item: any) => {
+                    const dough = item.dough_type_name || 'Other';
+                    if (!grouped[dough]) grouped[dough] = [];
+                    grouped[dough].push(item);
+                  });
+                  return Object.entries(grouped).map(([dough, items]) => (
+                    <View key={dough}>
+                      {items.map((item: any, idx: number) => {
+                        const key = item.product_name;
+                        const prepared = parseFloat(preparedQuantities[key] || '0') || 0;
+                        const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
+                        const notCompleted = Math.max(0, total - prepared);
+                        return (
+                          <View key={key} style={[styles.prepTableRow, idx % 2 === 0 && styles.prepTableRowAlt]}>
+                            {idx === 0 ? (
+                              <Text style={[styles.prepTableCell, styles.prepTableDoughCell, { flex: 2 }]}>{dough}</Text>
+                            ) : (
+                              <Text style={[styles.prepTableCell, { flex: 2 }]}></Text>
+                            )}
+                            <Text style={[styles.prepTableCell, { flex: 3 }]}>{item.product_name}</Text>
+                            <Text style={[styles.prepTableCell, { flex: 1, textAlign: 'center' }]}>{item.orders_today || 0}</Text>
+                            <Text style={[styles.prepTableCell, { flex: 1, textAlign: 'center' }]}>{item.orders_tomorrow || 0}</Text>
+                            <View style={{ flex: 1.2 }}>
+                              <TextInput
+                                style={styles.preparedInput}
+                                value={preparedQuantities[key] || ''}
+                                onChangeText={(text) => setPreparedQuantities(prev => ({ ...prev, [key]: text }))}
+                                keyboardType="numeric"
+                                placeholder="0"
+                              />
+                            </View>
+                            <Text style={[styles.prepTableCell, styles.notCompletedCell, { flex: 1.5, textAlign: 'center' }]}>
+                              {notCompleted > 0 ? notCompleted : '-'}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ));
+                })()}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="document-text-outline" size={64} color="#ccc" />
+                <Text style={styles.emptyText}>No items for this department</Text>
+                <Text style={styles.emptySubtext}>No preparation needed today/tomorrow</Text>
+              </View>
+            )}
+
+            {/* WhatsApp Send Button */}
+            {prepReportItems.length > 0 && (
+              <TouchableOpacity style={styles.whatsappSendButton} onPress={() => {
+                if (!reportedBy) { showAlert('Error', 'Please select who reported'); return; }
+                const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const deptLabel = DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || '';
+                let msg = `📋 *PREPARATION REPORT*\n📅 ${today}\n\n`;
+                msg += `*Department:* ${deptLabel}\n*Reported by:* ${reportedBy}\n\n`;
+                msg += `*Dough | Item | Today | Tmrw | Prepared | Not Done*\n`;
+                msg += `─────────────────────────\n`;
+                const grouped: Record<string, any[]> = {};
+                prepReportItems.forEach((item: any) => {
+                  const dough = item.dough_type_name || 'Other';
+                  if (!grouped[dough]) grouped[dough] = [];
+                  grouped[dough].push(item);
+                });
+                Object.entries(grouped).forEach(([dough, items]) => {
+                  msg += `\n*${dough}*\n`;
+                  items.forEach((item: any) => {
+                    const key = item.product_name;
+                    const prep = parseFloat(preparedQuantities[key] || '0') || 0;
+                    const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
+                    const notDone = Math.max(0, total - prep);
+                    msg += `  ${item.product_name}: Today=${item.orders_today || 0} | Tmrw=${item.orders_tomorrow || 0} | Prepared=${prep} | Not Done=${notDone}\n`;
+                  });
+                });
+                msg += `\n---\n_Report from Divine Cakery App_`;
+                setPrepReportText(msg);
+                setShowWhatsAppModal(true);
+              }}>
+                <Ionicons name="logo-whatsapp" size={24} color="#fff" />
+                <Text style={styles.whatsappSendButtonText}>Send via WhatsApp</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : null}
+      </View>
+      <Modal visible={showDeptDropdown} transparent animationType="fade" onRequestClose={() => setShowDeptDropdown(false)}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setShowDeptDropdown(false)}>
+          <View style={styles.dropdownContainer}>
+            {DEPARTMENTS.map(dept => (
+              <TouchableOpacity key={dept.key} style={[styles.dropdownItem, selectedDepartment === dept.key && styles.dropdownItemActive]}
+                onPress={() => { setSelectedDepartment(dept.key); setShowDeptDropdown(false); setLoading(true); }}>
+                <Text style={[styles.dropdownItemText, selectedDepartment === dept.key && styles.dropdownItemTextActive]}>{dept.label}</Text>
+                {selectedDepartment === dept.key && <Ionicons name="checkmark" size={20} color="#8B4513" />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Reported By Dropdown Modal */}
+      <Modal visible={showReportedByDropdown} transparent animationType="fade" onRequestClose={() => setShowReportedByDropdown(false)}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setShowReportedByDropdown(false)}>
+          <View style={styles.dropdownContainer}>
+            {departmentStaff.length > 0 ? departmentStaff.filter((s: any) => s.is_active).map((staff: any) => (
+              <TouchableOpacity key={staff.id} style={[styles.dropdownItem, reportedBy === staff.name && styles.dropdownItemActive]}
+                onPress={() => { setReportedBy(staff.name); setShowReportedByDropdown(false); }}>
+                <Text style={[styles.dropdownItemText, reportedBy === staff.name && styles.dropdownItemTextActive]}>{staff.name}</Text>
+                {reportedBy === staff.name && <Ionicons name="checkmark" size={20} color="#8B4513" />}
+              </TouchableOpacity>
+            )) : (
+              <View style={styles.dropdownItem}><Text style={styles.dropdownItemText}>No staff added for this department</Text></View>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* WhatsApp Send Modal for Prep Report */}
+      <Modal visible={showWhatsAppModal} transparent animationType="slide" onRequestClose={() => setShowWhatsAppModal(false)}>
+        <View style={styles.whatsAppModalOverlay}>
+          <View style={styles.whatsAppModalContent}>
+            <View style={styles.whatsAppModalHeader}>
+              <Text style={styles.whatsAppModalTitle}>Send Report via WhatsApp</Text>
+              <TouchableOpacity onPress={() => setShowWhatsAppModal(false)}><Ionicons name="close" size={24} color="#333" /></TouchableOpacity>
+            </View>
+            <Text style={styles.whatsAppModalText}>Please send the report to BOTH numbers below:</Text>
+            <TouchableOpacity style={styles.whatsAppButton} onPress={async () => {
+              const url = `whatsapp://send?phone=918075946225&text=${encodeURIComponent(prepReportText)}`;
+              try { const canOpen = await Linking.canOpenURL(url); if (canOpen) await Linking.openURL(url); else await Linking.openURL(`https://wa.me/918075946225?text=${encodeURIComponent(prepReportText)}`); }
+              catch { showAlert('Error', 'Could not open WhatsApp'); }
+            }}>
+              <Ionicons name="logo-whatsapp" size={24} color="#fff" /><Text style={styles.whatsAppButtonText}>Send to Divine Office</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.whatsAppButton} onPress={async () => {
+              const url = `whatsapp://send?phone=919544183334&text=${encodeURIComponent(prepReportText)}`;
+              try { const canOpen = await Linking.canOpenURL(url); if (canOpen) await Linking.openURL(url); else await Linking.openURL(`https://wa.me/919544183334?text=${encodeURIComponent(prepReportText)}`); }
+              catch { showAlert('Error', 'Could not open WhatsApp'); }
+            }}>
+              <Ionicons name="logo-whatsapp" size={24} color="#fff" /><Text style={styles.whatsAppButtonText}>Send to Soman Nair</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.whatsAppDoneButton} onPress={() => setShowWhatsAppModal(false)}><Text style={styles.whatsAppDoneButtonText}>Done</Text></TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <Modal
         visible={showDoughTypeDropdown}
         transparent={true}
@@ -1071,5 +1328,161 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#666',
     marginTop: 2,
+  },
+  // Preparation Report styles
+  prepReportField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  prepReportLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    width: 110,
+  },
+  prepReportDropdown: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  prepReportDropdownText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  prepReportDropdownPlaceholder: {
+    fontSize: 14,
+    color: '#999',
+  },
+  prepTable: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  prepTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#8B4513',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  prepTableHeaderCell: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  prepTableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    minHeight: 36,
+  },
+  prepTableRowAlt: {
+    backgroundColor: '#fafafa',
+  },
+  prepTableCell: {
+    fontSize: 12,
+    color: '#333',
+    paddingHorizontal: 2,
+  },
+  prepTableDoughCell: {
+    fontWeight: 'bold',
+    color: '#8B4513',
+    fontSize: 11,
+  },
+  preparedInput: {
+    backgroundColor: '#FFF8DC',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    fontSize: 12,
+    textAlign: 'center',
+    minHeight: 28,
+  },
+  notCompletedCell: {
+    fontWeight: 'bold',
+    color: '#f44336',
+  },
+  whatsappSendButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    borderRadius: 8,
+    padding: 14,
+    marginTop: 16,
+  },
+  whatsappSendButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  whatsAppModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  whatsAppModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+  whatsAppModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  whatsAppModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  whatsAppModalText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  whatsAppButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  whatsAppButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  whatsAppDoneButton: {
+    alignItems: 'center',
+    padding: 16,
+    marginTop: 8,
+  },
+  whatsAppDoneButtonText: {
+    color: '#666',
+    fontSize: 14,
   },
 });
