@@ -23,9 +23,9 @@ if [ -f "$SUPERVISOR_CONF" ]; then
     log "FIX1: EXPO_TUNNEL_SUBDOMAIN already present in supervisor conf — skipping"
   else
     # Append EXPO_TUNNEL_SUBDOMAIN to the expo program's environment line
-    sed -i "/^\[program:expo\]/,/^\[/ s|^environment=\(.*\)|environment=\1,EXPO_TUNNEL_SUBDOMAIN=dough-to-sales-suite
-    if grep -q "EXPO_TUNNEL_SUBDOMAIN=dough-to-sales-suite
-      log "FIX1: Injected EXPO_TUNNEL_SUBDOMAIN=dough-to-sales-suite
+    sed -i "/^\[program:expo\]/,/^\[/ s|^environment=\(.*\)|environment=\1,EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
+    if grep -q "EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
+      log "FIX1: Injected EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
     else
       log "FIX1: FAILED to inject EXPO_TUNNEL_SUBDOMAIN"
       exit 1
@@ -40,11 +40,11 @@ fi
 # We ensure the line exists so the entrypoint sed is not a no-op.
 ENV_FILE="/app/frontend/.env"
 if [ -f "$ENV_FILE" ]; then
-  if grep -q '^EXPO_TUNNEL_SUBDOMAIN=dough-to-sales-suite
+  if grep -q '^EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
     log "FIX2: EXPO_TUNNEL_SUBDOMAIN already in .env — skipping"
   else
-    echo "EXPO_TUNNEL_SUBDOMAIN=dough-to-sales-suite
-    log "FIX2: Appended EXPO_TUNNEL_SUBDOMAIN=dough-to-sales-suite
+    echo "EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
+    log "FIX2: Appended EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
   fi
 else
   log "FIX2: WARNING — .env not found"

@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 import { showAlert } from '../../utils/alerts';
@@ -31,6 +33,7 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
     'Fruity dough', 'Lavash', 'Grissini', 'Bread roll dough', 'Potato bun dough',
     'Red burger dough', 'Black burger dough', 'Ciabatta', 'French baguette',
     'Croissants', 'Puffs dough', 'Cookies/biscotti',
+    'Burger Dough', // Burger Dough included for Top Room (only specific items)
   ],
   dough_section: [
     'Milk dough', 'Brioche Dough', 'Burger Dough', 'White Dough', 'Brown Dough',
@@ -38,6 +41,12 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
   ],
   angels_section: ['Crumbs dough'],
 };
+
+// Items from Burger Dough that belong to Top Room in Prep Report only
+const TOP_ROOM_BURGER_ITEMS = [
+  'hot hotdog buns', 'lul hotdog buns 3s', 'sandwich buns 8 in', 'hotdog buns 8"',
+  'hotdog buns 8\'', 'hotdog buns 8 in',
+];
 
 // Staff section key mapping for "Reported by" dropdown
 const DEPT_STAFF_KEY: Record<string, string> = {
@@ -76,6 +85,93 @@ export default function ReportsScreen() {
   const [showReportedByDropdown, setShowReportedByDropdown] = useState(false);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [prepReportText, setPrepReportText] = useState('');
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  // Generate A4 PDF HTML for Preparation Report
+  const generatePrepReportHtml = () => {
+    const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const deptLabel = DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || '';
+    const grouped: Record<string, any[]> = {};
+    prepReportItems.forEach((item: any) => {
+      const dough = item.dough_type_name || 'Other';
+      if (!grouped[dough]) grouped[dough] = [];
+      grouped[dough].push(item);
+    });
+
+    let tableRows = '';
+    Object.entries(grouped).forEach(([dough, items]) => {
+      items.forEach((item: any, idx: number) => {
+        const key = item.product_name;
+        const prep = parseFloat(preparedQuantities[key] || '0') || 0;
+        const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
+        const notDone = Math.max(0, total - prep);
+        tableRows += `<tr>
+          <td style="font-weight:${idx === 0 ? 'bold' : 'normal'};color:${idx === 0 ? '#5D3415' : 'transparent'}">${idx === 0 ? dough : dough}</td>
+          <td>${item.product_name}</td>
+          <td style="text-align:center">${item.orders_today || 0}</td>
+          <td style="text-align:center">${item.orders_tomorrow || 0}</td>
+          <td style="text-align:center;background:#FFF8DC">${prep || ''}</td>
+          <td style="text-align:center;font-weight:bold;color:${notDone > 0 ? '#f44336' : '#4CAF50'}">${notDone > 0 ? notDone : '-'}</td>
+        </tr>`;
+      });
+    });
+
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+      @page { size: A4; margin: 15mm; }
+      body { font-family: Arial, sans-serif; font-size: 12px; color: #333; }
+      .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
+      .header h1 { color: #8B4513; font-size: 22px; margin: 0; }
+      .header p { color: #666; margin: 4px 0; font-size: 13px; }
+      .info { display: flex; justify-content: space-between; margin-bottom: 15px; }
+      .info div { font-size: 13px; }
+      .info strong { color: #8B4513; }
+      table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      th { background: #8B4513; color: #fff; padding: 8px 6px; font-size: 11px; text-align: left; }
+      td { padding: 6px; border-bottom: 1px solid #eee; font-size: 11px; }
+      tr:nth-child(even) { background: #fafafa; }
+      .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 8px; }
+    </style></head><body>
+      <div class="header">
+        <h1>DIVINE CAKERY</h1>
+        <p>Preparation Report</p>
+        <p>${today}</p>
+      </div>
+      <div class="info">
+        <div><strong>Department:</strong> ${deptLabel}</div>
+        <div><strong>Reported by:</strong> ${reportedBy || '-'}</div>
+      </div>
+      <table>
+        <thead><tr><th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tomorrow</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Completed</th></tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      <div class="footer">Report generated from Divine Cakery App</div>
+    </body></html>`;
+  };
+
+  const handlePrintReport = async () => {
+    if (prepReportItems.length === 0) { showAlert('Error', 'No items to print'); return; }
+    try {
+      const html = generatePrepReportHtml();
+      await Print.printAsync({ html, orientation: Print.Orientation.portrait });
+    } catch (error) {
+      console.error('Print error:', error);
+      showAlert('Error', 'Failed to print. Please try again.');
+    }
+  };
+
+  const handleSharePdf = async () => {
+    if (prepReportItems.length === 0) { showAlert('Error', 'No items to export'); return; }
+    if (!reportedBy) { showAlert('Error', 'Please select who reported'); return; }
+    setGeneratingPdf(true);
+    try {
+      const html = generatePrepReportHtml();
+      const { uri } = await Print.printToFileAsync({ html, base64: false });
+      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Share Preparation Report' });
+    } catch (error) {
+      console.error('PDF error:', error);
+      showAlert('Error', 'Failed to generate PDF. Please try again.');
+    } finally { setGeneratingPdf(false); }
+  };
   
   // Update activeTab when user loads (and enforce preparation tab for reports-only users)
   useEffect(() => {
@@ -157,10 +253,28 @@ export default function ReportsScreen() {
         // Fetch full preparation list (no dough filter) and filter client-side by department
         const data = await apiService.getPreparationListReport(dateStr);
         const deptDoughs = DEPARTMENT_DOUGHS[selectedDepartment] || [];
-        // Filter items: only those whose dough_type_name is in this department's list AND have orders
+        // Filter items by department dough names with special handling for Burger Dough items
         const filtered = (data.items || []).filter((item: any) => {
           const doughName = (item.dough_type_name || '').toLowerCase();
-          return deptDoughs.some(d => d.toLowerCase() === doughName) && (item.orders_today > 0 || item.orders_tomorrow > 0);
+          const productName = (item.product_name || '').toLowerCase();
+          const hasOrders = (item.orders_today > 0 || item.orders_tomorrow > 0);
+          if (!hasOrders) return false;
+          
+          const isBurgerDough = doughName === 'burger dough';
+          const isTopRoomBurgerItem = TOP_ROOM_BURGER_ITEMS.some(name => productName.includes(name));
+          
+          if (selectedDepartment === 'top_room') {
+            // Top Room: include its normal doughs + specific Burger Dough items
+            if (isBurgerDough) return isTopRoomBurgerItem;
+            return deptDoughs.some(d => d.toLowerCase() === doughName);
+          } else if (selectedDepartment === 'dough_section') {
+            // Dough Section: include its doughs but EXCLUDE the 4 Top Room Burger items
+            if (isBurgerDough && isTopRoomBurgerItem) return false;
+            return deptDoughs.some(d => d.toLowerCase() === doughName);
+          } else {
+            // Other departments: normal matching
+            return deptDoughs.some(d => d.toLowerCase() === doughName);
+          }
         });
         setPrepReportItems(filtered);
         setPreparedQuantities({});
@@ -606,9 +720,20 @@ export default function ReportsScreen() {
               </View>
             )}
 
-            {/* WhatsApp Send Button */}
+            {/* Action Buttons: Print, Share PDF, WhatsApp */}
             {prepReportItems.length > 0 && (
-              <TouchableOpacity style={styles.whatsappSendButton} onPress={() => {
+              <View>
+                <View style={styles.prepActionRow}>
+                  <TouchableOpacity style={styles.printButton} onPress={handlePrintReport}>
+                    <Ionicons name="print" size={20} color="#fff" />
+                    <Text style={styles.printButtonText}>Print</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.pdfButton, generatingPdf && { opacity: 0.6 }]} onPress={handleSharePdf} disabled={generatingPdf}>
+                    {generatingPdf ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="document" size={20} color="#fff" />}
+                    <Text style={styles.pdfButtonText}>{generatingPdf ? 'Creating...' : 'Share PDF'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity style={styles.whatsappSendButton} onPress={() => {
                 if (!reportedBy) { showAlert('Error', 'Please select who reported'); return; }
                 const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 const deptLabel = DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || '';
@@ -639,13 +764,15 @@ export default function ReportsScreen() {
                 <Ionicons name="logo-whatsapp" size={24} color="#fff" />
                 <Text style={styles.whatsappSendButtonText}>Send via WhatsApp</Text>
               </TouchableOpacity>
+              </View>
             )}
           </View>
         ) : null}
       </View>
       <Modal visible={showDeptDropdown} transparent animationType="fade" onRequestClose={() => setShowDeptDropdown(false)}>
         <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setShowDeptDropdown(false)}>
-          <View style={styles.dropdownContainer}>
+          <View style={styles.dropdownContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.dropdownTitle}>Select Department</Text>
             {DEPARTMENTS.map(dept => (
               <TouchableOpacity key={dept.key} style={[styles.dropdownItem, selectedDepartment === dept.key && styles.dropdownItemActive]}
                 onPress={() => { setSelectedDepartment(dept.key); setShowDeptDropdown(false); setLoading(true); }}>
@@ -660,7 +787,8 @@ export default function ReportsScreen() {
       {/* Reported By Dropdown Modal */}
       <Modal visible={showReportedByDropdown} transparent animationType="fade" onRequestClose={() => setShowReportedByDropdown(false)}>
         <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setShowReportedByDropdown(false)}>
-          <View style={styles.dropdownContainer}>
+          <View style={styles.dropdownContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.dropdownTitle}>Select Staff</Text>
             {departmentStaff.length > 0 ? departmentStaff.filter((s: any) => s.is_active).map((staff: any) => (
               <TouchableOpacity key={staff.id} style={[styles.dropdownItem, reportedBy === staff.name && styles.dropdownItemActive]}
                 onPress={() => { setReportedBy(staff.name); setShowReportedByDropdown(false); }}>
@@ -1484,5 +1612,40 @@ const styles = StyleSheet.create({
   whatsAppDoneButtonText: {
     color: '#666',
     fontSize: 14,
+  },
+  prepActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+  },
+  printButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#8B4513',
+    borderRadius: 8,
+    padding: 14,
+    gap: 8,
+  },
+  printButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  pdfButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E53935',
+    borderRadius: 8,
+    padding: 14,
+    gap: 8,
+  },
+  pdfButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });
