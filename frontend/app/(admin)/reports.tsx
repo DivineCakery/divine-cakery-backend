@@ -138,7 +138,7 @@ export default function ReportsScreen() {
       thead { display: table-header-group; }
       tbody { display: table-row-group; }
     </style></head><body>
-      <div class="header"><b>Preparation Report</b> | ${deptLabel} | ${reportedBy || '-'}</div>
+      <div class="header"><b>Preparation Report</b> | ${deptLabel} | ${reportedBy || '-'} | ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
       <table>
         <thead><tr><th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tmrw</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Done</th></tr></thead>
         <tbody>${tableRows}</tbody>
