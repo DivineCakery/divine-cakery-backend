@@ -88,6 +88,15 @@ export default function ReportsScreen() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
   // Generate A4 PDF HTML for Preparation Report
+  // Helper: calculate adjusted today/tomorrow values (after closing stock reduction)
+  const calcAdjustedValues = (item: any) => {
+    const stock = item.previous_closing_stock || 0;
+    const todayPrep = Math.max(0, item.orders_today - stock);
+    const remainingAfterToday = stock - item.orders_today;
+    const tomorrowPrep = Math.max(0, item.orders_tomorrow - Math.max(0, remainingAfterToday));
+    return { todayPrep, tomorrowPrep };
+  };
+
   const generatePrepReportHtml = () => {
     const deptLabel = DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || '';
     const grouped: Record<string, any[]> = {};
@@ -101,14 +110,15 @@ export default function ReportsScreen() {
     Object.entries(grouped).forEach(([dough, items]) => {
       items.forEach((item: any, idx: number) => {
         const key = item.product_name;
+        const { todayPrep, tomorrowPrep } = calcAdjustedValues(item);
         const prep = parseFloat(preparedQuantities[key] || '0') || 0;
-        const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
+        const total = todayPrep + tomorrowPrep;
         const notDone = Math.max(0, total - prep);
         tableRows += `<tr>
-          <td style="font-weight:${idx === 0 ? 'bold' : 'normal'};color:${idx === 0 ? '#333' : 'transparent'}">${idx === 0 ? dough : dough}</td>
+          <td style="font-weight:${idx === 0 ? 'bold' : 'normal'}">${idx === 0 ? dough : ''}</td>
           <td>${item.product_name}</td>
-          <td style="text-align:center">${item.orders_today || 0}</td>
-          <td style="text-align:center">${item.orders_tomorrow || 0}</td>
+          <td style="text-align:center">${todayPrep}</td>
+          <td style="text-align:center">${tomorrowPrep}</td>
           <td style="text-align:center">${prep || ''}</td>
           <td style="text-align:center;font-weight:bold;color:${notDone > 0 ? '#c00' : '#333'}">${notDone > 0 ? notDone : '-'}</td>
         </tr>`;
@@ -116,17 +126,19 @@ export default function ReportsScreen() {
     });
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-      @page { size: A4; margin: 10mm; }
-      body { font-family: Arial, sans-serif; font-size: 11px; color: #333; margin: 0; }
-      .title { font-size: 15px; font-weight: bold; margin: 0 0 4px; }
-      .info { font-size: 11px; margin: 0 0 2px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-      th { background: #444; color: #fff; padding: 4px 5px; font-size: 10px; text-align: left; }
-      td { padding: 3px 5px; border-bottom: 1px solid #ddd; font-size: 10px; }
-      tr:nth-child(even) { background: #f5f5f5; }
+      @page { size: A4; margin: 8mm; }
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; font-size: 10px; color: #333; margin: 0; padding: 0; }
+      .header { font-size: 11px; margin: 0 0 4px; }
+      .header b { font-size: 12px; }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #333; color: #fff; padding: 3px 4px; font-size: 9px; text-align: left; }
+      td { padding: 2px 4px; border-bottom: 1px solid #ccc; font-size: 9px; line-height: 1.2; }
+      tr { page-break-inside: avoid; }
+      thead { display: table-header-group; }
+      tbody { display: table-row-group; }
     </style></head><body>
-      <div class="title">Preparation Report</div>
-      <div class="info"><b>Department:</b> ${deptLabel} &nbsp; <b>Reported by:</b> ${reportedBy || '-'}</div>
+      <div class="header"><b>Preparation Report</b> | ${deptLabel} | ${reportedBy || '-'}</div>
       <table>
         <thead><tr><th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tmrw</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Done</th></tr></thead>
         <tbody>${tableRows}</tbody>
@@ -243,7 +255,12 @@ export default function ReportsScreen() {
         const filtered = (data.items || []).filter((item: any) => {
           const doughName = (item.dough_type_name || '').toLowerCase();
           const productName = (item.product_name || '').toLowerCase();
-          const hasOrders = (item.orders_today > 0 || item.orders_tomorrow > 0);
+          // Use adjusted values (after closing stock) for the hasOrders check
+          const stock = item.previous_closing_stock || 0;
+          const adjToday = Math.max(0, item.orders_today - stock);
+          const remainAfter = stock - item.orders_today;
+          const adjTmrw = Math.max(0, item.orders_tomorrow - Math.max(0, remainAfter));
+          const hasOrders = (adjToday > 0 || adjTmrw > 0);
           if (!hasOrders) return false;
           
           const isBurgerDough = doughName === 'burger dough';
@@ -666,8 +683,9 @@ export default function ReportsScreen() {
                     <View key={dough}>
                       {items.map((item: any, idx: number) => {
                         const key = item.product_name;
+                        const { todayPrep, tomorrowPrep } = calcAdjustedValues(item);
                         const prepared = parseFloat(preparedQuantities[key] || '0') || 0;
-                        const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
+                        const total = todayPrep + tomorrowPrep;
                         const notCompleted = Math.max(0, total - prepared);
                         return (
                           <View key={key} style={[styles.prepTableRow, idx % 2 === 0 && styles.prepTableRowAlt]}>
@@ -677,8 +695,8 @@ export default function ReportsScreen() {
                               <Text style={[styles.prepTableCell, { flex: 2 }]}></Text>
                             )}
                             <Text style={[styles.prepTableCell, { flex: 3 }]}>{item.product_name}</Text>
-                            <Text style={[styles.prepTableCell, { flex: 1, textAlign: 'center' }]}>{item.orders_today || 0}</Text>
-                            <Text style={[styles.prepTableCell, { flex: 1, textAlign: 'center' }]}>{item.orders_tomorrow || 0}</Text>
+                            <Text style={[styles.prepTableCell, { flex: 1, textAlign: 'center' }]}>{todayPrep}</Text>
+                            <Text style={[styles.prepTableCell, { flex: 1, textAlign: 'center' }]}>{tomorrowPrep}</Text>
                             <View style={{ flex: 1.2 }}>
                               <TextInput
                                 style={styles.preparedInput}
@@ -737,10 +755,11 @@ export default function ReportsScreen() {
                   msg += `\n*${dough}*\n`;
                   items.forEach((item: any) => {
                     const key = item.product_name;
+                    const { todayPrep, tomorrowPrep } = calcAdjustedValues(item);
                     const prep = parseFloat(preparedQuantities[key] || '0') || 0;
-                    const total = (item.orders_today || 0) + (item.orders_tomorrow || 0);
+                    const total = todayPrep + tomorrowPrep;
                     const notDone = Math.max(0, total - prep);
-                    msg += `  ${item.product_name}: Today=${item.orders_today || 0} | Tmrw=${item.orders_tomorrow || 0} | Prepared=${prep} | Not Done=${notDone}\n`;
+                    msg += `  ${item.product_name}: Today=${todayPrep} | Tmrw=${tomorrowPrep} | Prepared=${prep} | Not Done=${notDone}\n`;
                   });
                 });
                 msg += `\n---\n_Report from Divine Cakery App_`;
