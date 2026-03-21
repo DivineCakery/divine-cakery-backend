@@ -150,7 +150,29 @@ export default function ReportsScreen() {
     if (prepReportItems.length === 0) { showAlert('Error', 'No items to print'); return; }
     try {
       const html = generatePrepReportHtml();
-      await Print.printAsync({ html, orientation: Print.Orientation.portrait });
+      if (Platform.OS === 'web') {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc) {
+          doc.open();
+          doc.write(html);
+          doc.close();
+          setTimeout(() => {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+            setTimeout(() => document.body.removeChild(iframe), 1000);
+          }, 300);
+        }
+      } else {
+        await Print.printAsync({ html, orientation: Print.Orientation.portrait });
+      }
     } catch (error) {
       console.error('Print error:', error);
       showAlert('Error', 'Failed to print. Please try again.');
@@ -163,8 +185,30 @@ export default function ReportsScreen() {
     setGeneratingPdf(true);
     try {
       const html = generatePrepReportHtml();
-      const { uri } = await Print.printToFileAsync({ html, base64: false });
-      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Share Preparation Report' });
+      if (Platform.OS === 'web') {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc) {
+          doc.open();
+          doc.write(html);
+          doc.close();
+          setTimeout(() => {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+            setTimeout(() => document.body.removeChild(iframe), 1000);
+          }, 300);
+        }
+      } else {
+        const { uri } = await Print.printToFileAsync({ html, base64: false });
+        await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Share Preparation Report' });
+      }
     } catch (error) {
       console.error('PDF error:', error);
       showAlert('Error', 'Failed to generate PDF. Please try again.');
