@@ -128,12 +128,12 @@ export default function ReportsScreen() {
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page { size: A4; margin: 8mm; }
       * { box-sizing: border-box; }
-      body { font-family: Arial, sans-serif; font-size: 10px; color: #333; margin: 0; padding: 0; }
-      .header { font-size: 11px; margin: 0 0 4px; }
-      .header b { font-size: 12px; }
-      table { width: 100%; border-collapse: collapse; }
-      th { background: #333; color: #fff; padding: 3px 4px; font-size: 9px; text-align: left; }
-      td { padding: 2px 4px; border-bottom: 1px solid #ccc; font-size: 9px; line-height: 1.2; }
+      body { font-family: Arial, sans-serif; font-size: 20px; color: #333; margin: 0; padding: 0; }
+      .header { font-size: 22px; margin: 0 0 6px; }
+      .header b { font-size: 24px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+      th { background: #333; color: #fff; padding: 5px 6px; font-size: 18px; text-align: left; }
+      td { padding: 4px 6px; border-bottom: 1px solid #ccc; font-size: 18px; line-height: 1.3; }
       tr { page-break-inside: avoid; }
       thead { display: table-header-group; }
       tbody { display: table-row-group; }
