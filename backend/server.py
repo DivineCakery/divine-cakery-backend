@@ -4309,7 +4309,7 @@ async def download_daily_reports_bundle():
         init_resp.raise_for_status()
         storage_key = init_resp.json()["storage_key"]
         resp = req.get(
-            f"{STORAGE_URL}/objects/divine-cakery/exports/daily-reports-bundle.txt",
+            f"{STORAGE_URL}/objects/divine-cakery/exports/daily-reports-staff-bundle.txt",
             headers={"X-Storage-Key": storage_key}, timeout=60
         )
         resp.raise_for_status()
