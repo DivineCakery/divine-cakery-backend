@@ -4298,6 +4298,32 @@ async def get_privacy_policy():
     return HTMLResponse(content=privacy_html)
 
 
+# Temporary download endpoint for code export bundle
+@app.get("/api/download/daily-reports-bundle")
+async def download_daily_reports_bundle():
+    import requests as req
+    STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
+    EMERGENT_KEY = "sk-emergent-bEe3dDeAb66F8817fC"
+    try:
+        init_resp = req.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
+        init_resp.raise_for_status()
+        storage_key = init_resp.json()["storage_key"]
+        resp = req.get(
+            f"{STORAGE_URL}/objects/divine-cakery/exports/daily-reports-bundle.txt",
+            headers={"X-Storage-Key": storage_key}, timeout=60
+        )
+        resp.raise_for_status()
+        from fastapi.responses import Response as FastResponse
+        return FastResponse(
+            content=resp.content,
+            media_type="text/plain",
+            headers={"Content-Disposition": "attachment; filename=daily-reports-bundle.txt"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
