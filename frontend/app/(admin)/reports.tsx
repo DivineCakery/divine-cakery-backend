@@ -44,8 +44,8 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
 
 // Items from Burger Dough that belong to Top Room in Prep Report only
 const TOP_ROOM_BURGER_ITEMS = [
-  'hot hotdog buns', 'lul hotdog buns 3s', 'sandwich buns 8 in', 'hotdog buns 8"',
-  'hotdog buns 8\'', 'hotdog buns 8 in',
+  'hot hotdog bun*4', 'lul samoon seeded*4', 'hotdog buns- 8in',
+  'lul hotdog bun 3s', 'sandwich buns- 6in*4',
 ];
 
 // Staff section key mapping for "Reported by" dropdown
@@ -308,7 +308,7 @@ export default function ReportsScreen() {
           if (!hasOrders) return false;
           
           const isBurgerDough = doughName === 'burger dough';
-          const isTopRoomBurgerItem = TOP_ROOM_BURGER_ITEMS.some(name => productName.includes(name));
+          const isTopRoomBurgerItem = TOP_ROOM_BURGER_ITEMS.some(name => productName === name);
           
           if (selectedDepartment === 'top_room') {
             // Top Room: include its normal doughs + specific Burger Dough items
