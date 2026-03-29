@@ -271,8 +271,8 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           )}
 
-          {/* Daily Reports Section - Available for Full, Limited Access and Reports Only */}
-          {(accessLevel.toLowerCase() === 'full' || accessLevel.toLowerCase() === 'limited' || accessLevel.toLowerCase() === 'reports') && (
+          {/* Daily Reports Section - Full Access Admin Only */}
+          {accessLevel.toLowerCase() === 'full' && (
             <View style={styles.dailyReportsSection}>
               <TouchableOpacity 
                 style={styles.dailyReportsHeader}
