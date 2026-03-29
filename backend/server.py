@@ -2843,9 +2843,10 @@ async def delete_user_by_admin(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Prevent deleting other admins
+    # Only full-access admins can delete other admins
     if user.get("role") == "admin":
-        raise HTTPException(status_code=400, detail="Cannot delete admin accounts")
+        if current_user.admin_access_level != "full":
+            raise HTTPException(status_code=403, detail="Only full-access admins can delete admin accounts")
     
     # Delete user's wallet
     await db.wallets.delete_one({"user_id": user_id})
