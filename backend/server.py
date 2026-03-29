@@ -3373,6 +3373,52 @@ async def remove_section_staff(section_key: str, staff_id: str, current_user: Us
     return {"message": "Staff member removed"}
 
 
+# ==================== WHATSAPP NUMBERS MANAGEMENT ====================
+
+@api_router.get("/admin/whatsapp-numbers")
+async def get_whatsapp_numbers(current_user: User = Depends(get_current_admin)):
+    """Get the list of WhatsApp numbers for report sending"""
+    config = await db.app_settings.find_one({"key": "whatsapp_numbers"})
+    if not config:
+        # Default numbers
+        default = [
+            {"id": str(uuid.uuid4()), "name": "Divine Office", "phone": "918075946225"},
+            {"id": str(uuid.uuid4()), "name": "Soman Nair", "phone": "919544183334"}
+        ]
+        await db.app_settings.insert_one({"key": "whatsapp_numbers", "numbers": default})
+        return {"numbers": default}
+    return {"numbers": config.get("numbers", [])}
+
+@api_router.post("/admin/whatsapp-numbers/add")
+async def add_whatsapp_number(data: dict, current_user: User = Depends(get_current_admin)):
+    """Add a new WhatsApp number"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage numbers")
+    name = data.get("name", "").strip()
+    phone = data.get("phone", "").strip().replace("+", "").replace(" ", "").replace("-", "")
+    if not name or not phone:
+        raise HTTPException(status_code=400, detail="Name and phone number are required")
+    new_entry = {"id": str(uuid.uuid4()), "name": name, "phone": phone}
+    await db.app_settings.update_one(
+        {"key": "whatsapp_numbers"},
+        {"$push": {"numbers": new_entry}, "$set": {"key": "whatsapp_numbers"}},
+        upsert=True
+    )
+    return {"message": "Number added", "entry": new_entry}
+
+@api_router.delete("/admin/whatsapp-numbers/{number_id}")
+async def delete_whatsapp_number(number_id: str, current_user: User = Depends(get_current_admin)):
+    """Delete a WhatsApp number"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage numbers")
+    await db.app_settings.update_one(
+        {"key": "whatsapp_numbers"},
+        {"$pull": {"numbers": {"id": number_id}}}
+    )
+    return {"message": "Number removed"}
+
+
+
 
 
 @api_router.get("/admin/reports/daily-items")

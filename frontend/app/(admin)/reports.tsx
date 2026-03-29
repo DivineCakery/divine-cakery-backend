@@ -86,6 +86,12 @@ export default function ReportsScreen() {
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [prepReportText, setPrepReportText] = useState('');
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showViewChoiceModal, setShowViewChoiceModal] = useState(false);
+  const [viewChoiceAction, setViewChoiceAction] = useState<'print' | 'pdf'>('print');
+  const [whatsappNumbers, setWhatsappNumbers] = useState<{id: string, name: string, phone: string}[]>([]);
+  const [showAddNumberModal, setShowAddNumberModal] = useState(false);
+  const [newNumberName, setNewNumberName] = useState('');
+  const [newNumberPhone, setNewNumberPhone] = useState('');
 
   // Generate A4 PDF HTML for Preparation Report
   // Helper: calculate adjusted today/tomorrow values (after closing stock reduction)
@@ -97,7 +103,7 @@ export default function ReportsScreen() {
     return { todayPrep, tomorrowPrep };
   };
 
-  const generatePrepReportHtml = () => {
+  const generatePrepReportHtml = (limited: boolean = false) => {
     const deptLabel = DEPARTMENTS.find(d => d.key === selectedDepartment)?.label || '';
     const grouped: Record<string, any[]> = {};
     prepReportItems.forEach((item: any) => {
@@ -119,15 +125,20 @@ export default function ReportsScreen() {
           <td>${item.product_name}</td>
           <td style="text-align:center">${todayPrep}</td>
           <td style="text-align:center">${tomorrowPrep}</td>
-          <td style="text-align:center">${prep || ''}</td>
-          <td style="text-align:center;font-weight:bold;color:${notDone > 0 ? '#c00' : '#333'}">${notDone > 0 ? notDone : '-'}</td>
+          ${limited ? '' : `<td style="text-align:center">${prep || ''}</td>
+          <td style="text-align:center;font-weight:bold;color:${notDone > 0 ? '#c00' : '#333'}">${notDone > 0 ? notDone : '-'}</td>`}
         </tr>`;
       });
     });
 
+    const thCols = limited
+      ? `<th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tmrw</th>`
+      : `<th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tmrw</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Done</th>`;
+
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page { size: A4; margin: 8mm; }
       * { box-sizing: border-box; }
+      html, body { height: auto; overflow: visible; }
       body { font-family: Arial, sans-serif; font-size: 20px; color: #333; margin: 0; padding: 0; }
       .header { font-size: 22px; margin: 0 0 6px; }
       .header b { font-size: 24px; }
@@ -140,36 +151,44 @@ export default function ReportsScreen() {
     </style></head><body>
       <div class="header"><b>Preparation Report</b> | ${deptLabel} | ${reportedBy || '-'} | ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
       <table>
-        <thead><tr><th>Dough</th><th>Items</th><th style="text-align:center">Today</th><th style="text-align:center">Tmrw</th><th style="text-align:center">Prepared</th><th style="text-align:center">Not Done</th></tr></thead>
+        <thead><tr>${thCols}</tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
     </body></html>`;
   };
 
-  const handlePrintReport = async () => {
+  const printHtml = (html: string) => {
+    if (Platform.OS === 'web') {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.left = '0';
+      iframe.style.top = '0';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
+      document.body.appendChild(iframe);
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(html);
+        doc.close();
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => document.body.removeChild(iframe), 2000);
+        }, 500);
+      }
+    }
+  };
+
+  const handlePrintReport = async (limited: boolean) => {
     if (prepReportItems.length === 0) { showAlert('Error', 'No items to print'); return; }
     try {
-      const html = generatePrepReportHtml();
+      const html = generatePrepReportHtml(limited);
       if (Platform.OS === 'web') {
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = 'none';
-        document.body.appendChild(iframe);
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (doc) {
-          doc.open();
-          doc.write(html);
-          doc.close();
-          setTimeout(() => {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
-            setTimeout(() => document.body.removeChild(iframe), 1000);
-          }, 300);
-        }
+        printHtml(html);
       } else {
         await Print.printAsync({ html, orientation: Print.Orientation.portrait });
       }
@@ -179,32 +198,14 @@ export default function ReportsScreen() {
     }
   };
 
-  const handleSharePdf = async () => {
+  const handleSharePdf = async (limited: boolean) => {
     if (prepReportItems.length === 0) { showAlert('Error', 'No items to export'); return; }
     if (!reportedBy) { showAlert('Error', 'Please select who reported'); return; }
     setGeneratingPdf(true);
     try {
-      const html = generatePrepReportHtml();
+      const html = generatePrepReportHtml(limited);
       if (Platform.OS === 'web') {
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'fixed';
-        iframe.style.right = '0';
-        iframe.style.bottom = '0';
-        iframe.style.width = '0';
-        iframe.style.height = '0';
-        iframe.style.border = 'none';
-        document.body.appendChild(iframe);
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (doc) {
-          doc.open();
-          doc.write(html);
-          doc.close();
-          setTimeout(() => {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
-            setTimeout(() => document.body.removeChild(iframe), 1000);
-          }, 300);
-        }
+        printHtml(html);
       } else {
         const { uri } = await Print.printToFileAsync({ html, base64: false });
         await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Share Preparation Report' });
@@ -244,6 +245,7 @@ export default function ReportsScreen() {
   useEffect(() => {
     if (activeTab === 'prepReport') {
       fetchDepartmentStaff();
+      fetchWhatsappNumbers();
     }
   }, [selectedDepartment, activeTab]);
 
@@ -265,6 +267,39 @@ export default function ReportsScreen() {
     } catch (error) {
       console.error('Error fetching department staff:', error);
       setDepartmentStaff([]);
+    }
+  };
+
+  const fetchWhatsappNumbers = async () => {
+    try {
+      const response = await apiService.getWhatsappNumbers();
+      setWhatsappNumbers(response.numbers || []);
+    } catch (error) {
+      console.error('Error fetching WhatsApp numbers:', error);
+    }
+  };
+
+  const handleAddWhatsappNumber = async () => {
+    if (!newNumberName.trim() || !newNumberPhone.trim()) { showAlert('Error', 'Name and phone required'); return; }
+    try {
+      const response = await apiService.addWhatsappNumber(newNumberName.trim(), newNumberPhone.trim());
+      setWhatsappNumbers(prev => [...prev, response.entry]);
+      setNewNumberName('');
+      setNewNumberPhone('');
+      setShowAddNumberModal(false);
+    } catch (error) {
+      console.error('Error adding number:', error);
+      showAlert('Error', 'Failed to add number');
+    }
+  };
+
+  const handleDeleteWhatsappNumber = async (numberId: string) => {
+    try {
+      await apiService.deleteWhatsappNumber(numberId);
+      setWhatsappNumbers(prev => prev.filter(n => n.id !== numberId));
+    } catch (error) {
+      console.error('Error deleting number:', error);
+      showAlert('Error', 'Failed to delete number');
     }
   };
 
@@ -772,11 +807,11 @@ export default function ReportsScreen() {
             {prepReportItems.length > 0 && (
               <View>
                 <View style={styles.prepActionRow}>
-                  <TouchableOpacity style={styles.printButton} onPress={handlePrintReport}>
+                  <TouchableOpacity style={styles.printButton} onPress={() => { setViewChoiceAction('print'); setShowViewChoiceModal(true); }}>
                     <Ionicons name="print" size={20} color="#fff" />
                     <Text style={styles.printButtonText}>Print</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={[styles.pdfButton, generatingPdf && { opacity: 0.6 }]} onPress={handleSharePdf} disabled={generatingPdf}>
+                  <TouchableOpacity style={[styles.pdfButton, generatingPdf && { opacity: 0.6 }]} onPress={() => { setViewChoiceAction('pdf'); setShowViewChoiceModal(true); }} disabled={generatingPdf}>
                     {generatingPdf ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="document" size={20} color="#fff" />}
                     <Text style={styles.pdfButtonText}>{generatingPdf ? 'Creating...' : 'Share PDF'}</Text>
                   </TouchableOpacity>
@@ -851,6 +886,31 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* View Choice Modal (Limited vs Full) */}
+      <Modal visible={showViewChoiceModal} transparent animationType="fade" onRequestClose={() => setShowViewChoiceModal(false)}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setShowViewChoiceModal(false)}>
+          <View style={styles.dropdownContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.dropdownTitle}>{viewChoiceAction === 'print' ? 'Print Report' : 'Share PDF'}</Text>
+            <TouchableOpacity style={[styles.dropdownItem, { backgroundColor: '#f0f8ff' }]} onPress={() => {
+              setShowViewChoiceModal(false);
+              if (viewChoiceAction === 'print') handlePrintReport(true); else handleSharePdf(true);
+            }}>
+              <Ionicons name="eye-off-outline" size={20} color="#555" />
+              <Text style={[styles.dropdownItemText, { marginLeft: 8 }]}>Limited View</Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 11, color: '#999', paddingHorizontal: 16, marginBottom: 8 }}>Only Dough, Items, Today, Tmrw columns</Text>
+            <TouchableOpacity style={[styles.dropdownItem, { backgroundColor: '#f0fff0' }]} onPress={() => {
+              setShowViewChoiceModal(false);
+              if (viewChoiceAction === 'print') handlePrintReport(false); else handleSharePdf(false);
+            }}>
+              <Ionicons name="eye-outline" size={20} color="#555" />
+              <Text style={[styles.dropdownItemText, { marginLeft: 8 }]}>Full View</Text>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 11, color: '#999', paddingHorizontal: 16, marginBottom: 8 }}>All columns including Prepared & Not Done</Text>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* WhatsApp Send Modal for Prep Report */}
       <Modal visible={showWhatsAppModal} transparent animationType="slide" onRequestClose={() => setShowWhatsAppModal(false)}>
         <View style={styles.whatsAppModalOverlay}>
@@ -859,24 +919,57 @@ export default function ReportsScreen() {
               <Text style={styles.whatsAppModalTitle}>Send Report via WhatsApp</Text>
               <TouchableOpacity onPress={() => setShowWhatsAppModal(false)}><Ionicons name="close" size={24} color="#333" /></TouchableOpacity>
             </View>
-            <Text style={styles.whatsAppModalText}>Please send the report to BOTH numbers below:</Text>
-            <TouchableOpacity style={styles.whatsAppButton} onPress={async () => {
-              const url = `whatsapp://send?phone=918075946225&text=${encodeURIComponent(prepReportText)}`;
-              try { const canOpen = await Linking.canOpenURL(url); if (canOpen) await Linking.openURL(url); else await Linking.openURL(`https://wa.me/918075946225?text=${encodeURIComponent(prepReportText)}`); }
-              catch { showAlert('Error', 'Could not open WhatsApp'); }
-            }}>
-              <Ionicons name="logo-whatsapp" size={24} color="#fff" /><Text style={styles.whatsAppButtonText}>Send to Divine Office</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.whatsAppButton} onPress={async () => {
-              const url = `whatsapp://send?phone=919544183334&text=${encodeURIComponent(prepReportText)}`;
-              try { const canOpen = await Linking.canOpenURL(url); if (canOpen) await Linking.openURL(url); else await Linking.openURL(`https://wa.me/919544183334?text=${encodeURIComponent(prepReportText)}`); }
-              catch { showAlert('Error', 'Could not open WhatsApp'); }
-            }}>
-              <Ionicons name="logo-whatsapp" size={24} color="#fff" /><Text style={styles.whatsAppButtonText}>Send to Soman Nair</Text>
+            <Text style={styles.whatsAppModalText}>Send the report to:</Text>
+            <ScrollView style={{ maxHeight: 300 }}>
+              {whatsappNumbers.map(num => (
+                <View key={num.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <TouchableOpacity style={[styles.whatsAppButton, { flex: 1, marginBottom: 0 }]} onPress={async () => {
+                    const url = `whatsapp://send?phone=${num.phone}&text=${encodeURIComponent(prepReportText)}`;
+                    try { const canOpen = await Linking.canOpenURL(url); if (canOpen) await Linking.openURL(url); else await Linking.openURL(`https://wa.me/${num.phone}?text=${encodeURIComponent(prepReportText)}`); }
+                    catch { showAlert('Error', 'Could not open WhatsApp'); }
+                  }}>
+                    <Ionicons name="logo-whatsapp" size={20} color="#fff" />
+                    <Text style={styles.whatsAppButtonText}>{num.name} ({num.phone})</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ padding: 8, marginLeft: 4 }} onPress={() => handleDeleteWhatsappNumber(num.id)}>
+                    <Ionicons name="trash-outline" size={20} color="#c00" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginTop: 8, borderStyle: 'dashed' }}
+              onPress={() => setShowAddNumberModal(true)}>
+              <Ionicons name="add-circle-outline" size={22} color="#8B4513" />
+              <Text style={{ marginLeft: 8, color: '#8B4513', fontWeight: 'bold' }}>Add New Number</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.whatsAppDoneButton} onPress={() => setShowWhatsAppModal(false)}><Text style={styles.whatsAppDoneButtonText}>Done</Text></TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Add WhatsApp Number Modal */}
+      <Modal visible={showAddNumberModal} transparent animationType="fade" onRequestClose={() => setShowAddNumberModal(false)}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setShowAddNumberModal(false)}>
+          <View style={styles.dropdownContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.dropdownTitle}>Add WhatsApp Number</Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 10, fontSize: 15 }}
+              placeholder="Name (e.g. John)"
+              value={newNumberName}
+              onChangeText={setNewNumberName}
+            />
+            <TextInput
+              style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 10, fontSize: 15 }}
+              placeholder="Phone with country code (e.g. 919876543210)"
+              value={newNumberPhone}
+              onChangeText={setNewNumberPhone}
+              keyboardType="phone-pad"
+            />
+            <TouchableOpacity style={{ backgroundColor: '#8B4513', borderRadius: 8, padding: 14, alignItems: 'center' }} onPress={handleAddWhatsappNumber}>
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>Add Number</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       </Modal>
       <Modal
         visible={showDoughTypeDropdown}

@@ -1,88 +1,62 @@
 # Divine Cakery - Product Requirements Document
 
 ## Original Problem Statement
-Build and maintain a wholesale bakery management system (Divine Cakery) with:
-- Customer ordering & wallet system
-- Admin dashboard with product/order/user management
-- Staff checklist feature with daily reports across 7 departments
-- WhatsApp-based report sending
-- Razorpay payments integration
-- Standing orders (recurring)
-- Android app via Expo/React Native
+Wholesale bakery management system with customer ordering, wallet system, admin dashboard, staff checklist reports, WhatsApp report sending, Razorpay payments, standing orders, and Android app via Expo/React Native.
 
 ## Tech Stack
-- **Frontend**: Expo (React Native) with TypeScript
-- **Backend**: FastAPI (Python)
-- **Database**: MongoDB Atlas
-- **Hosting**: Render.com (production backend)
-- **Build**: EAS (Android builds)
-- **Payments**: Razorpay
+- Frontend: Expo (React Native) with TypeScript
+- Backend: FastAPI (Python)
+- Database: MongoDB Atlas
+- Hosting: Render.com (production backend)
+- Build: EAS (Android builds)
+- Payments: Razorpay
 
-## Staff Checklist Feature (Complete)
-### Report Sections (7 total)
-1. Top Room, 2. Dough Section, 3. Packing Section, 4. Angels/Prep Section,
-5. Cleaning/Facilities Team, 6. Supervisor, 7. Sales Team
+## Completed Features
 
-### Key Features
-- **Independent staff lists per section** - each section has its own staff
-- **Editable checklist items** - admin can add/edit/remove numbered tasks per section
-- **Dynamic report generation** - checklist items fetched from backend
-- **WhatsApp dual-send** - reports sent to both Divine Office and Soman Nair
-- **Daily/Weekly task lists** - editable per section
+### Staff Checklist (7 Sections) - COMPLETE
+- Independent staff lists and editable checklists per section
+- WhatsApp dual-send reports
+- API: `/api/admin/section-staff/{key}`, `/api/admin/section-tasks/{key}`
 
-### API Endpoints
-- `GET/PUT /api/admin/section-tasks/{section_key}` - daily_tasks, weekly_tasks, checklist_items
-- `GET/POST/DELETE /api/admin/section-staff/{section_key}` - independent staff per section
-- Valid sections: top_room, dough_section, packing_section, angels_prep, cleaning_facilities, supervisor, sales_team
+### Razorpay OTP Payment Fix - COMPLETE
+- External browser + manual confirmation modal for OTP flows
 
-## Payment Flow (Fixed)
-### OTP Issue Fix
-- **Problem**: In-app browser closed when user minimized app to check OTP
-- **Fix**: Replaced `expo-web-browser` with `Linking.openURL` + manual confirmation modal
-- **wallet.tsx**: Opens payment in external browser + AppState listener
-- **checkout.tsx**: Same pattern + polls transaction status
+### Preparation Report - COMPLETE
+- 3-tab Reports screen: Daily Items, Prep List, Prep Report
+- Department dropdown (Dough Section, Top Room, Angels Section)
+- Reported by dropdown (staff per department)
+- Table with adjusted Today/Tmrw values (closing stock subtracted)
+- Special Burger Dough filtering: 5 items moved to Top Room
+- Print/Share PDF with Limited View (no Prepared/Not Done) and Full View options
+- Multi-page printing via hidden iframe (web) / expo-print (native)
+- Date on PDF header line
+- Items with 0 adjusted values filtered out
 
-## Preparation Report Feature (Complete - Fixed 2026-03-20)
-### Overview
-- New "Prep Report" tab added to Reports screen
-- Department-based filtering (Dough Section, Top Room, Angels Section)
-- Staff-based "Reported by" selection
-- Table with Today/Tomorrow/Prepared/Not Done columns
-- Special Burger Dough item filtering for Top Room
+### WhatsApp Numbers Management - COMPLETE (needs production deploy)
+- Dynamic add/delete WhatsApp numbers
+- Stored in `app_settings` collection
+- Default numbers: Divine Office, Soman Nair
+- API: `/api/admin/whatsapp-numbers`, `/api/admin/whatsapp-numbers/add`, `/api/admin/whatsapp-numbers/{id}`
 
-### Bug Fixes Applied (2026-03-20)
-- Fixed dropdown modals using wrong style name (`dropdownContainer` -> `dropdownContent`)
-- Added `onStartShouldSetResponder` for proper touch handling in modals
-- Added missing styles: `prepActionRow`, `printButton`, `printButtonText`, `pdfButton`, `pdfButtonText`
+### Dashboard Access Control - COMPLETE
+- Daily Reports section hidden for non-full-access admins
 
-### Features
-- Print report (via expo-print)
-- Share as PDF (via expo-print + expo-sharing)
-- Send via WhatsApp with formatted text
+### Burger Dough Filtering - COMPLETE
+- 5 items moved from Dough Section to Top Room: HOT HOTDOG BUN*4, LUL SAMOON SEEDED*4, Hotdog buns- 8in, LUL HOTDOG BUN 3S, Sandwich buns- 6in*4
 
 ## Key Files
-### Backend
-- `backend/server.py` - All endpoints
+- `frontend/app/(admin)/reports.tsx` - Main reports with 3 tabs
+- `frontend/app/(admin)/dashboard.tsx` - Admin dashboard
+- `frontend/services/api.ts` - API service layer
+- `backend/server.py` - All backend endpoints
 
-### Frontend - Payment
-- `app/(customer)/wallet.tsx` - Wallet top-up
-- `app/(customer)/checkout.tsx` - Checkout payment
+## IMPORTANT: Production Deploy Needed
+The WhatsApp numbers management endpoints are new and need to be deployed to Render.com. The user must push updated `server.py` to GitHub for Render auto-deploy.
 
-### Frontend - Admin Reports
-- `app/(admin)/reports.tsx` - Reports screen with 3 tabs (Daily Items, Prep List, Prep Report)
-- `app/(admin)/dashboard.tsx` - Admin dashboard
-- `app/(admin)/{section}-report.tsx` - 7 report pages
-- `app/(admin)/{section}-tasks.tsx` - 7 tasks pages
-- `services/api.ts` - All API methods
-
-## Known Issues
-- **TOP_ROOM_BURGER_ITEMS filter**: The product names in the filter list may not exactly match actual database product names (e.g., "hot hotdog buns" vs "HOT HOTDOG BUN*4"). Needs verification with real data.
-
-## Backlog / Future Tasks
-- **P1**: Verify Burger Dough special filtering with actual product data
-- **P2**: Refactor `reports.tsx` (1600+ lines) into smaller components
-- **P2**: Add "Report History" feature to save completed reports to DB
-- **P3**: Add "Copy Staff List" feature between sections
+## Backlog
+- P2: Refactor `reports.tsx` (1700+ lines) into smaller components
+- P2: Report History feature (save completed reports to DB)
+- P3: Copy Staff List feature between sections
 
 ## Credentials (Dev)
 - Admin: username=Soman, password=Soman@123

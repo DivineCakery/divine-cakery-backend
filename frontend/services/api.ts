@@ -589,6 +589,22 @@ class ApiService {
     const response = await this.api.delete(`/admin/section-staff/${sectionKey}/${staffId}`);
     return response.data;
   }
+
+  // WhatsApp Numbers Management
+  async getWhatsappNumbers() {
+    const response = await this.api.get('/admin/whatsapp-numbers');
+    return response.data;
+  }
+
+  async addWhatsappNumber(name: string, phone: string) {
+    const response = await this.api.post('/admin/whatsapp-numbers/add', { name, phone });
+    return response.data;
+  }
+
+  async deleteWhatsappNumber(numberId: string) {
+    const response = await this.api.delete(`/admin/whatsapp-numbers/${numberId}`);
+    return response.data;
+  }
 }
 
 export default new ApiService();
