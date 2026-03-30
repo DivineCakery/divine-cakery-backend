@@ -1,182 +1,142 @@
-<analysis>
-
-**original_problem_statement**:
-The user's primary goal is to add a comprehensive staff checklist feature to the admin section of the application. This involves creating multiple new report pages, each with its own set of tasks and the ability to send completion reports via WhatsApp.
-
-This session also addressed numerous other requests and critical bugs:
-1.  **Staff Checklist Feature**:
-    *   Create a Top Room Report page for staff to fill out daily.
-    *   This page should include dropdowns for staff names, checkboxes for tasks, and text fields for notes.
-    *   The report should be sent to two specific WhatsApp numbers.
-    *   Create a separate, admin-editable page for managing the list of cleaning tasks.
-    *   Expand this functionality to 6 other sections ('Dough Section', 'Packing Section', etc.).
-2.  **UI/UX Improvements**:
-    *   Update placeholder text on the login and registration pages.
-    *   Add a Remember Me feature to the login screen.
-    *   Restructure the admin dashboard to group all new reports under a collapsible Daily Reports section.
-3.  **Bug Fixes**:
-    *   Fix a critical production login failure caused by a missing backend URL in the app's configuration ().
-    *   Fix an issue where admin-initiated password resets were not working due to a mismatched field name between the frontend and backend.
-    *   Fix a bug where the WhatsApp report was only being sent to one of two required phone numbers.
-4.  **Feature Change**:
-    *   Completely redesign the Forgot Password flow from an OTP-based system to a manual, admin-assisted request flow via WhatsApp.
-5.  **Deployment & Maintenance**:
-    *   Create multiple new Android builds for the Play Store.
-    *   Address the core, recurring issue of the production backend on Render.com being out-of-date, which prevents new features from working in the live app.
-    *   Resolve recurring Expo preview URL failures due to environmental instability and package version conflicts.
+<analysis>**original_problem_statement**: 
+The user requested a series of enhancements and bug fixes across the admin dashboard:
+1.  Fix broken dropdowns in the Preparation Report tab.
+2.  Adjust the PDF/Print layout for the Preparation Report (compact view, double font size, add date, multi-page support, and options for 'Limited' vs 'Full' view).
+3.  Calculate 'Today/Tmrw' values by subtracting closing stock, and filter out zero-value items.
+4.  Apply specific exact-match filtering to move 5 distinct 'Burger Dough' items to the 'Top Room' report.
+5.  Allow full-access admins to delete other admin users.
+6.  Allow admin to dynamically add/remove WhatsApp numbers for report sharing.
+7.  Create a Manage Route Codes system and require a route code assignment for all customer accounts.
+8.  Create a new Route Summaries report based on daily orders, formatted as a matrix table (Items vs Customers), grouped by routes (Lulu Trip, Short Route, Long Route, Onsite). *Currently undergoing a major formatting rework requested by the user.*
 
 **User's preferred language**: English
 
-**what currently exists?**
-The application consists of a FastAPI backend and an Expo (React Native) frontend. The production backend is hosted on Render.com and is critically out-of-date; it does not contain the necessary API endpoints for the new staff checklist feature. The local backend and frontend code contain numerous new features and bug fixes that have been implemented but are not all live. The Staff Checklist feature has been partially implemented, with the Top Room report page and its corresponding backend logic complete. The UI for adding six more report types has been added to the dashboard, but the pages themselves do not exist yet.
+**what currently exists?** 
+A React Native (Expo) frontend and FastAPI backend for a wholesale bakery (Divine Cakery). Complex daily reporting features exist with PDF generation (via web iframes and ). The app has role-based admin access. 
 
 **Last working item**:
-- Last item agent was working: Expanding the Daily Reports feature. The agent updated the admin dashboard UI () to be a collapsible section containing the existing Top Room report and placeholders for 6 new report types ('Dough Section', 'Packing Section', etc.).
-- Status: IN PROGRESS
-- Agent Testing Done: N
-- Which testing method agent to use? both
-- User Testing Done: N
+- **Last item agent was working**: Performing a major logic and UI rework of the newly created Route Summaries report ( and ). The user requested 7 specific changes: assigning different drivers per route, doubling the font size, splitting LR1/LR2 and SR1/SR2 into distinct grouped sections with their own Total columns *before* the customer columns, adding total columns for Onsite and Lulu, using 'LFT' for Lulu, and printing in black & white.
+- **Status**: IN PROGRESS
+- **Agent Testing Done**: N (Agent executed a  to apply the logic but session ended before testing).
+- **Which testing method agent to use?**: both (Backend testing agent to verify the complex matrix/total calculations, followed by Frontend Screenshot tool to verify the new UI layout).
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Production Backend on Render.com is Out-of-Date (P0)
-
-  Issues Detail:
-  - Issue 1: 
-     - **Description**: The most critical issue is that the production backend on Render.com is running old code. It is missing all the new API endpoints created for the Staff Checklist feature (, ). This is why the user reported that the feature does not work in their live app (staff lists are empty, tasks don't load).
-     - **Attempted fixes**: The agent correctly diagnosed the issue by testing the production API endpoints and confirmed they returned Not Found. The agent has repeatedly instructed the user to push the local  code to the  branch of their  GitHub repository, which will trigger the required deployment on Render.com.
-     - **Next debug checklist**: 
-        1. Re-confirm with the user that they must push the backend code to their  GitHub repository.
-        2. Guide them to use the Save to GitHub feature in the Emergent UI and select the  branch. Advise them to use Force Push if prompted.
-        3. After the user confirms the push, monitor the deployment on Render.com.
-        4. Once deployed, verify that the production endpoints () are active and return data.
-     - **Why fix this issue and what will be achieved with the fix?**: This is the ONLY way to make the entire Staff Checklist feature functional for users of the live Play Store app. It will resolve the user's report of missing data and functionality.
-     - **Status**:  BLOCKED
+  Issue 1: Production Backend Desync causing Frontend 404s (P0)
+     - **Attempted fixes**: Not applicable to codebase. The code is written correctly.
+     - **Next debug checklist**: Provide clear instructions to the user to push their code to GitHub so Render.com auto-deploys the backend. 
+     - **Why fix this issue and what will be achieved with the fix?**:  has the production backend URL hardcoded. Therefore, the web preview frontend makes API calls to production. Since the new endpoints (WhatsApp numbers, Route Codes, Route Summaries) only exist locally, the frontend UI throws 404 errors and gets stuck on loading spinners when tested via screenshots.
+     - **Status**: BLOCKED (Requires user action to deploy backend).
      - **Is recurring issue?** Y
-     - **Should Test frontend/backend/both after fix?** backend
-     - **Blocked on other issue**: Blocked on the user performing the git push action.
+     - **Should Test frontend/backend/both after fix?** both
+     - **Blocked on other issue**: None.
 
 **In progress Task List**:
--   Task 1: Complete the Duplicate Reports Feature (P0)
-
- Task Detail:
-  - Task 1: 
-     - **Description**: The user requested 6 additional report sections ('Dough Section', 'Packing Section', 'Angels/Prep Section', 'Cleaning/Facilities Team', 'Supervisor', 'Sales Team') that duplicate the functionality of the 'Top Room' report.
-     - **Where to resume**: The dashboard UI in  has been updated with a collapsible list of all 7 reports. The next steps are a full-stack implementation for the 6 new reports.
-        1. **Backend**: In , create new MongoDB collections and API endpoints for each of the 6 new report types to store their unique cleaning task lists. The existing  API can be reused.
-        2. **Frontend**: For each of the 6 new reports, create a new report page (e.g., ) and a new cleaning task management page (e.g., ), duplicating and adapting the logic from  and .
-        3. **Navigation**: Ensure the buttons on the dashboard navigate to the correct new pages.
-     - **What will be achieved with this?**: This will complete the user's primary feature request for comprehensive staff checklists across all departments.
-     - **Status**:  IN PROGRESS
-     - **Should Test frontend/backend/both after fix?** both
+  Task 1: Complete Route Summaries Complex Layout Rework (P0)
+     - **Where to resume**: Review the last  done on  and . Verify if the matrix data structure returned by the backend properly supports splitting SR1/SR2 and LR1/LR2 with sub-totals *before* the individual customer columns.
+     - **What will be achieved with this?**: Fulfills the user's specific logistics requirements for drivers loading their vehicles.
+     - **Status**: IN PROGRESS
+     - **Should Test frontend/backend/both after fix?** both (Backend matrix logic is highly prone to errors).
      - **Blocked on something**: None.
 
-**Upcoming and Future Tasks**
-- None. The priority is to deploy the backend and complete the in-progress checklist feature.
+**Upcoming and Future Tasks**:
+    P1: Create a new production Android build () *after* the user deploys the backend to production.
+    P2: Refactor . At ~1700 lines, it manages 3 distinct tabs and multiple modals. Break down into smaller components (e.g., ).
+    P2: Report History feature (snapshot daily reports to DB).
+    P3: Copy Staff List feature between sections.
 
-**Completed work in this session**
-- List of all completed tasks with file and method name:
-  - **Critical Production Login Fix**: Added the missing  to  to allow the production app to connect to the backend.
-  - **Staff Checklist Feature (Phase 1)**: Implemented the full-stack Top Room report feature, including backend APIs (,  in ) and frontend pages (, ).
-  - **Admin Password Reset Fix**: Corrected a bug in  where the wrong field name ( instead of ) was being sent, causing password changes to fail.
-  - **Simplified Forgot Password Flow**: Reworked  to remove OTPs and implement a manual request system via WhatsApp.
-  - **Remember Me Feature**: Added a Remember Me checkbox and  logic to .
-  - **WhatsApp Multi-send Fix**: Replaced a failing multi-send attempt with a modal containing two separate buttons in  to ensure reports can be sent to both required numbers.
-  - **Dashboard Restructuring**: Reorganized  to add a new collapsible Daily Reports section.
-  - **Placeholder Text Update**: Updated placeholder text in  and .
-  - **Android Build Creation**: Initiated multiple new EAS builds (v1.0.26, v1.0.28, v1.0.29).
-  - **Access Control Update**: Gave reports only users access to checklist features in .
+**Completed work in this session**:
+- Fixed Prep Report dropdown modals and styling (DONE)
+- Prep Report PDF formatting: compact layout, multi-page support, Limited/Full view options, doubled font sizes, iframe-based web printing (DONE)
+- Prep Report data logic: Subtract closing stock for Today/Tmrw values, filter zero values (DONE)
+- Exact-match filtering for 5 Top Room Burger Dough items (DONE)
+- Exported code bundle for user via Emergent Object Storage (DONE)
+- Hidden Daily Reports from limited-access admins (DONE)
+- Fixed Admin deletion: Full access admins can now delete other admins (DONE)
+- Route Codes CRUD and Customer Form dropdown assignment (DONE)
+- Dynamic WhatsApp numbers CRUD via backend (DONE)
+- V1 of Route Summaries report (DONE - currently being reworked)
 
-- Recently completed:
-  - Dashboard restructuring for Daily Reports (DONE)
-  - WhatsApp multi-send fix (DONE)
-  - Critical production login URL fix in  (DONE)
+**Earlier issues found/mentioned but not fixed**:
+- Issue 1: Frontend URL points to Production
+  - **Debug checklist**: Check  and . 
+  - **Why to solve this issue and what will be achieved with this?**: Prevents the agent from easily testing full-stack E2E flows via the web preview, as frontend calls bypass the local preview backend.
+  - **Should Test frontend/backend/both after fix**: frontend
+  - **Is recurring issue?** Y
 
-**Earlier issues found/mentioned but not fixed**
-- The primary issue of the out-of-date production backend has been identified multiple times but remains unresolved as it requires user action (git push).
+**Known issue recurrence from previous fork**:
+  - Issue recurrence in previous fork: Production backend out of date causing 404s on new features.
+  - Recurrence count: 2
+  - Status: BLOCKED (User needs to deploy). Next agent MUST be aware that frontend screenshots may show errors purely because of this routing issue. Use  to  or the preview backend URL to test backend logic.
 
-**Known issue recurrence from previous fork**
-  - **Issue recurrence in previous fork**: Production Backend on Render.com is Out-of-Date.
-  - **Recurrence count**: This issue was the P0 priority in the previous handover and remains the P0 priority now. It has been the root cause of multiple user reports in this session.
-  - **Status**: BLOCKED
-
-**Code Architecture**
+**Code Architecture**:
 
 
-**Key Technical Concepts**
-- **Environment Discrepancy (Local vs. Production)**: This is the most critical concept. The agent's local environment has an up-to-date backend, while the user's live app points to an old, undeployed backend on Render.com. This causes new features to fail in production.
-- **Expo Configuration ()**: A critical bug was caused by the  being removed from the  field in , breaking the production app.
-- **Stateful UI Components**: Implemented collapsible sections on the dashboard and multi-step modals for sending WhatsApp reports.
-- **Secure Storage**: Used  to implement the Remember Me functionality for storing user credentials on the device.
-- **Full-Stack Feature Development**: The checklist feature required creating new database models, FastAPI endpoints, frontend API services, and multiple React Native screens.
-- **Package Versioning Issues**: A significant amount of time was lost debugging  version incompatibilities, highlighting the fragility of the frontend environment.
+**Key Technical Concepts**:
+- **Matrix/Pivot Data Generation**: Backend dynamically builds a 2D array (rows=items, columns=customers) for the Route Summaries.
+- **Hidden Iframe PDF Printing**:  fails on web for complex layouts. The app injects a hidden iframe, writes HTML to it, and calls  to generate clean PDFs without UI navbars.
 
-**key DB schema**
-  - **staff**:  (Implicitly created/managed via API)
-  - **cleaning_tasks**: 
+**key DB schema**:
+  - : 
+  - : 
+  - : Added 
 
-**changes in tech stack**
-  - None.
+**changes in tech stack**:
+  - Utilized Emergent Object Storage (via ) to provide a downloadable code bundle to the user.
 
-**All files of reference**
-- : Contains the new, **undeployed** backend logic for the checklist feature. **Must be deployed.**
-- : Contains the new UI for the Daily Reports section. This is the entry point for the new feature.
-- : The template file to be duplicated for the 6 new report pages.
-- : This file was the source of a critical production bug and contains the app version for new builds.
+**All files of reference**:
+- : Actively being edited. Contains complex matrix rendering and PDF generation.
+- : Actively being edited ( endpoint).
+- : Contains the finalized Prep Report logic.
 
-**Areas that need refactoring**:
-- The current implementation plan involves creating 12 new files (2 for each of the 6 new reports). It would be more efficient to create a single generic  and  component that accepts a  prop to fetch and display the correct data. This would significantly reduce code duplication. The next agent should propose this refactor to the user before proceeding with duplicating files.
+**Areas that need refactoring**: 
+-  (Critically overgrown).
 
-**key api endpoints**
-- : **CREATED**, but **NOT DEPLOYED** to production.
-- : **CREATED**, but **NOT DEPLOYED** to production.
-- : **MODIFIED** to correctly use  field (bug fix). This change is also not yet on the production backend.
+**key api endpoints**:
+-  (Returns matrix data).
+- 
+- 
 
-**Critical Info for New Agent**
-- **PRIORITY #1: DEPLOY THE BACKEND.** You must guide the user to push the  code to their  GitHub repository. The entire Staff Checklist feature is non-functional in production until this is done. Do not attempt to debug the feature on the live app until the backend is deployed.
-- **PRIORITY #2: COMPLETE THE STAFF CHECKLIST FEATURE.** The user is waiting for 6 more report pages. Before you start duplicating files, propose a refactor to use generic, reusable components to avoid massive code duplication. This will be more maintainable in the long run.
-- **BE AWARE OF ENVIRONMENT INSTABILITY.** The Expo preview has a history of crashing due to package version conflicts and ngrok issues. If the preview fails, check backend                          STOPPING  
-code-server                      STOPPED   Not started
-expo                             STOPPED   Mar 03 11:23 AM
-mongodb                          RUNNING   pid 153, uptime 0:00:02
-nginx-code-proxy                 RUNNING   pid 148, uptime 0:00:02 and be prepared to debug  or restart services.
+**Critical Info for New Agent**:
+1. **Frontend-Backend Desync for E2E Testing**: The frontend  has  mapped to the production Render URL. Therefore, when you use the screenshot tool, the UI will attempt to fetch data from production, resulting in 404s for the new Route Summaries and Route Codes pages. **Do not assume your code is broken if the UI spins or shows empty data.** Test your backend logic extensively using  against 
+2. **Current Rework Constraints**: The user wants the Short Route and Long Route PDF tables to visually display split columns (e.g., LR1 section, LR2 section), but with a Total column *preceding* the customer breakdown for each section. Pay close attention to how the HTML table is constructed in .
 
-**documents created in this job**
-- None.
+**documents and test reports created in this job**:
+- 
+- 
+-  (Temporary file generated for user export, can be ignored).
 
-**Last 10 User Messages and any pending HUMAN messages** 
-1.  **User:** Requests to duplicate the Top Room report for 6 other sections and make the parent tab collapsible. (IN PROGRESS)
-2.  **User:** Requests to rename 'send to' buttons in the WhatsApp modal to names instead of numbers. (COMPLETED)
-3.  **User:** Requests to add a Daily Reports section on the dashboard and move the checklist into it. (COMPLETED)
-4.  **User:** Reports that the WhatsApp message is only being sent to one of two numbers. (COMPLETED)
-5.  **User:** Reports that new features (staff list, cleaning tasks) are not working in the live app. (ADDRESSED - Diagnosed as undeployed backend).
-6.  **User:** Reports that users cannot log in to the new production build. (COMPLETED - Fixed missing backend URL and created a new build).
-7.  **User:** Requests to give 'reports only' users access to the new checklist pages. (COMPLETED)
-8.  **User:** Reports a build failed and requests a fresh build with all recent changes. (COMPLETED)
-9.  **User:** Requests a new build for the Play Store. (COMPLETED)
-10. **User:** Requests a simplified version of the checklist report page. (COMPLETED)
+**Last 10 User Messages and any pending HUMAN messages**:
+1. User: Requested 7 major layout/logic changes to the Route Summaries report (separate drivers, split LR/SR columns, totals columns before sections, black & white). (IN PROGRESS)
+2. User: Clarified route summary formatting requirements, default dates, and uploaded a sample PDF for reference. (COMPLETED - Layout underway)
+3. User: Requested Route Summaries report with specific constraints (Lulu, Short, Long, Onsite). (COMPLETED - V1 built)
+4. User: Requested 'Manage Route Codes' feature and required assignment in customer form. (COMPLETED)
+5. User: Requested new production build to be uploaded to Playstore. (COMPLETED)
+6. User: Reported Super admin cannot delete other admins. (COMPLETED)
+7. User: Asked where to add staff for 'Reported by' dropdown. (COMPLETED - Agent explained UI flow).
+8. User: Requested 5 changes to Prep Report (Limited/Full view modal, multi-page print fix, dynamic WhatsApp numbers). (COMPLETED)
+9. User: Requested Daily Reports dashboard section be hidden from non-full admins. (COMPLETED)
+10. User: Requested bundled export of 7 specific Daily Staff Reports. (COMPLETED)
 
-**Project Health Check:**
--   **Broken**: The Staff Checklist feature is **non-functional** in the live production environment because the required backend code has not been deployed.
--   **Mocked**: The Forgot Password flow is a manual, admin-assisted process that relies on WhatsApp.
+**Project Health Check**:
+- Broken:  (In the middle of a massive structural rewrite).
+- Mocked: None.
 
-**3rd Party Integrations**
--   **Razorpay (Payments)** — requires User API Key.
--   **MongoDB Atlas (Database)**.
--   **Render.com (Hosting)** — Production backend hosting. Deploys from the  branch of the  GitHub repo.
--   **EAS (Build Service)** — Used for creating Android app builds.
--   **WhatsApp** — Used via  for user-initiated messaging.
+**3rd Party Integrations**:
+- MongoDB Atlas (Database)
+- Render.com (Production Hosting)
+- EAS (Expo Application Services - Builds)
+- Emergent Object Storage (Used temporarily for file sharing)
 
-**Testing status**
-  - Testing agent used after significant changes: YES
-  - Troubleshoot agent used after agent stuck in loop: YES (Used multiple times to resolve severe expo-router and ngrok issues)
-  - Test files created: []
-  - Known regressions: The new checklist feature appears as a regression in production because the backend was never deployed.
+**Testing status**:
+  - Testing agent used after significant changes: YES (Early in session for Prep Reports).
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None (But UI testing blocked by hardcoded production URL).
 
-**Credentials to test flow:**
--   Admin user: 'Soman'
--   Test user: 'demotrial', Password: 'Demo'
+**Credentials to test flow**:
+- Admin: username=, password=
+- Test user: username=, password=
 
-**What agent forgot to execute**
-- The agent did not forget, but was blocked on user action: ensuring the backend code was pushed to GitHub to trigger the Render.com deployment. This is the single most important pending action and the cause of the main outstanding issue.
-
-</analysis>
+**What agent forgot to execute**:
+The agent performed a  to apply the complex 7-point Route Summaries rework to  and  but the session ended before the agent could run any  tests to verify if the matrix logic (calculating totals *before* specific customer columns) actually executes without Python KeyError/IndexErrors, or if the PDF layout aligns correctly.</analysis>

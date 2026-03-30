@@ -3445,7 +3445,7 @@ async def get_route_summary(
     from datetime import datetime as dt, timedelta
 
     ROUTE_MAP = {
-        "lulu": ["LULU1"],
+        "lulu": ["LFT"],
         "short": ["SR1", "SR2"],
         "long": ["LR1", "LR2"],
         "onsite": ["ONS"],

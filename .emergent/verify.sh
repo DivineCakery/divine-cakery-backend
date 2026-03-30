@@ -24,15 +24,15 @@ echo "=== Verification: $(date) ==="
 echo ""
 
 # CHECK 1: EXPO_TUNNEL_SUBDOMAIN in supervisor conf
-if grep -q "EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
-  check "supervisor-env" 0 "EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
+if grep -q "EXPO_TUNNEL_SUBDOMAIN=prep-route-admin
+  check "supervisor-env" 0 "EXPO_TUNNEL_SUBDOMAIN=prep-route-admin
 else
   check "supervisor-env" 1 "EXPO_TUNNEL_SUBDOMAIN missing from supervisor conf"
 fi
 
 # CHECK 2: EXPO_TUNNEL_SUBDOMAIN in .env
-if grep -q "^EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
-  check "dotenv" 0 "EXPO_TUNNEL_SUBDOMAIN=daily-reports-v2
+if grep -q "^EXPO_TUNNEL_SUBDOMAIN=prep-route-admin
+  check "dotenv" 0 "EXPO_TUNNEL_SUBDOMAIN=prep-route-admin
 else
   check "dotenv" 1 "EXPO_TUNNEL_SUBDOMAIN missing from .env"
 fi
