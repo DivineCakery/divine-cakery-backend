@@ -25,6 +25,7 @@ export default function CustomerFormScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [owners, setOwners] = useState([]);
+  const [routeCodes, setRouteCodes] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -39,10 +40,12 @@ export default function CustomerFormScreen() {
     admin_access_level: 'full',
     user_type: 'owner',
     linked_owner_id: '',
+    route_code: '',
   });
 
   useEffect(() => {
     fetchOwners();
+    fetchRouteCodes();
     if (isEdit) {
       fetchUser();
     }
@@ -51,13 +54,21 @@ export default function CustomerFormScreen() {
   const fetchOwners = async () => {
     try {
       const users = await apiService.getAllUsers();
-      // Filter only owners (user_type = 'owner' or no user_type for backward compatibility)
       const ownersList = users.filter((u: any) => 
         u.role === 'customer' && (u.user_type === 'owner' || !u.user_type)
       );
       setOwners(ownersList);
     } catch (error) {
       console.error('Error fetching owners:', error);
+    }
+  };
+
+  const fetchRouteCodes = async () => {
+    try {
+      const data = await apiService.getRouteCodes();
+      setRouteCodes(data);
+    } catch (error) {
+      console.error('Error fetching route codes:', error);
     }
   };
 
@@ -81,6 +92,7 @@ export default function CustomerFormScreen() {
           admin_access_level: user.admin_access_level || 'full',
           user_type: user.user_type || 'owner',
           linked_owner_id: user.linked_owner_id || '',
+          route_code: user.route_code || '',
         });
       }
     } catch (error) {
@@ -132,6 +144,7 @@ export default function CustomerFormScreen() {
         customerData.delivery_charge_waived = formData.delivery_charge_waived;
         customerData.user_type = formData.user_type;
         customerData.linked_owner_id = formData.user_type === 'order_agent' ? formData.linked_owner_id : null;
+        customerData.route_code = formData.route_code || undefined;
       }
 
       if (isEdit) {
@@ -258,6 +271,21 @@ export default function CustomerFormScreen() {
             numberOfLines={3}
             editable={!loading}
           />
+
+          <Text style={styles.label}>Route Code *</Text>
+          <View style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, overflow: 'hidden', marginBottom: 16, backgroundColor: '#fff' }}>
+            <Picker
+              selectedValue={formData.route_code}
+              onValueChange={(value: string) => setFormData({ ...formData, route_code: value })}
+              enabled={!loading}
+              style={{ height: 50 }}
+            >
+              <Picker.Item label="-- Select Route Code --" value="" />
+              {routeCodes.map((rc: any) => (
+                <Picker.Item key={rc.id} label={`${rc.code} - ${rc.label}`} value={rc.code} />
+              ))}
+            </Picker>
+          </View>
 
           <Text style={styles.label}>User Role</Text>
           <View style={styles.roleSelector}>

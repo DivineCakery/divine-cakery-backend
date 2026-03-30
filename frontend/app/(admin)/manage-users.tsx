@@ -304,6 +304,7 @@ export default function ManageUsersScreen() {
       {item.email && <Text style={styles.infoText}>Email: {item.email}</Text>}
       {item.phone && <Text style={styles.infoText}>Phone: {item.phone}</Text>}
       {item.address && <Text style={styles.infoText}>Address: {item.address}</Text>}
+      {item.route_code && <Text style={styles.infoText}>Route: {item.route_code}</Text>}
       
       {!isAdmin && (
         <View style={styles.statsRow}>

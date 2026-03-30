@@ -2423,6 +2423,10 @@ async def create_user_by_admin(
         "is_superadmin": False  # Only manually set in DB
     }
     
+    # Add route_code for customer users
+    if hasattr(user_data, 'route_code') and user_data.route_code:
+        user_dict["route_code"] = user_data.route_code
+    
     await db.users.insert_one(user_dict)
     
     # Create wallet for user
@@ -2494,6 +2498,9 @@ async def update_user_by_admin(
     
     if user_data.admin_access_level is not None:
         update_data["admin_access_level"] = user_data.admin_access_level
+    
+    if user_data.route_code is not None:
+        update_data["route_code"] = user_data.route_code
     
     # Only superadmin can change roles
     if user_data.role is not None:
@@ -3372,6 +3379,55 @@ async def remove_section_staff(section_key: str, staff_id: str, current_user: Us
         {"$pull": {"members": {"id": staff_id}}}
     )
     return {"message": "Staff member removed"}
+
+
+
+# ==================== ROUTE CODES MANAGEMENT ====================
+
+@api_router.get("/admin/route-codes")
+async def get_route_codes(current_user: User = Depends(get_current_admin)):
+    """Get all route codes"""
+    codes = await db.route_codes.find({}, {"_id": 0}).sort("code", 1).to_list(1000)
+    return codes
+
+@api_router.post("/admin/route-codes")
+async def create_route_code(data: dict, current_user: User = Depends(get_current_admin)):
+    """Create a new route code"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage route codes")
+    code = data.get("code", "").strip().upper()
+    label = data.get("label", "").strip()
+    if not code:
+        raise HTTPException(status_code=400, detail="Route code is required")
+    existing = await db.route_codes.find_one({"code": code})
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Route code '{code}' already exists")
+    entry = {"id": str(uuid.uuid4()), "code": code, "label": label or code, "created_at": datetime.utcnow()}
+    await db.route_codes.insert_one(entry)
+    return {"id": entry["id"], "code": entry["code"], "label": entry["label"]}
+
+@api_router.put("/admin/route-codes/{code_id}")
+async def update_route_code(code_id: str, data: dict, current_user: User = Depends(get_current_admin)):
+    """Update a route code"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage route codes")
+    update = {}
+    if "code" in data:
+        update["code"] = data["code"].strip().upper()
+    if "label" in data:
+        update["label"] = data["label"].strip()
+    if not update:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+    await db.route_codes.update_one({"id": code_id}, {"$set": update})
+    return {"message": "Route code updated"}
+
+@api_router.delete("/admin/route-codes/{code_id}")
+async def delete_route_code(code_id: str, current_user: User = Depends(get_current_admin)):
+    """Delete a route code"""
+    if current_user.admin_access_level != "full":
+        raise HTTPException(status_code=403, detail="Only full-access admins can manage route codes")
+    await db.route_codes.delete_one({"id": code_id})
+    return {"message": "Route code deleted"}
 
 
 # ==================== WHATSAPP NUMBERS MANAGEMENT ====================

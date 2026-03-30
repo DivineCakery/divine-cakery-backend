@@ -247,6 +247,12 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="manage-route-codes"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

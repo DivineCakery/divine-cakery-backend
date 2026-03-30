@@ -82,6 +82,7 @@ class UserBase(BaseModel):
     pay_later_enabled: bool = False  # Admin enables this per user
     pay_later_max_limit: float = 0  # Maximum order value for Pay Later
     is_superadmin: bool = False  # Superadmin can create other admin users
+    route_code: Optional[str] = None  # Delivery route code for customers
 
 
 class UserCreate(BaseModel):
@@ -98,6 +99,7 @@ class UserCreate(BaseModel):
     user_type: str = "owner"
     linked_owner_id: Optional[str] = None
     role: Optional[UserRole] = UserRole.CUSTOMER  # Allow specifying role when creating
+    route_code: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
@@ -115,6 +117,7 @@ class UserUpdate(BaseModel):
     admin_access_level: Optional[AdminAccessLevel] = None
     user_type: Optional[str] = None
     new_password: Optional[str] = None  # For password change
+    route_code: Optional[str] = None
 
 
 class UserLogin(BaseModel):

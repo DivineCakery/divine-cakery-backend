@@ -232,6 +232,18 @@ export default function DashboardScreen() {
 
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/manage-route-codes' as any)}
+              >
+                <Ionicons name="map-outline" size={24} color="#8B4513" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Manage Route Codes</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Delivery route codes for customers</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
                 onPress={() => router.push('/(admin)/delivery-settings' as any)}
               >
                 <Ionicons name="bicycle-outline" size={24} color="#8B4513" />

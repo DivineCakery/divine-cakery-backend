@@ -605,6 +605,27 @@ class ApiService {
     const response = await this.api.delete(`/admin/whatsapp-numbers/${numberId}`);
     return response.data;
   }
+
+  // Route Codes Management
+  async getRouteCodes() {
+    const response = await this.api.get('/admin/route-codes');
+    return response.data;
+  }
+
+  async createRouteCode(code: string, label: string) {
+    const response = await this.api.post('/admin/route-codes', { code, label });
+    return response.data;
+  }
+
+  async updateRouteCode(codeId: string, data: { code?: string; label?: string }) {
+    const response = await this.api.put(`/admin/route-codes/${codeId}`, data);
+    return response.data;
+  }
+
+  async deleteRouteCode(codeId: string) {
+    const response = await this.api.delete(`/admin/route-codes/${codeId}`);
+    return response.data;
+  }
 }
 
 export default new ApiService();
