@@ -6,17 +6,28 @@ import * as Print from 'expo-print';
 import apiService from '../../services/api';
 
 const ROUTE_TYPES = [
-  { key: 'lulu', label: 'Lulu Trip', codes: 'LULU1' },
-  { key: 'short', label: 'Short Route', codes: 'SR1, SR2' },
-  { key: 'long', label: 'Long Route', codes: 'LR1, LR2' },
-  { key: 'onsite', label: 'Onsite', codes: 'ONS' },
+  { key: 'lulu', label: 'Lulu Trip', codes: ['LFT'] },
+  { key: 'short', label: 'Short Route', codes: ['SR1', 'SR2'] },
+  { key: 'long', label: 'Long Route', codes: ['LR1', 'LR2'] },
+  { key: 'onsite', label: 'Onsite', codes: ['ONS'] },
 ];
+
+interface CustomerData {
+  id: string;
+  name: string;
+  route_code: string;
+}
+
+interface RouteGroup {
+  code: string;
+  customers: CustomerData[];
+}
 
 export default function RouteSummaries() {
   const router = useRouter();
   const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [driverName, setDriverName] = useState('');
+  const [drivers, setDrivers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
 
@@ -54,45 +65,93 @@ export default function RouteSummaries() {
     }
   };
 
+  const setDriver = (code: string, name: string) => {
+    setDrivers(prev => ({ ...prev, [code]: name }));
+  };
+
+  // Group customers by route_code and compute totals
+  const getGroups = (): RouteGroup[] => {
+    if (!data) return [];
+    const rt = ROUTE_TYPES.find(r => r.key === selectedRoute);
+    if (!rt) return [];
+    const groups: RouteGroup[] = [];
+    for (const code of rt.codes) {
+      const custs = (data.customers || []).filter((c: CustomerData) => c.route_code === code);
+      custs.sort((a: CustomerData, b: CustomerData) => a.name.localeCompare(b.name));
+      groups.push({ code, customers: custs });
+    }
+    return groups;
+  };
+
+  const getGroupTotal = (item: string, group: RouteGroup): number => {
+    let total = 0;
+    for (const c of group.customers) {
+      total += (data.matrix[item]?.[c.id] || 0);
+    }
+    return total;
+  };
+
   const generateHtml = () => {
     if (!data || data.customers.length === 0) return '';
-    const routeLabel = ROUTE_TYPES.find(r => r.key === selectedRoute)?.label || '';
+    const rt = ROUTE_TYPES.find(r => r.key === selectedRoute);
+    const routeLabel = rt?.label || '';
     const dateStr = new Date(data.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const customers = data.customers;
-    const items = data.items;
-    const matrix = data.matrix;
+    const items: string[] = data.items;
+    const groups = getGroups();
 
-    const thCols = customers.map((c: any) => `<th class="cust">${c.name}</th>`).join('');
+    // Driver info line
+    const driverLines = (rt?.codes || []).map(code => {
+      const d = drivers[code] || '';
+      return d ? `${code}: ${d}` : '';
+    }).filter(Boolean).join(' &nbsp;|&nbsp; ');
+
+    // Build header columns: for each group -> Total col, then customer cols
+    let headerRow = '<th class="item-hdr">Item</th>';
+    for (const g of groups) {
+      headerRow += `<th class="total-hdr">${g.code}<br/>Total</th>`;
+      for (const c of g.customers) {
+        headerRow += `<th class="cust">${c.name}</th>`;
+      }
+    }
+
+    // Build data rows
     let rows = '';
-    items.forEach((item: string) => {
-      const cells = customers.map((c: any) => {
-        const qty = matrix[item]?.[c.id] || '';
-        return `<td class="qty">${qty}</td>`;
-      }).join('');
-      rows += `<tr><td class="item">${item}</td>${cells}</tr>`;
-    });
+    for (const item of items) {
+      let cells = `<td class="item">${item}</td>`;
+      for (const g of groups) {
+        const tot = getGroupTotal(item, g);
+        cells += `<td class="total-cell">${tot || ''}</td>`;
+        for (const c of g.customers) {
+          const qty = data.matrix[item]?.[c.id] || '';
+          cells += `<td class="qty">${qty}</td>`;
+        }
+      }
+      rows += `<tr>${cells}</tr>`;
+    }
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page { size: A4 landscape; margin: 6mm; }
-      * { box-sizing: border-box; }
-      html, body { height: auto; overflow: visible; }
-      body { font-family: Arial, sans-serif; font-size: 11px; color: #333; margin: 0; padding: 0; }
-      .hdr { font-size: 16px; font-weight: bold; margin: 0 0 2px; }
-      .sub { font-size: 12px; margin: 0 0 4px; color: #555; }
-      table { width: 100%; border-collapse: collapse; margin-top: 2px; }
-      th { background: #333; color: #fff; padding: 4px 3px; font-size: 9px; text-align: center; white-space: nowrap; }
-      th.item-hdr { text-align: left; min-width: 140px; }
-      th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 28px; max-width: 40px; height: 120px; font-size: 8px; padding: 4px 2px; }
-      td { padding: 2px 3px; border: 1px solid #ccc; font-size: 10px; }
-      td.item { font-weight: bold; white-space: nowrap; }
-      td.qty { text-align: center; min-width: 24px; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; font-size: 18px; color: #000; }
+      .hdr { font-size: 28px; font-weight: bold; margin: 0 0 2px; }
+      .sub { font-size: 20px; margin: 0 0 6px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+      th, td { border: 1px solid #000; }
+      th { background: #fff; color: #000; padding: 4px 3px; font-size: 14px; text-align: center; font-weight: bold; }
+      th.item-hdr { text-align: left; min-width: 180px; font-size: 16px; }
+      th.total-hdr { font-size: 16px; min-width: 44px; background: #ddd; }
+      th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 30px; max-width: 44px; height: 130px; font-size: 13px; padding: 4px 2px; }
+      td { padding: 3px 4px; font-size: 16px; }
+      td.item { font-weight: bold; white-space: nowrap; font-size: 16px; }
+      td.total-cell { text-align: center; font-weight: bold; background: #eee; min-width: 44px; font-size: 18px; }
+      td.qty { text-align: center; min-width: 28px; }
       tr { page-break-inside: avoid; }
       thead { display: table-header-group; }
     </style></head><body>
       <div class="hdr">${routeLabel}</div>
-      <div class="sub">${dateStr}${driverName ? ' | Driver: ' + driverName : ''}</div>
+      <div class="sub">${dateStr}${driverLines ? ' &nbsp;|&nbsp; Driver: ' + driverLines : ''}</div>
       <table>
-        <thead><tr><th class="item-hdr">Item</th>${thCols}</tr></thead>
+        <thead><tr>${headerRow}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </body></html>`;
@@ -126,12 +185,13 @@ export default function RouteSummaries() {
     }
   };
 
-  const routeLabel = ROUTE_TYPES.find(r => r.key === selectedRoute)?.label || '';
+  const rt = ROUTE_TYPES.find(r => r.key === selectedRoute);
+  const groups = getGroups();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="back-button">
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.title}>Route Summaries</Text>
@@ -139,39 +199,47 @@ export default function RouteSummaries() {
 
       {/* Date Picker */}
       <View style={styles.dateRow}>
-        <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateArrow}>
+        <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateArrow} testID="date-prev">
           <Ionicons name="chevron-back" size={22} color="#8B4513" />
         </TouchableOpacity>
-        <Text style={styles.dateText}>
+        <Text style={styles.dateText} data-testid="date-display">
           {new Date(selectedDate).toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
         </Text>
-        <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateArrow}>
+        <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateArrow} testID="date-next">
           <Ionicons name="chevron-forward" size={22} color="#8B4513" />
         </TouchableOpacity>
       </View>
 
-      {/* Driver Input */}
-      <View style={styles.driverRow}>
-        <Text style={styles.label}>Driver:</Text>
-        <TextInput
-          style={styles.driverInput}
-          placeholder="Enter driver name"
-          value={driverName}
-          onChangeText={setDriverName}
-        />
-      </View>
+      {/* Driver Inputs - one per route sub-code */}
+      {rt && (
+        <View style={styles.driversSection}>
+          {rt.codes.map(code => (
+            <View key={code} style={styles.driverRow}>
+              <Text style={styles.driverLabel}>{code} Driver:</Text>
+              <TextInput
+                style={styles.driverInput}
+                placeholder={`Enter ${code} driver`}
+                value={drivers[code] || ''}
+                onChangeText={(v) => setDriver(code, v)}
+                testID={`driver-input-${code}`}
+              />
+            </View>
+          ))}
+        </View>
+      )}
 
       {/* Route Type Buttons */}
       <View style={styles.routeGrid}>
-        {ROUTE_TYPES.map(rt => (
+        {ROUTE_TYPES.map(r => (
           <TouchableOpacity
-            key={rt.key}
-            style={[styles.routeBtn, selectedRoute === rt.key && styles.routeBtnActive]}
-            onPress={() => handleRouteSelect(rt.key)}
+            key={r.key}
+            style={[styles.routeBtn, selectedRoute === r.key && styles.routeBtnActive]}
+            onPress={() => handleRouteSelect(r.key)}
+            testID={`route-btn-${r.key}`}
           >
-            <Ionicons name="car-outline" size={20} color={selectedRoute === rt.key ? '#fff' : '#8B4513'} />
-            <Text style={[styles.routeBtnText, selectedRoute === rt.key && styles.routeBtnTextActive]}>{rt.label}</Text>
-            <Text style={[styles.routeBtnCodes, selectedRoute === rt.key && { color: '#ddd' }]}>{rt.codes}</Text>
+            <Ionicons name="car-outline" size={20} color={selectedRoute === r.key ? '#fff' : '#8B4513'} />
+            <Text style={[styles.routeBtnText, selectedRoute === r.key && styles.routeBtnTextActive]}>{r.label}</Text>
+            <Text style={[styles.routeBtnCodes, selectedRoute === r.key && { color: '#ddd' }]}>{r.codes.join(', ')}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -182,30 +250,51 @@ export default function RouteSummaries() {
       ) : data ? (
         <ScrollView style={styles.tableContainer}>
           {data.customers.length === 0 ? (
-            <Text style={styles.emptyText}>No orders found for {routeLabel} on this date.</Text>
+            <Text style={styles.emptyText} testID="no-data-msg">No orders found for {rt?.label} on this date.</Text>
           ) : (
             <>
-              <Text style={styles.summaryText}>{routeLabel} - {data.customers.length} customers, {data.items.length} items</Text>
+              <Text style={styles.summaryText} testID="summary-text">
+                {rt?.label} - {data.customers.length} customers, {data.items.length} items
+              </Text>
 
               <ScrollView horizontal showsHorizontalScrollIndicator>
                 <View>
-                  {/* Table Header */}
+                  {/* Table Header with grouped columns */}
                   <View style={styles.tRow}>
-                    <View style={[styles.tCell, styles.tItemCell]}><Text style={styles.tHeaderText}>Item</Text></View>
-                    {data.customers.map((c: any) => (
-                      <View key={c.id} style={[styles.tCell, styles.tCustCell]}>
-                        <Text style={styles.tCustText} numberOfLines={2}>{c.name}</Text>
-                      </View>
+                    <View style={[styles.tCell, styles.tItemCell]}>
+                      <Text style={styles.tHeaderText}>Item</Text>
+                    </View>
+                    {groups.map(g => (
+                      <React.Fragment key={g.code}>
+                        <View style={[styles.tCell, styles.tTotalHdrCell]}>
+                          <Text style={styles.tTotalHdrText}>{g.code}{'\n'}Total</Text>
+                        </View>
+                        {g.customers.map(c => (
+                          <View key={c.id} style={[styles.tCell, styles.tCustCell]}>
+                            <Text style={styles.tCustText} numberOfLines={2}>{c.name}</Text>
+                          </View>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </View>
+
                   {/* Table Body */}
                   {data.items.map((item: string, idx: number) => (
                     <View key={item} style={[styles.tRow, idx % 2 === 0 && styles.tRowAlt]}>
-                      <View style={[styles.tCell, styles.tItemCell]}><Text style={styles.tItemText}>{item}</Text></View>
-                      {data.customers.map((c: any) => (
-                        <View key={c.id} style={[styles.tCell, styles.tQtyCell]}>
-                          <Text style={styles.tQtyText}>{data.matrix[item]?.[c.id] || ''}</Text>
-                        </View>
+                      <View style={[styles.tCell, styles.tItemCell]}>
+                        <Text style={styles.tItemText}>{item}</Text>
+                      </View>
+                      {groups.map(g => (
+                        <React.Fragment key={g.code}>
+                          <View style={[styles.tCell, styles.tTotalCell]}>
+                            <Text style={styles.tTotalText}>{getGroupTotal(item, g) || ''}</Text>
+                          </View>
+                          {g.customers.map(c => (
+                            <View key={c.id} style={[styles.tCell, styles.tQtyCell]}>
+                              <Text style={styles.tQtyText}>{data.matrix[item]?.[c.id] || ''}</Text>
+                            </View>
+                          ))}
+                        </React.Fragment>
                       ))}
                     </View>
                   ))}
@@ -213,7 +302,7 @@ export default function RouteSummaries() {
               </ScrollView>
 
               {/* Print Button */}
-              <TouchableOpacity style={styles.printBtn} onPress={handlePrint}>
+              <TouchableOpacity style={styles.printBtn} onPress={handlePrint} testID="print-btn">
                 <Ionicons name="print" size={20} color="#fff" />
                 <Text style={styles.printBtnText}>Print / Save PDF</Text>
               </TouchableOpacity>
@@ -235,11 +324,12 @@ const styles = StyleSheet.create({
   dateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   dateArrow: { padding: 8 },
   dateText: { fontSize: 16, fontWeight: '600', color: '#333', marginHorizontal: 12 },
-  driverRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  label: { fontSize: 14, fontWeight: '600', color: '#555', marginRight: 8 },
+  driversSection: { marginBottom: 14 },
+  driverRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  driverLabel: { fontSize: 14, fontWeight: '700', color: '#555', width: 100 },
   driverInput: { flex: 1, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, fontSize: 14, backgroundColor: '#fff' },
   routeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  routeBtn: { flex: 1, minWidth: '45%', backgroundColor: '#fff', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: '#8B4513' },
+  routeBtn: { flex: 1, minWidth: '45%' as any, backgroundColor: '#fff', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: '#8B4513' },
   routeBtnActive: { backgroundColor: '#8B4513' },
   routeBtnText: { fontSize: 14, fontWeight: 'bold', color: '#8B4513', marginTop: 4 },
   routeBtnTextActive: { color: '#fff' },
@@ -251,7 +341,11 @@ const styles = StyleSheet.create({
   tRowAlt: { backgroundColor: '#faf8f5' },
   tCell: { padding: 6, justifyContent: 'center' },
   tItemCell: { width: 180, borderRightWidth: 1, borderColor: '#ddd', backgroundColor: '#f5f0ea' },
-  tCustCell: { width: 70, borderRightWidth: 1, borderColor: '#ddd', alignItems: 'center', backgroundColor: '#8B4513', paddingVertical: 8 },
+  tTotalHdrCell: { width: 60, borderRightWidth: 2, borderColor: '#333', alignItems: 'center', backgroundColor: '#ddd', paddingVertical: 8 },
+  tTotalHdrText: { fontSize: 10, fontWeight: 'bold', color: '#000', textAlign: 'center' },
+  tTotalCell: { width: 60, borderRightWidth: 2, borderColor: '#333', alignItems: 'center', backgroundColor: '#f0ece6' },
+  tTotalText: { fontSize: 13, fontWeight: 'bold', color: '#000' },
+  tCustCell: { width: 70, borderRightWidth: 1, borderColor: '#ddd', alignItems: 'center', backgroundColor: '#555', paddingVertical: 8 },
   tQtyCell: { width: 70, borderRightWidth: 1, borderColor: '#ddd', alignItems: 'center' },
   tHeaderText: { fontSize: 12, fontWeight: 'bold', color: '#333' },
   tCustText: { fontSize: 9, fontWeight: 'bold', color: '#fff', textAlign: 'center' },
