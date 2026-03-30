@@ -67,6 +67,13 @@ The following features require deploying updated `server.py` and `models.py` to 
 - P2: Report History feature (snapshot daily reports to DB)
 - P3: Copy Staff List feature between sections
 
+## Login Bug Fix (2026-03-30)
+- Database user schema had migrated (password_hash SHA-256 → hashed_password bcrypt needed)
+- Fixed `Soman` admin user: added bcrypt hashed_password, set role=admin, admin_access_level=full
+- Added all required User model fields (wallet_balance, favorite_products, etc.)
+- Made login case-insensitive in preview backend (regex match)
+- Verified login works on BOTH production Render and preview backends
+
 ## Credentials (Dev)
 - Admin: username=Soman, password=Soman@123
-- Demo: username=demotrial, password=Demo
+- Other staff users (bindu, supervisor1, accounts1, sales1, kitchen1) need password reset - they have old SHA-256 hashes

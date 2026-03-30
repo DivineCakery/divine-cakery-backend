@@ -510,7 +510,8 @@ async def register(user_data: UserCreate):
 @api_router.post("/auth/login", response_model=Token)
 async def login(user_data: UserLogin):
     logger.info(f"Login attempt for username: {user_data.username}")
-    user_dict = await db.users.find_one({"username": user_data.username})
+    import re
+    user_dict = await db.users.find_one({"username": re.compile(f"^{re.escape(user_data.username)}$", re.IGNORECASE)})
     
     if not user_dict:
         logger.warning(f"User not found: {user_data.username}")
