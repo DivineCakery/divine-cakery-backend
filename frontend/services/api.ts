@@ -626,6 +626,14 @@ class ApiService {
     const response = await this.api.delete(`/admin/route-codes/${codeId}`);
     return response.data;
   }
+
+  // Route Summary Report
+  async getRouteSummary(routeType: string, date?: string) {
+    const params: any = { route_type: routeType };
+    if (date) params.date = date;
+    const response = await this.api.get('/admin/reports/route-summary', { params });
+    return response.data;
+  }
 }
 
 export default new ApiService();

@@ -5,58 +5,59 @@ Wholesale bakery management system with customer ordering, wallet system, admin 
 
 ## Tech Stack
 - Frontend: Expo (React Native) with TypeScript
-- Backend: FastAPI (Python)
-- Database: MongoDB Atlas
-- Hosting: Render.com (production backend)
-- Build: EAS (Android builds)
-- Payments: Razorpay
+- Backend: FastAPI (Python), Database: MongoDB Atlas
+- Hosting: Render.com (production), Build: EAS (Android)
+
+## CRITICAL: Production Backend Deploy Needed
+The following features require deploying updated `server.py` and `models.py` to Render.com:
+- Route Codes management
+- Route Summaries report
+- WhatsApp numbers management
+- Admin delete by super admin
 
 ## Completed Features
 
-### Staff Checklist (7 Sections) - COMPLETE
-- Independent staff lists and editable checklists per section
-- WhatsApp dual-send reports
-- API: `/api/admin/section-staff/{key}`, `/api/admin/section-tasks/{key}`
+### Route Summaries Report - COMPLETE (2026-03-30)
+- New "Route Summaries" page linked from dashboard
+- 4 route types: Lulu Trip (LULU1), Short Route (SR1, SR2), Long Route (LR1, LR2), Onsite (ONS)
+- Matrix/pivot table: items (rows) x customers (columns) with quantities
+- Date picker with prev/next arrows
+- Driver name text input
+- Print/Save PDF in landscape A4 format with rotated customer headers
+- API: `GET /api/admin/reports/route-summary?route_type=&date=`
 
-### Razorpay OTP Payment Fix - COMPLETE
-- External browser + manual confirmation modal for OTP flows
+### Route Codes Management - COMPLETE (2026-03-30)
+- Manage Route Codes page: CRUD for route codes (code + label)
+- Route Code dropdown in customer form (required field)
+- Route code displayed on user cards in Manage Users
+- API: CRUD `/api/admin/route-codes`
 
 ### Preparation Report - COMPLETE
-- 3-tab Reports screen: Daily Items, Prep List, Prep Report
-- Department dropdown (Dough Section, Top Room, Angels Section)
-- Reported by dropdown (staff per department)
-- Table with adjusted Today/Tmrw values (closing stock subtracted)
-- Special Burger Dough filtering: 5 items moved to Top Room
-- Print/Share PDF with Limited View (no Prepared/Not Done) and Full View options
-- Multi-page printing via hidden iframe (web) / expo-print (native)
-- Date on PDF header line
-- Items with 0 adjusted values filtered out
+- 3-tab Reports: Daily Items, Prep List, Prep Report
+- Department/Reported by dropdowns, adjusted Today/Tmrw values
+- Print/Share PDF with Limited/Full view options
+- Burger Dough filtering (5 items → Top Room)
+- WhatsApp numbers management (add/delete)
 
-### WhatsApp Numbers Management - COMPLETE (needs production deploy)
-- Dynamic add/delete WhatsApp numbers
-- Stored in `app_settings` collection
-- Default numbers: Divine Office, Soman Nair
-- API: `/api/admin/whatsapp-numbers`, `/api/admin/whatsapp-numbers/add`, `/api/admin/whatsapp-numbers/{id}`
-
+### Staff Checklist (7 Sections) - COMPLETE
+### Razorpay OTP Payment Fix - COMPLETE
 ### Dashboard Access Control - COMPLETE
-- Daily Reports section hidden for non-full-access admins
-
-### Burger Dough Filtering - COMPLETE
-- 5 items moved from Dough Section to Top Room: HOT HOTDOG BUN*4, LUL SAMOON SEEDED*4, Hotdog buns- 8in, LUL HOTDOG BUN 3S, Sandwich buns- 6in*4
+### Admin Delete by Super Admin - COMPLETE
 
 ## Key Files
-- `frontend/app/(admin)/reports.tsx` - Main reports with 3 tabs
-- `frontend/app/(admin)/dashboard.tsx` - Admin dashboard
+- `frontend/app/(admin)/route-summaries.tsx` - Route Summaries page
+- `frontend/app/(admin)/manage-route-codes.tsx` - Route Codes CRUD
+- `frontend/app/(admin)/reports.tsx` - Reports (3 tabs)
+- `frontend/app/(admin)/customer-form.tsx` - Customer form with route code
+- `frontend/app/(admin)/dashboard.tsx` - Dashboard
 - `frontend/services/api.ts` - API service layer
 - `backend/server.py` - All backend endpoints
-
-## IMPORTANT: Production Deploy Needed
-The WhatsApp numbers management endpoints are new and need to be deployed to Render.com. The user must push updated `server.py` to GitHub for Render auto-deploy.
+- `backend/models.py` - Data models
 
 ## Backlog
-- P2: Refactor `reports.tsx` (1700+ lines) into smaller components
-- P2: Report History feature (save completed reports to DB)
-- P3: Copy Staff List feature between sections
+- P2: Refactor `reports.tsx` into smaller components
+- P2: Report History feature
+- P3: Copy Staff List feature
 
 ## Credentials (Dev)
 - Admin: username=Soman, password=Soman@123

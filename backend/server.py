@@ -3430,6 +3430,101 @@ async def delete_route_code(code_id: str, current_user: User = Depends(get_curre
     return {"message": "Route code deleted"}
 
 
+# ==================== ROUTE SUMMARY REPORT ====================
+
+@api_router.get("/admin/reports/route-summary")
+async def get_route_summary(
+    date: str = None,
+    route_type: str = "lulu",
+    current_user: User = Depends(get_current_admin)
+):
+    """Get route summary: pivot table of items x customers for a given route type and date.
+    route_type: lulu, short, long, onsite
+    """
+    import pytz
+    from datetime import datetime as dt, timedelta
+
+    ROUTE_MAP = {
+        "lulu": ["LULU1"],
+        "short": ["SR1", "SR2"],
+        "long": ["LR1", "LR2"],
+        "onsite": ["ONS"],
+    }
+    route_codes = ROUTE_MAP.get(route_type)
+    if not route_codes:
+        raise HTTPException(status_code=400, detail=f"Invalid route_type: {route_type}. Use: lulu, short, long, onsite")
+
+    ist = pytz.timezone('Asia/Kolkata')
+    if date:
+        try:
+            report_date = dt.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    else:
+        report_date = dt.now(ist).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+
+    ist_start = ist.localize(report_date.replace(hour=0, minute=0, second=0, microsecond=0))
+    ist_end = ist_start + timedelta(days=1)
+    date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
+    date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
+
+    # Get customers with matching route codes
+    customers = await db.users.find(
+        {"role": "customer", "route_code": {"$in": route_codes}},
+        {"_id": 0, "id": 1, "username": 1, "business_name": 1, "route_code": 1}
+    ).to_list(10000)
+    customer_map = {c["id"]: c for c in customers}
+    customer_ids = list(customer_map.keys())
+
+    if not customer_ids:
+        return {"date": report_date.strftime("%Y-%m-%d"), "route_type": route_type, "route_codes": route_codes, "customers": [], "items": [], "matrix": {}}
+
+    # Get orders for these customers on the given date
+    orders = await db.orders.find({
+        "$or": [
+            {"delivery_date": {"$gte": date_start, "$lt": date_end}},
+            {"delivery_date": {"$gte": report_date, "$lt": report_date + timedelta(days=1)}}
+        ],
+        "order_status": {"$nin": ["cancelled", "Cancelled"]},
+        "user_id": {"$in": customer_ids}
+    }).to_list(10000)
+
+    # Build matrix: item_name -> { customer_id: qty }
+    item_customer_matrix = {}
+    items_order = []
+    customer_has_orders = set()
+
+    for order in orders:
+        cid = order.get("user_id")
+        if cid not in customer_map:
+            continue
+        customer_has_orders.add(cid)
+        for item in order.get("items", []):
+            product_name = item.get("product_name", "Unknown")
+            qty = item.get("quantity", 0)
+            if product_name not in item_customer_matrix:
+                item_customer_matrix[product_name] = {}
+                items_order.append(product_name)
+            if cid in item_customer_matrix[product_name]:
+                item_customer_matrix[product_name][cid] += qty
+            else:
+                item_customer_matrix[product_name][cid] = qty
+
+    # Filter to only customers who have orders
+    active_customers = [customer_map[cid] for cid in customer_ids if cid in customer_has_orders]
+    active_customers.sort(key=lambda c: c.get("business_name") or c.get("username", ""))
+
+    return {
+        "date": report_date.strftime("%Y-%m-%d"),
+        "route_type": route_type,
+        "route_codes": route_codes,
+        "customers": [{"id": c["id"], "name": c.get("business_name") or c.get("username", ""), "route_code": c.get("route_code", "")} for c in active_customers],
+        "items": items_order,
+        "matrix": item_customer_matrix
+    }
+
+
+
 # ==================== WHATSAPP NUMBERS MANAGEMENT ====================
 
 @api_router.get("/admin/whatsapp-numbers")

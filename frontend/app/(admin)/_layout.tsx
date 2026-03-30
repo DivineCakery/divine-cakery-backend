@@ -253,6 +253,12 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="route-summaries"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

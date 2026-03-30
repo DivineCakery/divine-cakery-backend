@@ -185,6 +185,20 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           )}
 
+          {(accessLevel === 'full' || accessLevel === 'limited' || accessLevel === 'reports') && (
+            <TouchableOpacity
+              style={[styles.settingsButton, { marginTop: 10 }]}
+              onPress={() => router.push('/(admin)/route-summaries' as any)}
+            >
+              <Ionicons name="map-outline" size={24} color="#8B4513" />
+              <View style={styles.settingsButtonText}>
+                <Text style={styles.settingsButtonTitle}>Route Summaries</Text>
+                <Text style={styles.settingsButtonSubtitle}>Delivery route reports by trip type</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#999" />
+            </TouchableOpacity>
+          )}
+
           {accessLevel === 'full' && (
             <>
               <TouchableOpacity
