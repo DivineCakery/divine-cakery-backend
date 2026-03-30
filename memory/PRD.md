@@ -17,13 +17,16 @@ The following features require deploying updated `server.py` and `models.py` to 
 
 ## Completed Features
 
-### Route Summaries Report - COMPLETE (2026-03-30)
-- New "Route Summaries" page linked from dashboard
-- 4 route types: Lulu Trip (LULU1), Short Route (SR1, SR2), Long Route (LR1, LR2), Onsite (ONS)
+### Route Summaries Report v2 - COMPLETE (2026-03-30)
+- 7-point layout rework completed and tested:
+  1. Separate driver inputs per route sub-code (SR1/SR2, LR1/LR2, LFT, ONS)
+  2. Doubled font sizes in PDF (body 18px, headers 28px, table 16px)
+  3. SR1/SR2 and LR1/LR2 split into distinct grouped sections with Total columns BEFORE customer columns
+  4. Total columns for all routes (Onsite ONS Total, Lulu LFT Total)
+  5. 'LFT' label for Lulu (not LULU1)
+  6. Black & white PDF theme (no colored backgrounds)
+  7. Date picker with prev/next day navigation
 - Matrix/pivot table: items (rows) x customers (columns) with quantities
-- Date picker with prev/next arrows
-- Driver name text input
-- Print/Save PDF in landscape A4 format with rotated customer headers
 - API: `GET /api/admin/reports/route-summary?route_type=&date=`
 
 ### Route Codes Management - COMPLETE (2026-03-30)
@@ -36,7 +39,7 @@ The following features require deploying updated `server.py` and `models.py` to 
 - 3-tab Reports: Daily Items, Prep List, Prep Report
 - Department/Reported by dropdowns, adjusted Today/Tmrw values
 - Print/Share PDF with Limited/Full view options
-- Burger Dough filtering (5 items → Top Room)
+- Burger Dough filtering (5 items -> Top Room)
 - WhatsApp numbers management (add/delete)
 
 ### Staff Checklist (7 Sections) - COMPLETE
@@ -45,19 +48,25 @@ The following features require deploying updated `server.py` and `models.py` to 
 ### Admin Delete by Super Admin - COMPLETE
 
 ## Key Files
-- `frontend/app/(admin)/route-summaries.tsx` - Route Summaries page
+- `frontend/app/(admin)/route-summaries.tsx` - Route Summaries page (v2 rework)
 - `frontend/app/(admin)/manage-route-codes.tsx` - Route Codes CRUD
 - `frontend/app/(admin)/reports.tsx` - Reports (3 tabs)
 - `frontend/app/(admin)/customer-form.tsx` - Customer form with route code
 - `frontend/app/(admin)/dashboard.tsx` - Dashboard
-- `frontend/services/api.ts` - API service layer
+- `frontend/services/api.ts` - API service layer (fixed URL priority: .env > app.json)
 - `backend/server.py` - All backend endpoints
 - `backend/models.py` - Data models
 
+## API Priority Fix
+- `api.ts` URL priority changed: `.env` (EXPO_PUBLIC_BACKEND_URL) takes precedence over `app.json` extra config
+- This allows preview environment to work correctly while production builds still use app.json
+
 ## Backlog
-- P2: Refactor `reports.tsx` into smaller components
-- P2: Report History feature
-- P3: Copy Staff List feature
+- P1: New production Android build (.aab) after backend deployment
+- P2: Refactor `reports.tsx` (~1700 lines) into smaller components
+- P2: Report History feature (snapshot daily reports to DB)
+- P3: Copy Staff List feature between sections
 
 ## Credentials (Dev)
 - Admin: username=Soman, password=Soman@123
+- Demo: username=demotrial, password=Demo
