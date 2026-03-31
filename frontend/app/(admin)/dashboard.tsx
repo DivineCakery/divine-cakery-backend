@@ -219,8 +219,10 @@ export default function DashboardScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#999" />
               </TouchableOpacity>
+            </>
+          )}
 
-              {(accessLevel === 'full' || accessLevel === 'limited') && (
+          {(accessLevel === 'full' || accessLevel === 'limited') && (
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
                 onPress={() => router.push('/(admin)/admin-place-order' as any)}
@@ -232,7 +234,7 @@ export default function DashboardScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#999" />
               </TouchableOpacity>
-              )}
+          )}
 
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
