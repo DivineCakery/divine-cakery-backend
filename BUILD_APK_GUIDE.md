@@ -250,7 +250,7 @@ Already configured and ready:
 App Name: Divine Cakery
 Package: com.divinecakery.app
 Version: 1.0.0
-Backend: https://prep-route-admin.preview.emergentagent.com
+Backend: https://pdf-compact-view.preview.emergentagent.com
 Icons: ✅ Ready
 Splash Screen: ✅ Ready
 EAS Config: ✅ Ready

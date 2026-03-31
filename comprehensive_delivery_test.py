@@ -11,7 +11,7 @@ import pytz
 import uuid
 
 # Configuration
-BACKEND_URL = "https://prep-route-admin.preview.emergentagent.com/api"
+BACKEND_URL = "https://pdf-compact-view.preview.emergentagent.com/api"
 
 def create_test_customer():
     """Create a test customer account"""

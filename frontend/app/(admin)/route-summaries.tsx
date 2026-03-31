@@ -130,23 +130,26 @@ export default function RouteSummaries() {
       rows += `<tr>${cells}</tr>`;
     }
 
-    // Lulu: A4 portrait, single page, larger fonts, horizontal customer headers
+    // Lulu: A4 portrait, single page, compact layout
     // Others: A4 landscape as before
     const pageStyle = isLulu
-      ? `@page { size: A4 portrait; margin: 10mm; }`
+      ? `@page { size: A4 portrait; margin: 8mm; }`
       : `@page { size: A4 landscape; margin: 6mm; }`;
 
     const custHeaderStyle = isLulu
-      ? `th.cust { min-width: 80px; max-width: 120px; height: auto; font-size: 16px; padding: 6px 4px; writing-mode: horizontal-tb; text-orientation: initial; transform: none; }`
+      ? `th.cust { min-width: 50px; max-width: 65px; height: auto; font-size: 10px; padding: 3px 2px; writing-mode: horizontal-tb; text-orientation: initial; transform: none; word-wrap: break-word; }`
       : `th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 30px; max-width: 44px; height: 130px; font-size: 13px; padding: 4px 2px; }`;
 
     const luluExtras = isLulu ? `
-      table { table-layout: auto; }
-      td.item { font-size: 18px; }
-      td.total-cell { font-size: 20px; }
-      td.qty { font-size: 18px; min-width: 70px; }
-      th.item-hdr { font-size: 18px; }
-      th.total-hdr { font-size: 18px; }
+      html, body { max-width: 794px; margin: 0 auto; }
+      table { table-layout: fixed; width: 100%; page-break-inside: avoid; }
+      td.item { font-size: 11px; padding: 2px 3px; }
+      td.total-cell { font-size: 12px; padding: 2px; }
+      td.qty { font-size: 11px; min-width: 45px; padding: 2px; }
+      th.item-hdr { font-size: 12px; padding: 3px; }
+      th.total-hdr { font-size: 11px; padding: 3px; }
+      .hdr { font-size: 18px; margin: 0 0 2px; }
+      .sub { font-size: 12px; margin: 0 0 4px; }
     ` : '';
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
@@ -155,7 +158,7 @@ export default function RouteSummaries() {
       body { font-family: Arial, sans-serif; font-size: 18px; color: #000; }
       .hdr { font-size: 28px; font-weight: bold; margin: 0 0 2px; }
       .sub { font-size: 20px; margin: 0 0 6px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 4px; page-break-inside: avoid; }
       th, td { border: 1px solid #000; }
       th { background: #fff; color: #000; padding: 4px 3px; font-size: 14px; text-align: center; font-weight: bold; }
       th.item-hdr { text-align: left; min-width: 180px; font-size: 16px; }
