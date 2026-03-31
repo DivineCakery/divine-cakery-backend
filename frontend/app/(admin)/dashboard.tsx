@@ -236,6 +236,8 @@ export default function DashboardScreen() {
               </TouchableOpacity>
           )}
 
+          {accessLevel === 'full' && (
+            <>
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
                 onPress={() => router.push('/(admin)/manage-categories' as any)}
