@@ -98,6 +98,7 @@ export default function RouteSummaries() {
     const dateStr = new Date(data.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     const items: string[] = data.items;
     const groups = getGroups();
+    const isLulu = selectedRoute === 'lulu';
 
     // Driver info line
     const driverLines = (rt?.codes || []).map(code => {
@@ -129,8 +130,27 @@ export default function RouteSummaries() {
       rows += `<tr>${cells}</tr>`;
     }
 
+    // Lulu: A4 portrait, single page, larger fonts, horizontal customer headers
+    // Others: A4 landscape as before
+    const pageStyle = isLulu
+      ? `@page { size: A4 portrait; margin: 10mm; }`
+      : `@page { size: A4 landscape; margin: 6mm; }`;
+
+    const custHeaderStyle = isLulu
+      ? `th.cust { min-width: 80px; max-width: 120px; height: auto; font-size: 16px; padding: 6px 4px; writing-mode: horizontal-tb; text-orientation: initial; transform: none; }`
+      : `th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 30px; max-width: 44px; height: 130px; font-size: 13px; padding: 4px 2px; }`;
+
+    const luluExtras = isLulu ? `
+      table { table-layout: auto; }
+      td.item { font-size: 18px; }
+      td.total-cell { font-size: 20px; }
+      td.qty { font-size: 18px; min-width: 70px; }
+      th.item-hdr { font-size: 18px; }
+      th.total-hdr { font-size: 18px; }
+    ` : '';
+
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-      @page { size: A4 landscape; margin: 6mm; }
+      ${pageStyle}
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body { font-family: Arial, sans-serif; font-size: 18px; color: #000; }
       .hdr { font-size: 28px; font-weight: bold; margin: 0 0 2px; }
@@ -140,13 +160,14 @@ export default function RouteSummaries() {
       th { background: #fff; color: #000; padding: 4px 3px; font-size: 14px; text-align: center; font-weight: bold; }
       th.item-hdr { text-align: left; min-width: 180px; font-size: 16px; }
       th.total-hdr { font-size: 16px; min-width: 44px; background: #ddd; }
-      th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 30px; max-width: 44px; height: 130px; font-size: 13px; padding: 4px 2px; }
+      ${custHeaderStyle}
       td { padding: 3px 4px; font-size: 16px; }
       td.item { font-weight: bold; white-space: nowrap; font-size: 16px; }
       td.total-cell { text-align: center; font-weight: bold; background: #eee; min-width: 44px; font-size: 18px; }
       td.qty { text-align: center; min-width: 28px; }
       tr { page-break-inside: avoid; }
       thead { display: table-header-group; }
+      ${luluExtras}
     </style></head><body>
       <div class="hdr">${routeLabel}</div>
       <div class="sub">${dateStr}${driverLines ? ' &nbsp;|&nbsp; Driver: ' + driverLines : ''}</div>
@@ -181,7 +202,7 @@ export default function RouteSummaries() {
         }, 500);
       }
     } else {
-      Print.printAsync({ html, orientation: Print.Orientation.landscape });
+      Print.printAsync({ html, orientation: selectedRoute === 'lulu' ? Print.Orientation.portrait : Print.Orientation.landscape });
     }
   };
 
