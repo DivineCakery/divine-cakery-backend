@@ -272,7 +272,11 @@ export default function RouteSummaries() {
       {loading ? (
         <ActivityIndicator size="large" color="#8B4513" style={{ marginTop: 30 }} />
       ) : data ? (
-        <ScrollView style={styles.tableContainer}>
+        <ScrollView 
+          style={styles.tableContainer} 
+          contentContainerStyle={{ paddingBottom: 200 }}
+          showsVerticalScrollIndicator={true}
+        >
           {data.customers.length === 0 ? (
             <Text style={styles.emptyText} testID="no-data-msg">No orders found for {rt?.label} on this date.</Text>
           ) : (
@@ -375,6 +379,6 @@ const styles = StyleSheet.create({
   tCustText: { fontSize: 9, fontWeight: 'bold', color: '#fff', textAlign: 'center' },
   tItemText: { fontSize: 11, fontWeight: '600', color: '#333' },
   tQtyText: { fontSize: 12, fontWeight: 'bold', color: '#333' },
-  printBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8B4513', borderRadius: 8, padding: 14, marginTop: 16, marginBottom: 100, gap: 8 },
+  printBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8B4513', borderRadius: 8, padding: 14, marginTop: 16, marginBottom: 150, gap: 8 },
   printBtnText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
 });
