@@ -375,6 +375,6 @@ const styles = StyleSheet.create({
   tCustText: { fontSize: 9, fontWeight: 'bold', color: '#fff', textAlign: 'center' },
   tItemText: { fontSize: 11, fontWeight: '600', color: '#333' },
   tQtyText: { fontSize: 12, fontWeight: 'bold', color: '#333' },
-  printBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8B4513', borderRadius: 8, padding: 14, marginTop: 16, marginBottom: 30, gap: 8 },
+  printBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8B4513', borderRadius: 8, padding: 14, marginTop: 16, marginBottom: 100, gap: 8 },
   printBtnText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
 });
