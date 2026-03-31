@@ -44,6 +44,7 @@ export default function AdminPlaceOrder() {
   const [paymentNotes, setPaymentNotes] = useState('');
   const [pendingBalance, setPendingBalance] = useState(0);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [customerPendingBalance, setCustomerPendingBalance] = useState<number | null>(null);
 
   const showAlert = (title: string, msg: string) => {
     if (Platform.OS === 'web') window.alert(`${title}: ${msg}`);
@@ -116,7 +117,8 @@ export default function AdminPlaceOrder() {
       showAlert('Success', `Order #${result.order_number} placed for ${selectedCustomer.business_name || selectedCustomer.username} (Pay Later)`);
       setCart([]);
       setNotes('');
-      setSelectedCustomer(null);
+      // Refresh pending balance since a new order was added
+      apiService.getCustomerBalance(selectedCustomer.id).then(b => setCustomerPendingBalance(b.pending_balance)).catch(() => {});
     } catch (e: any) {
       showAlert('Error', e?.response?.data?.detail || 'Failed to place order');
     } finally { setSubmitting(false); }
@@ -149,6 +151,13 @@ export default function AdminPlaceOrder() {
       });
       showAlert('Success', result.message);
       setShowPaymentModal(false);
+      // Refresh pending balance on the main page
+      if (paymentCustomer) {
+        apiService.getCustomerBalance(paymentCustomer.id).then(b => {
+          setCustomerPendingBalance(b.pending_balance);
+          setPendingBalance(b.pending_balance);
+        }).catch(() => {});
+      }
     } catch (e: any) {
       showAlert('Error', e?.response?.data?.detail || 'Failed to record payment');
     } finally { setPaymentLoading(false); }
@@ -189,6 +198,11 @@ export default function AdminPlaceOrder() {
               <Text style={styles.selectedCustomerText}>
                 {selectedCustomer.business_name || selectedCustomer.username}
               </Text>
+              {customerPendingBalance !== null && customerPendingBalance > 0 && (
+                <View style={styles.pendingBadge}>
+                  <Text style={styles.pendingBadgeText}>Pending: Rs.{customerPendingBalance}</Text>
+                </View>
+              )}
               <TouchableOpacity onPress={() => openPaymentModal(selectedCustomer)} style={styles.paymentBadge} testID="record-payment-btn">
                 <Ionicons name="card-outline" size={14} color="#fff" />
                 <Text style={styles.paymentBadgeText}>Record Payment</Text>
@@ -314,6 +328,8 @@ export default function AdminPlaceOrder() {
                     setSelectedCustomer(item);
                     setShowCustomerPicker(false);
                     setCustomerSearch('');
+                    // Fetch pending balance for the selected customer
+                    apiService.getCustomerBalance(item.id).then(b => setCustomerPendingBalance(b.pending_balance)).catch(() => setCustomerPendingBalance(null));
                   }}
                 >
                   <Ionicons name="person-outline" size={18} color="#8B4513" />
@@ -407,6 +423,8 @@ const styles = StyleSheet.create({
   placeholderText: { color: '#999', fontSize: 14 },
   paymentBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2E7D32', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, gap: 4 },
   paymentBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  pendingBadge: { backgroundColor: '#FFF3E0', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#E65100' },
+  pendingBadgeText: { color: '#E65100', fontSize: 11, fontWeight: '700' },
   searchInput: { backgroundColor: '#fff', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#ddd', fontSize: 14, marginBottom: 10 },
   productGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   productCard: { width: '31%' as any, backgroundColor: '#fff', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#e0d6cc', minHeight: 70, justifyContent: 'space-between' },

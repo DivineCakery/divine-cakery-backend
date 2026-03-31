@@ -2151,11 +2151,10 @@ async def admin_record_payment(
     }
     await db.transactions.insert_one(transaction_dict)
 
-    # Mark oldest pending pay_later orders as completed up to payment amount
+    # Mark oldest pending orders as completed up to payment amount
     remaining = amount
     pending_orders = await db.orders.find({
         "user_id": customer_id,
-        "is_pay_later": True,
         "payment_status": "pending"
     }).sort("created_at", 1).to_list(500)
 
@@ -2196,7 +2195,6 @@ async def get_customer_balance(
 
     pending_orders = await db.orders.find({
         "user_id": customer_id,
-        "is_pay_later": True,
         "payment_status": "pending"
     }, {"_id": 0, "total_amount": 1}).to_list(500)
 

@@ -24,8 +24,10 @@ The following features require deploying updated `server.py` and `models.py` to 
 - Admin can record payments against customer's pending balance
 - Payment settles oldest pending orders first (FIFO)
 - Customer balance view shows pending amount + recent payments
+- **Pending balance shown inline** next to Record Payment button after selecting customer
+- **Access control**: Only full + limited access admins can see Place Order/Payments and Route Summaries
+- **Balance query fixed**: Counts ALL pending orders (not just pay_later flagged)
 - APIs: `POST /api/admin/place-order`, `POST /api/admin/record-payment`, `GET /api/admin/customer-balance/{id}`
-- Backend: 11/11 tests passed, Frontend: UI verified
 
 ### Route Summaries Report v2 - COMPLETE (2026-03-30)
 - 7-point layout rework completed and tested:
