@@ -349,6 +349,22 @@ class ApiService {
     return response.data;
   }
 
+  async adminPlaceOrder(orderData: any) {
+    const response = await this.api.post('/admin/place-order', orderData);
+    return response.data;
+  }
+
+  async adminRecordPayment(paymentData: { customer_id: string; amount: number; notes?: string }) {
+    const response = await this.api.post('/admin/record-payment', paymentData);
+    return response.data;
+  }
+
+  async getCustomerBalance(customerId: string) {
+    const response = await this.api.get(`/admin/customer-balance/${customerId}`);
+    return response.data;
+  }
+
+
   async getAdminStats() {
     const response = await this.api.get('/admin/stats');
     return response.data;

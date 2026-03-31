@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, Body
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from dotenv import load_dotenv
@@ -2053,6 +2053,170 @@ async def create_order(
         await db.transactions.insert_one(transaction_dict)
     
     return Order(**order_dict)
+
+
+
+# ===== ADMIN PLACE ORDER ON BEHALF OF CUSTOMER =====
+@api_router.post("/admin/place-order")
+async def admin_place_order(
+    order_data: dict = Body(...),
+    current_user: User = Depends(get_current_admin)
+):
+    """Admin places a pay-later order on behalf of a customer."""
+    customer_id = order_data.get("customer_id")
+    if not customer_id:
+        raise HTTPException(status_code=400, detail="customer_id is required")
+
+    customer = await db.users.find_one({"id": customer_id})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    items = order_data.get("items", [])
+    if not items:
+        raise HTTPException(status_code=400, detail="At least one item is required")
+
+    subtotal = order_data.get("subtotal", 0)
+    delivery_charge = order_data.get("delivery_charge", 0)
+    discount_amount = order_data.get("discount_amount", 0)
+    total_amount = order_data.get("total_amount", 0)
+
+    delivery_date = calculate_delivery_date()
+
+    order_id = str(uuid.uuid4())
+    order_number = await generate_order_number()
+    order_dict = {
+        "id": order_id,
+        "order_number": order_number,
+        "customer_id": customer_id,
+        "user_id": customer_id,
+        "items": items,
+        "subtotal": subtotal,
+        "delivery_charge": delivery_charge,
+        "discount_amount": discount_amount,
+        "total_amount": total_amount,
+        "payment_method": "pay_later",
+        "payment_status": "pending",
+        "order_status": OrderStatus.PENDING,
+        "order_type": order_data.get("order_type", "delivery"),
+        "delivery_address": order_data.get("delivery_address") or customer.get("address"),
+        "delivery_date": delivery_date,
+        "notes": order_data.get("notes"),
+        "is_pay_later": True,
+        "placed_by_admin": True,
+        "placed_by_admin_id": current_user.id,
+        "placed_by_admin_name": current_user.username,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+    }
+
+    await db.orders.insert_one(order_dict)
+    order_dict.pop("_id", None)
+    logger.info(f"Admin {current_user.username} placed order {order_number} for customer {customer.get('username', customer_id)}")
+    return order_dict
+
+
+# ===== ADMIN RECORD PAYMENT =====
+@api_router.post("/admin/record-payment")
+async def admin_record_payment(
+    payment_data: dict = Body(...),
+    current_user: User = Depends(get_current_admin)
+):
+    """Admin records a payment from a customer to reduce their pending balance."""
+    customer_id = payment_data.get("customer_id")
+    amount = payment_data.get("amount", 0)
+    notes = payment_data.get("notes", "")
+
+    customer = await db.users.find_one({"id": customer_id})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+
+    # Record the payment transaction
+    transaction_id = str(uuid.uuid4())
+    transaction_dict = {
+        "id": transaction_id,
+        "user_id": customer_id,
+        "amount": amount,
+        "transaction_type": "payment_received",
+        "payment_method": "admin_recorded",
+        "status": "success",
+        "notes": {
+            "recorded_by": current_user.username,
+            "recorded_by_id": current_user.id,
+            "remark": notes,
+        },
+        "created_at": datetime.utcnow(),
+    }
+    await db.transactions.insert_one(transaction_dict)
+
+    # Mark oldest pending pay_later orders as completed up to payment amount
+    remaining = amount
+    pending_orders = await db.orders.find({
+        "user_id": customer_id,
+        "is_pay_later": True,
+        "payment_status": "pending"
+    }).sort("created_at", 1).to_list(500)
+
+    settled_count = 0
+    for order in pending_orders:
+        if remaining <= 0:
+            break
+        order_amt = order.get("total_amount", 0)
+        if remaining >= order_amt:
+            await db.orders.update_one(
+                {"id": order["id"]},
+                {"$set": {"payment_status": "completed", "updated_at": datetime.utcnow()}}
+            )
+            remaining -= order_amt
+            settled_count += 1
+        else:
+            break
+
+    logger.info(f"Admin {current_user.username} recorded payment {amount} for customer {customer.get('username')}, settled {settled_count} orders")
+
+    return {
+        "message": f"Payment of {amount} recorded. {settled_count} order(s) settled.",
+        "transaction_id": transaction_id,
+        "settled_orders": settled_count,
+        "remaining_credit": round(remaining, 2),
+    }
+
+
+@api_router.get("/admin/customer-balance/{customer_id}")
+async def get_customer_balance(
+    customer_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Get a customer's pending pay-later balance."""
+    customer = await db.users.find_one({"id": customer_id}, {"_id": 0, "id": 1, "username": 1, "business_name": 1})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    pending_orders = await db.orders.find({
+        "user_id": customer_id,
+        "is_pay_later": True,
+        "payment_status": "pending"
+    }, {"_id": 0, "total_amount": 1}).to_list(500)
+
+    pending_balance = sum(o.get("total_amount", 0) for o in pending_orders)
+
+    # Get recent payment transactions
+    recent_payments = await db.transactions.find({
+        "user_id": customer_id,
+        "transaction_type": "payment_received"
+    }, {"_id": 0}).sort("created_at", -1).to_list(10)
+    for p in recent_payments:
+        p.pop("_id", None)
+
+    return {
+        "customer_id": customer_id,
+        "customer_name": customer.get("business_name") or customer.get("username"),
+        "pending_balance": round(pending_balance, 2),
+        "pending_order_count": len(pending_orders),
+        "recent_payments": recent_payments,
+    }
 
 
 

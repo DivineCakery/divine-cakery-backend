@@ -222,6 +222,18 @@ export default function DashboardScreen() {
 
               <TouchableOpacity
                 style={[styles.settingsButton, { marginTop: 10 }]}
+                onPress={() => router.push('/(admin)/admin-place-order' as any)}
+              >
+                <Ionicons name="cart-outline" size={24} color="#2E7D32" />
+                <View style={styles.settingsButtonText}>
+                  <Text style={styles.settingsButtonTitle}>Place Order / Payments</Text>
+                  <Text style={styles.settingsButtonSubtitle}>Place orders for customers and record payments</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color="#999" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.settingsButton, { marginTop: 10 }]}
                 onPress={() => router.push('/(admin)/manage-categories' as any)}
               >
                 <Ionicons name="albums-outline" size={24} color="#8B4513" />

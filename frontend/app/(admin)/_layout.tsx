@@ -259,6 +259,12 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="admin-place-order"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
