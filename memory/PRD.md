@@ -17,6 +17,16 @@ The following features require deploying updated `server.py` and `models.py` to 
 
 ## Completed Features
 
+### Admin Place Order & Record Payment - COMPLETE (2026-03-31)
+- Admin can place pay-later orders on behalf of any customer
+- Orders tagged with `is_pay_later: true`, `placed_by_admin: true`, `payment_status: pending`
+- Same product catalog as customers, auto next delivery date, notes field
+- Admin can record payments against customer's pending balance
+- Payment settles oldest pending orders first (FIFO)
+- Customer balance view shows pending amount + recent payments
+- APIs: `POST /api/admin/place-order`, `POST /api/admin/record-payment`, `GET /api/admin/customer-balance/{id}`
+- Backend: 11/11 tests passed, Frontend: UI verified
+
 ### Route Summaries Report v2 - COMPLETE (2026-03-30)
 - 7-point layout rework completed and tested:
   1. Separate driver inputs per route sub-code (SR1/SR2, LR1/LR2, LFT, ONS)
