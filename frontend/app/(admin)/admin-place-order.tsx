@@ -149,15 +149,14 @@ export default function AdminPlaceOrder() {
         amount: amt,
         notes: paymentNotes || undefined,
       });
-      showAlert('Success', result.message);
+      // Refresh pending balance BEFORE showing alert (alert blocks on web)
+      try {
+        const b = await apiService.getCustomerBalance(paymentCustomer.id);
+        setCustomerPendingBalance(b.pending_balance);
+        setPendingBalance(b.pending_balance);
+      } catch {}
       setShowPaymentModal(false);
-      // Refresh pending balance on the main page
-      if (paymentCustomer) {
-        apiService.getCustomerBalance(paymentCustomer.id).then(b => {
-          setCustomerPendingBalance(b.pending_balance);
-          setPendingBalance(b.pending_balance);
-        }).catch(() => {});
-      }
+      showAlert('Success', result.message);
     } catch (e: any) {
       showAlert('Error', e?.response?.data?.detail || 'Failed to record payment');
     } finally { setPaymentLoading(false); }
