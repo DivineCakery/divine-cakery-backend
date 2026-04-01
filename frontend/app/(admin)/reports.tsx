@@ -346,34 +346,50 @@ export default function ReportsScreen() {
   // Calculate and show excess stock when prep report tab is opened
   const calculateAndShowExcessStock = async () => {
     try {
-      // Get preparation list data (today + tomorrow requirements)
+      // Get ALL products from inventory (not just items with orders)
+      const allProducts = await apiService.getProducts(true); // include_admin=true
+      
+      // Get preparation list data (today + tomorrow requirements for items with orders)
       const dateStr = selectedDate.toISOString().split('T')[0];
       const prepData = await apiService.getPreparationListReport(dateStr);
       
-      // Calculate excess stock for each item
+      // Create a map of requirements from prep report
+      const requirementsMap: { [key: string]: { today: number; tomorrow: number } } = {};
+      prepData.items.forEach((item: any) => {
+        requirementsMap[item.product_name] = {
+          today: item.orders_today || 0,
+          tomorrow: item.orders_tomorrow || 0
+        };
+      });
+      
+      // Calculate excess stock for ALL products
       // NEW LOGIC: Excess = Stock + Prepared - (Today + Tomorrow)
-      const excessItems = prepData.items
-        .map((item: any) => {
-          const stock = item.previous_closing_stock || 0;
-          const todayReq = item.orders_today || 0;
-          const tomorrowReq = item.orders_tomorrow || 0;
+      const excessItems = allProducts
+        .map((product: any) => {
+          const productName = product.name;
+          const stock = product.closing_stock || 0;
+          
+          // Get requirements (default to 0 if no orders)
+          const requirements = requirementsMap[productName] || { today: 0, tomorrow: 0 };
+          const todayReq = requirements.today;
+          const tomorrowReq = requirements.tomorrow;
           const totalRequired = todayReq + tomorrowReq;
           
           // Get prepared quantity if entered (default to 0)
-          const prepared = parseFloat(preparedQuantities[item.product_name] || '0') || 0;
+          const prepared = parseFloat(preparedQuantities[productName] || '0') || 0;
           
           // Excess = Stock + Prepared - TotalRequired
           const excess = stock + prepared - totalRequired;
           
           return {
-            name: item.product_name,
+            name: productName,
             stock: stock,
             todayReq: todayReq,
             tomorrowReq: tomorrowReq,
             totalRequired: totalRequired,
             prepared: prepared,
             excess: excess,
-            unit: item.unit || 'piece'
+            unit: product.unit || 'piece'
           };
         })
         .filter((item: any) => item.excess > 0) // Only show items with positive excess
