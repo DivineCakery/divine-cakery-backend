@@ -248,15 +248,21 @@ export default function ReportsScreen() {
 
   // Fetch department staff when department changes (for Prep Report)
   useEffect(() => {
+    console.log('🔍 useEffect triggered - activeTab:', activeTab, 'selectedDepartment:', selectedDepartment);
+    
     if (activeTab === 'prepReport') {
+      console.log('✅ activeTab is prepReport, executing prep report setup...');
       fetchDepartmentStaff();
       fetchWhatsappNumbers();
       loadPreparedQuantities(); // Load saved prepared quantities
       
       // Delay excess stock calculation to ensure data is loaded
       setTimeout(() => {
+        console.log('⏰ Timeout fired, calling calculateAndShowExcessStock...');
         calculateAndShowExcessStock();
       }, 1000);
+    } else {
+      console.log('❌ activeTab is NOT prepReport, skipping excess stock calculation');
     }
   }, [selectedDepartment, activeTab]);
 
