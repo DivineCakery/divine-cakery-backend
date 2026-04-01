@@ -16,6 +16,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiService from '../../services/api';
 import { useAuthStore } from '../../store';
 import { showAlert } from '../../utils/alerts';
@@ -250,9 +251,43 @@ export default function ReportsScreen() {
     if (activeTab === 'prepReport') {
       fetchDepartmentStaff();
       fetchWhatsappNumbers();
+      loadPreparedQuantities(); // Load saved prepared quantities
       calculateAndShowExcessStock();  // Show excess stock popup when opening prep report
     }
   }, [selectedDepartment, activeTab]);
+
+  // Load prepared quantities from AsyncStorage when component mounts
+  useEffect(() => {
+    loadPreparedQuantities();
+  }, [selectedDate, selectedDepartment]);
+
+  // Save prepared quantities to AsyncStorage whenever they change
+  useEffect(() => {
+    savePreparedQuantities();
+  }, [preparedQuantities]);
+
+  const loadPreparedQuantities = async () => {
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const key = `preparedQty_${dateStr}_${selectedDepartment}`;
+      const saved = await AsyncStorage.getItem(key);
+      if (saved) {
+        setPreparedQuantities(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error('Error loading prepared quantities:', error);
+    }
+  };
+
+  const savePreparedQuantities = async () => {
+    try {
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const key = `preparedQty_${dateStr}_${selectedDepartment}`;
+      await AsyncStorage.setItem(key, JSON.stringify(preparedQuantities));
+    } catch (error) {
+      console.error('Error saving prepared quantities:', error);
+    }
+  };
 
   const fetchDoughTypes = async () => {
     try {
@@ -312,10 +347,11 @@ export default function ReportsScreen() {
   const calculateAndShowExcessStock = async () => {
     try {
       // Get preparation list data (today + tomorrow requirements)
-      const prepData = await apiService.getPreparationList(selectedDate.toISOString().split('T')[0]);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const prepData = await apiService.getPreparationListReport(dateStr);
       
       // Calculate excess stock for each item
-      // Excess = Stock - (Today + Tomorrow) - Prepared
+      // NEW LOGIC: Excess = Stock + Prepared - (Today + Tomorrow)
       const excessItems = prepData.items
         .map((item: any) => {
           const stock = item.previous_closing_stock || 0;
@@ -326,8 +362,8 @@ export default function ReportsScreen() {
           // Get prepared quantity if entered (default to 0)
           const prepared = parseFloat(preparedQuantities[item.product_name] || '0') || 0;
           
-          // Excess = Stock - TotalRequired - Prepared
-          const excess = stock - totalRequired - prepared;
+          // Excess = Stock + Prepared - TotalRequired
+          const excess = stock + prepared - totalRequired;
           
           return {
             name: item.product_name,
@@ -1090,7 +1126,7 @@ export default function ReportsScreen() {
             
             <ScrollView style={{ flex: 1 }}>
               <Text style={{fontSize: 14, color: '#666', marginBottom: 12, paddingHorizontal: 16}}>
-                Items with stock exceeding today + tomorrow requirements:
+                Formula: Excess = Stock + Prepared - (Today + Tomorrow)
               </Text>
               
               {excessStockItems.length > 0 ? (
@@ -1099,6 +1135,7 @@ export default function ReportsScreen() {
                   <View style={{flexDirection: 'row', backgroundColor: '#8B4513', paddingVertical: 8, paddingHorizontal: 8}}>
                     <Text style={{flex: 3, color: '#fff', fontSize: 12, fontWeight: 'bold'}}>Item</Text>
                     <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Stock</Text>
+                    <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Prep.</Text>
                     <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Need</Text>
                     <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Excess</Text>
                   </View>
@@ -1108,6 +1145,7 @@ export default function ReportsScreen() {
                     <View key={idx} style={{flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', backgroundColor: idx % 2 === 0 ? '#fafafa' : '#fff'}}>
                       <Text style={{flex: 3, fontSize: 12, color: '#333'}}>{item.name}</Text>
                       <Text style={{flex: 1.2, fontSize: 12, color: '#333', textAlign: 'center'}}>{item.stock}</Text>
+                      <Text style={{flex: 1.2, fontSize: 12, color: '#333', textAlign: 'center'}}>{item.prepared}</Text>
                       <Text style={{flex: 1.2, fontSize: 12, color: '#333', textAlign: 'center'}}>{item.totalRequired}</Text>
                       <Text style={{flex: 1.2, fontSize: 13, color: '#f44336', textAlign: 'center', fontWeight: 'bold'}}>{item.excess}</Text>
                     </View>
