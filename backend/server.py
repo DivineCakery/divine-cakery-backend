@@ -3652,36 +3652,46 @@ async def get_route_summary(
         "user_id": {"$in": customer_ids}
     }).to_list(10000)
 
-    # Build matrix: item_name -> { customer_id: qty }
+    # Build matrix: item_name -> { order_customer_key: qty }
+    # Each order gets its own column (order_number + customer_id as key)
     item_customer_matrix = {}
     items_order = []
-    customer_has_orders = set()
+    order_instances = []  # List of {id: key, name: customer_name, route_code, order_number}
 
     for order in orders:
         cid = order.get("user_id")
         if cid not in customer_map:
             continue
-        customer_has_orders.add(cid)
+        
+        order_number = order.get("order_number", "")
+        # Create unique key for this order instance
+        order_key = f"{cid}_{order_number}"
+        customer_name = customer_map[cid].get("business_name") or customer_map[cid].get("username", "")
+        route_code = customer_map[cid].get("route_code", "")
+        
+        order_instances.append({
+            "id": order_key,
+            "name": customer_name,
+            "route_code": route_code,
+            "order_number": order_number
+        })
+        
         for item in order.get("items", []):
             product_name = item.get("product_name", "Unknown")
             qty = item.get("quantity", 0)
             if product_name not in item_customer_matrix:
                 item_customer_matrix[product_name] = {}
                 items_order.append(product_name)
-            if cid in item_customer_matrix[product_name]:
-                item_customer_matrix[product_name][cid] += qty
-            else:
-                item_customer_matrix[product_name][cid] = qty
+            item_customer_matrix[product_name][order_key] = qty
 
-    # Filter to only customers who have orders
-    active_customers = [customer_map[cid] for cid in customer_ids if cid in customer_has_orders]
-    active_customers.sort(key=lambda c: c.get("business_name") or c.get("username", ""))
+    # Sort order instances by route_code, then customer name, then order_number
+    order_instances.sort(key=lambda x: (x["route_code"], x["name"], x["order_number"]))
 
     return {
         "date": report_date.strftime("%Y-%m-%d"),
         "route_type": route_type,
         "route_codes": route_codes,
-        "customers": [{"id": c["id"], "name": c.get("business_name") or c.get("username", ""), "route_code": c.get("route_code", "")} for c in active_customers],
+        "customers": order_instances,
         "items": items_order,
         "matrix": item_customer_matrix
     }

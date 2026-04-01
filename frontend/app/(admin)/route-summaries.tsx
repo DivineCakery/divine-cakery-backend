@@ -100,6 +100,10 @@ export default function RouteSummaries() {
     const groups = getGroups();
     const isLulu = selectedRoute === 'lulu';
 
+    // Calculate max item name length for dynamic column width
+    const maxItemLength = Math.max(...items.map(i => i.length), 10);
+    const itemColWidth = isLulu ? Math.min(maxItemLength * 8 + 10, 140) : Math.min(maxItemLength * 7 + 10, 160);
+
     // Driver info line
     const driverLines = (rt?.codes || []).map(code => {
       const d = drivers[code] || '';
@@ -130,47 +134,57 @@ export default function RouteSummaries() {
       rows += `<tr>${cells}</tr>`;
     }
 
-    // Lulu: A4 portrait, single page, compact layout
-    // Others: A4 landscape as before
+    // Apply compact single-page layout for all routes
     const pageStyle = isLulu
       ? `@page { size: A4 portrait; margin: 8mm; }`
       : `@page { size: A4 landscape; margin: 6mm; }`;
 
     const custHeaderStyle = isLulu
-      ? `th.cust { min-width: 50px; max-width: 65px; height: auto; font-size: 10px; padding: 3px 2px; writing-mode: horizontal-tb; text-orientation: initial; transform: none; word-wrap: break-word; }`
-      : `th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 30px; max-width: 44px; height: 130px; font-size: 13px; padding: 4px 2px; }`;
+      ? `th.cust { min-width: 50px; max-width: 70px; height: auto; font-size: 11px; padding: 4px 2px; writing-mode: horizontal-tb; text-orientation: initial; transform: none; word-wrap: break-word; }`
+      : `th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 28px; max-width: 40px; height: 110px; font-size: 11px; padding: 3px 2px; }`;
 
-    const luluExtras = isLulu ? `
+    // Compact styling for all routes to fit single page
+    const compactStyles = isLulu ? `
       html, body { max-width: 794px; margin: 0 auto; }
-      table { table-layout: fixed; width: 100%; page-break-inside: avoid; }
-      td.item { font-size: 11px; padding: 2px 3px; }
-      td.total-cell { font-size: 12px; padding: 2px; }
-      td.qty { font-size: 11px; min-width: 45px; padding: 2px; }
-      th.item-hdr { font-size: 12px; padding: 3px; }
-      th.total-hdr { font-size: 11px; padding: 3px; }
-      .hdr { font-size: 18px; margin: 0 0 2px; }
-      .sub { font-size: 12px; margin: 0 0 4px; }
-    ` : '';
+      table { table-layout: auto; width: 100%; page-break-inside: avoid; }
+      td.item { font-size: 13px; padding: 3px 4px; min-width: ${itemColWidth}px; max-width: ${itemColWidth}px; }
+      td.total-cell { font-size: 14px; padding: 3px; }
+      td.qty { font-size: 13px; min-width: 45px; padding: 3px; }
+      th.item-hdr { font-size: 14px; padding: 4px; min-width: ${itemColWidth}px; max-width: ${itemColWidth}px; }
+      th.total-hdr { font-size: 13px; padding: 4px; background: #999; color: #fff; }
+      .hdr { font-size: 20px; margin: 0 0 3px; }
+      .sub { font-size: 13px; margin: 0 0 5px; }
+    ` : `
+      html, body { max-width: 100%; margin: 0 auto; }
+      table { table-layout: auto; width: 100%; page-break-inside: avoid; }
+      td.item { font-size: 12px; padding: 2px 3px; min-width: ${itemColWidth}px; max-width: ${itemColWidth}px; }
+      td.total-cell { font-size: 13px; padding: 2px; }
+      td.qty { font-size: 12px; min-width: 28px; padding: 2px; }
+      th.item-hdr { font-size: 13px; padding: 3px; min-width: ${itemColWidth}px; max-width: ${itemColWidth}px; }
+      th.total-hdr { font-size: 12px; padding: 3px; background: #999; color: #fff; }
+      .hdr { font-size: 22px; margin: 0 0 2px; }
+      .sub { font-size: 14px; margin: 0 0 4px; }
+    `;
 
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       ${pageStyle}
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: Arial, sans-serif; font-size: 18px; color: #000; }
-      .hdr { font-size: 28px; font-weight: bold; margin: 0 0 2px; }
-      .sub { font-size: 20px; margin: 0 0 6px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 4px; page-break-inside: avoid; }
+      body { font-family: Arial, sans-serif; color: #000; }
+      .hdr { font-weight: bold; }
+      .sub { }
+      table { border-collapse: collapse; margin-top: 4px; }
       th, td { border: 1px solid #000; }
-      th { background: #fff; color: #000; padding: 4px 3px; font-size: 14px; text-align: center; font-weight: bold; }
-      th.item-hdr { text-align: left; min-width: 180px; font-size: 16px; }
-      th.total-hdr { font-size: 16px; min-width: 44px; background: #ddd; }
+      th { background: #fff; color: #000; text-align: center; font-weight: bold; }
+      th.item-hdr { text-align: left; }
+      th.total-hdr { min-width: 44px; }
       ${custHeaderStyle}
-      td { padding: 3px 4px; font-size: 16px; }
-      td.item { font-weight: bold; white-space: nowrap; font-size: 16px; }
-      td.total-cell { text-align: center; font-weight: bold; background: #eee; min-width: 44px; font-size: 18px; }
-      td.qty { text-align: center; min-width: 28px; }
+      td { }
+      td.item { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      td.total-cell { text-align: center; font-weight: bold; background: #ddd; min-width: 44px; }
+      td.qty { text-align: center; }
       tr { page-break-inside: avoid; }
       thead { display: table-header-group; }
-      ${luluExtras}
+      ${compactStyles}
     </style></head><body>
       <div class="hdr">${routeLabel}</div>
       <div class="sub">${dateStr}${driverLines ? ' &nbsp;|&nbsp; Driver: ' + driverLines : ''}</div>
