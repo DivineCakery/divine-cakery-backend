@@ -92,6 +92,10 @@ export default function ReportsScreen() {
   const [showAddNumberModal, setShowAddNumberModal] = useState(false);
   const [newNumberName, setNewNumberName] = useState('');
   const [newNumberPhone, setNewNumberPhone] = useState('');
+  
+  // Excess Stock Modal state
+  const [showExcessStockModal, setShowExcessStockModal] = useState(false);
+  const [excessStockItems, setExcessStockItems] = useState<any[]>([]);
 
   // Generate A4 PDF HTML for Preparation Report
   // Helper: calculate adjusted today/tomorrow values (after closing stock reduction)
@@ -246,6 +250,7 @@ export default function ReportsScreen() {
     if (activeTab === 'prepReport') {
       fetchDepartmentStaff();
       fetchWhatsappNumbers();
+      calculateAndShowExcessStock();  // Show excess stock popup when opening prep report
     }
   }, [selectedDepartment, activeTab]);
 
@@ -300,6 +305,52 @@ export default function ReportsScreen() {
     } catch (error) {
       console.error('Error deleting number:', error);
       showAlert('Error', 'Failed to delete number');
+    }
+  };
+
+  // Calculate and show excess stock when prep report tab is opened
+  const calculateAndShowExcessStock = async () => {
+    try {
+      // Get preparation list data (today + tomorrow requirements)
+      const prepData = await apiService.getPreparationList(selectedDate.toISOString().split('T')[0]);
+      
+      // Calculate excess stock for each item
+      // Excess = Stock - (Today + Tomorrow) - Prepared
+      const excessItems = prepData.items
+        .map((item: any) => {
+          const stock = item.previous_closing_stock || 0;
+          const todayReq = item.orders_today || 0;
+          const tomorrowReq = item.orders_tomorrow || 0;
+          const totalRequired = todayReq + tomorrowReq;
+          
+          // Get prepared quantity if entered (default to 0)
+          const prepared = parseFloat(preparedQuantities[item.product_name] || '0') || 0;
+          
+          // Excess = Stock - TotalRequired - Prepared
+          const excess = stock - totalRequired - prepared;
+          
+          return {
+            name: item.product_name,
+            stock: stock,
+            todayReq: todayReq,
+            tomorrowReq: tomorrowReq,
+            totalRequired: totalRequired,
+            prepared: prepared,
+            excess: excess,
+            unit: item.unit || 'piece'
+          };
+        })
+        .filter((item: any) => item.excess > 0) // Only show items with positive excess
+        .sort((a: any, b: any) => b.excess - a.excess); // Sort by excess descending
+      
+      setExcessStockItems(excessItems);
+      
+      // Show modal only if there are excess items
+      if (excessItems.length > 0) {
+        setShowExcessStockModal(true);
+      }
+    } catch (error) {
+      console.error('Error calculating excess stock:', error);
     }
   };
 
@@ -1024,6 +1075,57 @@ export default function ReportsScreen() {
             </ScrollView>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Excess Stock Modal */}
+      <Modal visible={showExcessStockModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { maxHeight: '80%', width: '90%' }]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>⚠️ Excess Stock Alert</Text>
+              <TouchableOpacity onPress={() => setShowExcessStockModal(false)}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={{ flex: 1 }}>
+              <Text style={{fontSize: 14, color: '#666', marginBottom: 12, paddingHorizontal: 16}}>
+                Items with stock exceeding today + tomorrow requirements:
+              </Text>
+              
+              {excessStockItems.length > 0 ? (
+                <View style={{backgroundColor: '#fff', borderRadius: 8, overflow: 'hidden'}}>
+                  {/* Header */}
+                  <View style={{flexDirection: 'row', backgroundColor: '#8B4513', paddingVertical: 8, paddingHorizontal: 8}}>
+                    <Text style={{flex: 3, color: '#fff', fontSize: 12, fontWeight: 'bold'}}>Item</Text>
+                    <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Stock</Text>
+                    <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Need</Text>
+                    <Text style={{flex: 1.2, color: '#fff', fontSize: 12, fontWeight: 'bold', textAlign: 'center'}}>Excess</Text>
+                  </View>
+                  
+                  {/* Rows */}
+                  {excessStockItems.map((item, idx) => (
+                    <View key={idx} style={{flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', backgroundColor: idx % 2 === 0 ? '#fafafa' : '#fff'}}>
+                      <Text style={{flex: 3, fontSize: 12, color: '#333'}}>{item.name}</Text>
+                      <Text style={{flex: 1.2, fontSize: 12, color: '#333', textAlign: 'center'}}>{item.stock}</Text>
+                      <Text style={{flex: 1.2, fontSize: 12, color: '#333', textAlign: 'center'}}>{item.totalRequired}</Text>
+                      <Text style={{flex: 1.2, fontSize: 13, color: '#f44336', textAlign: 'center', fontWeight: 'bold'}}>{item.excess}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={{textAlign: 'center', color: '#999', marginTop: 20}}>No excess stock found</Text>
+              )}
+            </ScrollView>
+            
+            <TouchableOpacity 
+              style={{backgroundColor: '#8B4513', borderRadius: 8, padding: 14, marginTop: 16, alignItems: 'center'}}
+              onPress={() => setShowExcessStockModal(false)}
+            >
+              <Text style={{color: '#fff', fontSize: 15, fontWeight: 'bold'}}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </ScrollView>
   );
