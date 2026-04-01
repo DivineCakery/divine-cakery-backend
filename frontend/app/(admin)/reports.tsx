@@ -240,6 +240,16 @@ export default function ReportsScreen() {
   useFocusEffect(
     React.useCallback(() => {
       console.log('Reports screen focused, refreshing data...');
+      console.log('🔄 Fetching reports for date:', selectedDate.toISOString().split('T')[0], 'activeTab:', activeTab, 'doughType:', selectedDoughType);
+      
+      // Trigger excess stock calculation when focusing on prepReport tab
+      if (activeTab === 'prepReport') {
+        console.log('🎯 FOCUS EFFECT: prepReport tab detected, triggering excess stock calc');
+        setTimeout(() => {
+          calculateAndShowExcessStock();
+        }, 2000);
+      }
+      
       setLoading(true);
       fetchReports();
       // eslint-disable-next-line react-hooks/exhaustive-deps
