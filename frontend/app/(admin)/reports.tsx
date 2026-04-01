@@ -252,7 +252,11 @@ export default function ReportsScreen() {
       fetchDepartmentStaff();
       fetchWhatsappNumbers();
       loadPreparedQuantities(); // Load saved prepared quantities
-      calculateAndShowExcessStock();  // Show excess stock popup when opening prep report
+      
+      // Delay excess stock calculation to ensure data is loaded
+      setTimeout(() => {
+        calculateAndShowExcessStock();
+      }, 1000);
     }
   }, [selectedDepartment, activeTab]);
 
@@ -346,12 +350,16 @@ export default function ReportsScreen() {
   // Calculate and show excess stock when prep report tab is opened
   const calculateAndShowExcessStock = async () => {
     try {
+      console.log('📊 Starting excess stock calculation...');
+      
       // Get ALL products from inventory (not just items with orders)
       const allProducts = await apiService.getProducts(true); // include_admin=true
+      console.log(`📦 Fetched ${allProducts.length} total products`);
       
       // Get preparation list data (today + tomorrow requirements for items with orders)
       const dateStr = selectedDate.toISOString().split('T')[0];
       const prepData = await apiService.getPreparationListReport(dateStr);
+      console.log(`📋 Prep report has ${prepData.items.length} items with orders`);
       
       // Create a map of requirements from prep report
       const requirementsMap: { [key: string]: { today: number; tomorrow: number } } = {};
@@ -367,7 +375,8 @@ export default function ReportsScreen() {
       const excessItems = allProducts
         .map((product: any) => {
           const productName = product.name;
-          const stock = product.closing_stock || 0;
+          // Use previous_closing_stock if available, otherwise closing_stock
+          const stock = product.previous_closing_stock ?? product.closing_stock ?? 0;
           
           // Get requirements (default to 0 if no orders)
           const requirements = requirementsMap[productName] || { today: 0, tomorrow: 0 };
@@ -395,14 +404,22 @@ export default function ReportsScreen() {
         .filter((item: any) => item.excess > 0) // Only show items with positive excess
         .sort((a: any, b: any) => b.excess - a.excess); // Sort by excess descending
       
+      console.log(`✅ Found ${excessItems.length} items with excess stock`);
+      if (excessItems.length > 0) {
+        console.log('📊 Top 5 excess items:', excessItems.slice(0, 5).map(i => `${i.name}: ${i.excess}`));
+      }
+      
       setExcessStockItems(excessItems);
       
       // Show modal only if there are excess items
       if (excessItems.length > 0) {
+        console.log('🔔 Showing excess stock modal');
         setShowExcessStockModal(true);
+      } else {
+        console.log('ℹ️ No excess stock items to display');
       }
     } catch (error) {
-      console.error('Error calculating excess stock:', error);
+      console.error('❌ Error calculating excess stock:', error);
     }
   };
 
