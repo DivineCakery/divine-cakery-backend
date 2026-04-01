@@ -369,7 +369,7 @@ export default function ReportsScreen() {
       console.log('📊 Starting excess stock calculation...');
       
       // Get ALL products from inventory (not just items with orders)
-      const allProducts = await apiService.getProducts(true); // include_admin=true
+      const allProducts = await apiService.getProducts(null, null, true); // category=null, isAvailable=null, includeAdmin=true
       console.log(`📦 Fetched ${allProducts.length} total products`);
       
       // Get preparation list data (today + tomorrow requirements for items with orders)
