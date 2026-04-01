@@ -1165,7 +1165,8 @@ export default function ReportsScreen() {
       {/* Excess Stock Modal */}
       <Modal visible={showExcessStockModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { width: '90%', maxHeight: '70%' }]}>
+          <View style={{ width: '90%', maxHeight: '70%', backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' }}>
+            {/* Header */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>⚠️ Excess Stock Alert</Text>
               <TouchableOpacity onPress={() => setShowExcessStockModal(false)}>
@@ -1173,46 +1174,48 @@ export default function ReportsScreen() {
               </TouchableOpacity>
             </View>
             
-            <View style={{ flex: 1, paddingHorizontal: 16 }}>
-              <Text style={{ fontSize: 14, color: '#666', marginBottom: 12, marginTop: 8 }}>
+            {/* Scrollable Content */}
+            <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ padding: 16 }}>
+              <Text style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
                 Formula: Excess = Stock + Prepared - (Today + Tomorrow)
               </Text>
               
-              <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={true}>
-                {excessStockItems.length > 0 ? (
-                  <View style={{ backgroundColor: '#fff', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
-                    {/* Header */}
-                    <View style={{ flexDirection: 'row', backgroundColor: '#8B4513', paddingVertical: 10, paddingHorizontal: 6 }}>
-                      <Text style={{ flex: 3, color: '#fff', fontSize: 11, fontWeight: 'bold' }}>Item</Text>
-                      <Text style={{ flex: 1, color: '#fff', fontSize: 11, fontWeight: 'bold', textAlign: 'center' }}>Stock</Text>
-                      <Text style={{ flex: 1, color: '#fff', fontSize: 11, fontWeight: 'bold', textAlign: 'center' }}>Prep.</Text>
-                      <Text style={{ flex: 1, color: '#fff', fontSize: 11, fontWeight: 'bold', textAlign: 'center' }}>Need</Text>
-                      <Text style={{ flex: 1, color: '#fff', fontSize: 11, fontWeight: 'bold', textAlign: 'center' }}>Excess</Text>
-                    </View>
-                    
-                    {/* Rows */}
-                    {excessStockItems.map((item, idx) => (
-                      <View key={idx} style={{ flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', backgroundColor: idx % 2 === 0 ? '#fafafa' : '#fff' }}>
-                        <Text style={{ flex: 3, fontSize: 11, color: '#333' }} numberOfLines={2}>{item.name}</Text>
-                        <Text style={{ flex: 1, fontSize: 11, color: '#333', textAlign: 'center' }}>{item.stock}</Text>
-                        <Text style={{ flex: 1, fontSize: 11, color: '#333', textAlign: 'center' }}>{item.prepared}</Text>
-                        <Text style={{ flex: 1, fontSize: 11, color: '#333', textAlign: 'center' }}>{item.totalRequired}</Text>
-                        <Text style={{ flex: 1, fontSize: 12, color: '#f44336', textAlign: 'center', fontWeight: 'bold' }}>{item.excess}</Text>
-                      </View>
-                    ))}
+              {excessStockItems.length > 0 ? (
+                <View style={{ backgroundColor: '#f8f8f8', borderRadius: 8, overflow: 'hidden' }}>
+                  {/* Header Row */}
+                  <View style={{ flexDirection: 'row', backgroundColor: '#8B4513', paddingVertical: 10, paddingHorizontal: 4 }}>
+                    <Text style={{ flex: 3, color: '#fff', fontSize: 10, fontWeight: 'bold' }}>Item</Text>
+                    <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Stock</Text>
+                    <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Prep</Text>
+                    <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Need</Text>
+                    <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Excess</Text>
                   </View>
-                ) : (
-                  <Text style={{ textAlign: 'center', color: '#999', marginTop: 20, marginBottom: 20 }}>No excess stock found</Text>
-                )}
-              </ScrollView>
-            </View>
+                  
+                  {/* Data Rows */}
+                  {excessStockItems.map((item, idx) => (
+                    <View key={idx} style={{ flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: '#e0e0e0', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                      <Text style={{ flex: 3, fontSize: 10, color: '#333' }} numberOfLines={2}>{item.name}</Text>
+                      <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.stock}</Text>
+                      <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.prepared}</Text>
+                      <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.totalRequired}</Text>
+                      <Text style={{ flex: 1, fontSize: 11, color: '#f44336', textAlign: 'center', fontWeight: 'bold' }}>{item.excess}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={{ textAlign: 'center', color: '#999', paddingVertical: 20 }}>No excess stock found</Text>
+              )}
+            </ScrollView>
             
-            <TouchableOpacity 
-              style={{ backgroundColor: '#8B4513', borderRadius: 8, padding: 14, marginTop: 12, marginHorizontal: 16, marginBottom: 16, alignItems: 'center' }}
-              onPress={() => setShowExcessStockModal(false)}
-            >
-              <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>Got it</Text>
-            </TouchableOpacity>
+            {/* Bottom Button */}
+            <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: '#f0f0f0' }}>
+              <TouchableOpacity 
+                style={{ backgroundColor: '#8B4513', borderRadius: 8, padding: 14, alignItems: 'center' }}
+                onPress={() => setShowExcessStockModal(false)}
+              >
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }}>Got it</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
