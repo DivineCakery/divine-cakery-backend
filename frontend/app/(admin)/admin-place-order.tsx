@@ -296,7 +296,7 @@ export default function AdminPlaceOrder() {
           )}
         </TouchableOpacity>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 200 }} />
       </ScrollView>
 
       {/* Customer Picker Modal */}
