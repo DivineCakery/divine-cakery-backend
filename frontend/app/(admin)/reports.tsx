@@ -30,7 +30,7 @@ const DEPARTMENTS = [
 
 const DEPARTMENT_DOUGHS: Record<string, string[]> = {
   top_room: [
-    'Multigrain dough', 'Egg bun dough', 'Milk bun dough', 'Pizza dough',
+    'Egg bun dough', 'Milk bun dough', 'Pizza dough',
     'Fruity dough', 'Lavash', 'Grissini', 'Bread roll dough', 'Potato bun dough',
     'Red burger dough', 'Black burger dough', 'Ciabatta', 'French baguette',
     'Croissants', 'Puffs dough', 'Cookies/biscotti',
@@ -39,6 +39,7 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
   dough_section: [
     'Milk dough', 'Brioche Dough', 'Burger Dough', 'White Dough', 'Brown Dough',
     'Pav Dough', 'Sweet dough', 'Butter bread dough', 'Butter brioche dough',
+    'Multigrain dough', // Added per user request
   ],
   angels_section: ['Crumbs dough'],
 };
@@ -47,6 +48,7 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
 const TOP_ROOM_BURGER_ITEMS = [
   'hot hotdog bun*4', 'lul samoon seeded*4', 'hotdog buns- 8in',
   'lul hotdog bun 3s', 'sandwich buns- 6in*4',
+  'pvr sandwich ( hotdog) bun 6in*4', // Added per user request
 ];
 
 // Staff section key mapping for "Reported by" dropdown
