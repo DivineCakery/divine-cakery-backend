@@ -1692,25 +1692,29 @@ async def payment_webhook(request: Request):
             
             # Handle different transaction types
             if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
-                user_id = transaction["user_id"]
-                amount = transaction["amount"]
-                
-                # Update wallet balance
-                await db.wallets.update_one(
-                    {"user_id": user_id},
-                    {
-                        "$inc": {"balance": amount},
-                        "$set": {"updated_at": datetime.utcnow()}
-                    }
-                )
-                
-                # Update user's wallet balance
-                await db.users.update_one(
-                    {"id": user_id},
-                    {"$inc": {"wallet_balance": amount}}
-                )
-                
-                logger.info(f"✅ Wallet updated successfully: user_id={user_id}, amount={amount}")
+                # Only update wallet if not already processed (prevent double-credit)
+                if transaction.get("status") != TransactionStatus.SUCCESS:
+                    user_id = transaction["user_id"]
+                    amount = transaction["amount"]
+                    
+                    # Update wallet balance
+                    await db.wallets.update_one(
+                        {"user_id": user_id},
+                        {
+                            "$inc": {"balance": amount},
+                            "$set": {"updated_at": datetime.utcnow()}
+                        }
+                    )
+                    
+                    # Update user's wallet balance
+                    await db.users.update_one(
+                        {"id": user_id},
+                        {"$inc": {"wallet_balance": amount}}
+                    )
+                    
+                    logger.info(f"✅ Wallet updated successfully: user_id={user_id}, amount={amount}")
+                else:
+                    logger.info(f"⚠️ Wallet already updated for transaction {transaction['id']}, skipping duplicate")
             
             elif transaction["transaction_type"] == TransactionType.ORDER_PAYMENT:
                 # Create the order after successful payment
@@ -1809,40 +1813,43 @@ async def payment_callback(
                 }
             )
             
-            # Update wallet if wallet topup
+            # Update wallet if wallet topup (only if not already processed)
             if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
-                user_id = transaction["user_id"]
-                amount = transaction["amount"]
-                
-                # Update wallet balance
-                await db.wallets.update_one(
-                    {"user_id": user_id},
-                    {
-                        "$inc": {"balance": amount},
-                        "$set": {"updated_at": datetime.utcnow()}
-                    }
-                )
-                
-                # Update user's wallet balance
-                await db.users.update_one(
-                    {"id": user_id},
-                    {"$inc": {"wallet_balance": amount}}
-                )
-                
-                # Get user details for notification
-                user = await db.users.find_one({"id": user_id})
-                
-                # Send WhatsApp confirmation if phone available
-                if user and user.get("phone"):
-                    phone = user["phone"]
-                    # Normalize phone number
-                    phone_normalized = normalize_phone_number(phone).replace("+", "")
-                    message = f"✅ Payment Successful! ₹{amount:.2f} has been added to your Divine Cakery wallet. Thank you!"
+                if transaction.get("status") != TransactionStatus.SUCCESS:
+                    user_id = transaction["user_id"]
+                    amount = transaction["amount"]
                     
-                    # Log for now (WhatsApp integration can be added later)
-                    logger.info(f"Would send WhatsApp to {phone_normalized}: {message}")
-                
-                logger.info(f"Wallet updated: user_id={user_id}, amount={amount}")
+                    # Update wallet balance
+                    await db.wallets.update_one(
+                        {"user_id": user_id},
+                        {
+                            "$inc": {"balance": amount},
+                            "$set": {"updated_at": datetime.utcnow()}
+                        }
+                    )
+                    
+                    # Update user's wallet balance
+                    await db.users.update_one(
+                        {"id": user_id},
+                        {"$inc": {"wallet_balance": amount}}
+                    )
+                    
+                    # Get user details for notification
+                    user = await db.users.find_one({"id": user_id})
+                    
+                    # Send WhatsApp confirmation if phone available
+                    if user and user.get("phone"):
+                        phone = user["phone"]
+                        # Normalize phone number
+                        phone_normalized = normalize_phone_number(phone).replace("+", "")
+                        message = f"✅ Payment Successful! ₹{amount:.2f} has been added to your Divine Cakery wallet. Thank you!"
+                        
+                        # Log for now (WhatsApp integration can be added later)
+                        logger.info(f"Would send WhatsApp to {phone_normalized}: {message}")
+                    
+                    logger.info(f"Wallet updated: user_id={user_id}, amount={amount}")
+                else:
+                    logger.info(f"⚠️ Callback: Wallet already updated for transaction {transaction['id']}, skipping duplicate")
             
             # Return success page or redirect
             return {"status": "success", "message": "Payment successful and wallet updated"}
@@ -1891,21 +1898,24 @@ async def verify_payment(
             }
         )
         
-        # Update wallet if wallet topup
+        # Update wallet if wallet topup (only if not already processed)
         if transaction["transaction_type"] == TransactionType.WALLET_TOPUP:
-            await db.wallets.update_one(
-                {"user_id": current_user.id},
-                {
-                    "$inc": {"balance": transaction["amount"]},
-                    "$set": {"updated_at": datetime.utcnow()}
-                }
-            )
-            
-            # Update user's wallet balance
-            await db.users.update_one(
-                {"id": current_user.id},
-                {"$inc": {"wallet_balance": transaction["amount"]}}
-            )
+            if transaction.get("status") != TransactionStatus.SUCCESS:
+                await db.wallets.update_one(
+                    {"user_id": current_user.id},
+                    {
+                        "$inc": {"balance": transaction["amount"]},
+                        "$set": {"updated_at": datetime.utcnow()}
+                    }
+                )
+                
+                # Update user's wallet balance
+                await db.users.update_one(
+                    {"id": current_user.id},
+                    {"$inc": {"wallet_balance": transaction["amount"]}}
+                )
+            else:
+                logger.info(f"⚠️ Verify: Wallet already updated for transaction {transaction['id']}, skipping duplicate")
         
         return {
             "verified": True,
