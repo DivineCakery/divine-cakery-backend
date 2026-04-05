@@ -3917,24 +3917,15 @@ async def get_preparation_list_report(
     logger.info(f"Tomorrow range (UTC): {tomorrow_start_utc} to {tomorrow_end_utc}")
     
     # Get orders for today (both pending and confirmed, but not cancelled)
-    # Also check for orders where delivery_date falls within today (handling timezone inconsistencies)
     orders_today_cursor = db.orders.find({
-        "$or": [
-            # Orders with delivery_date in today's range
-            {"delivery_date": {"$gte": today_start_utc, "$lt": today_end_utc}},
-            # Also catch orders stored with IST midnight (without timezone conversion)
-            {"delivery_date": {"$gte": today_start_ist.replace(tzinfo=None), "$lt": today_end_ist.replace(tzinfo=None)}}
-        ],
+        "delivery_date": {"$gte": today_start_ist.replace(tzinfo=None), "$lt": today_end_ist.replace(tzinfo=None)},
         "order_status": {"$nin": [OrderStatus.CANCELLED, "cancelled"]}
     })
     orders_today = await orders_today_cursor.to_list(10000)
     
     # Get orders for tomorrow
     orders_tomorrow_cursor = db.orders.find({
-        "$or": [
-            {"delivery_date": {"$gte": tomorrow_start_utc, "$lt": tomorrow_end_utc}},
-            {"delivery_date": {"$gte": tomorrow_start_ist.replace(tzinfo=None), "$lt": tomorrow_end_ist.replace(tzinfo=None)}}
-        ],
+        "delivery_date": {"$gte": tomorrow_start_ist.replace(tzinfo=None), "$lt": tomorrow_end_ist.replace(tzinfo=None)},
         "order_status": {"$nin": [OrderStatus.CANCELLED, "cancelled"]}
     })
     orders_tomorrow = await orders_tomorrow_cursor.to_list(10000)
