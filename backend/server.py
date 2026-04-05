@@ -3933,15 +3933,16 @@ async def get_preparation_list_report(
     logger.info(f"Tomorrow range (UTC): {tomorrow_start_utc} to {tomorrow_end_utc}")
     
     # Get orders for today (both pending and confirmed, but not cancelled)
+    # Use UTC ranges since MongoDB stores delivery_date in UTC
     orders_today_cursor = db.orders.find({
-        "delivery_date": {"$gte": today_start_ist.replace(tzinfo=None), "$lt": today_end_ist.replace(tzinfo=None)},
+        "delivery_date": {"$gte": today_start_utc, "$lt": today_end_utc},
         "order_status": {"$nin": [OrderStatus.CANCELLED, "cancelled"]}
     })
     orders_today = await orders_today_cursor.to_list(10000)
     
     # Get orders for tomorrow
     orders_tomorrow_cursor = db.orders.find({
-        "delivery_date": {"$gte": tomorrow_start_ist.replace(tzinfo=None), "$lt": tomorrow_end_ist.replace(tzinfo=None)},
+        "delivery_date": {"$gte": tomorrow_start_utc, "$lt": tomorrow_end_utc},
         "order_status": {"$nin": [OrderStatus.CANCELLED, "cancelled"]}
     })
     orders_tomorrow = await orders_tomorrow_cursor.to_list(10000)
