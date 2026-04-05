@@ -1,149 +1,126 @@
-<analysis>Here is the handover summary for the next agent:
+<analysis>**original_problem_statement**: 
+The user requested enhancements and bug fixes across the admin dashboard:
+1. Fix the Lulu Trip PDF layout in Route Summaries to strict single-page A4 portrait.
+2. Fix overlapping UI issues on mobile views (Print buttons and Save buttons hiding behind navbars/cart items).
+3. Implement an Excess Stock popup on the Prep Report tab that calculates  across the entire inventory.
+4. Correct department item mappings in the Prep Report (Multigrain dough to Dough Section, PVR sandwich bun to Top room).
+5. Fix a bug causing duplicate orders to show in the Prep Report.
+6. **(Current Goal)** Allow admins to select a custom Delivery Date when placing orders, overriding the system's auto-calculation (which assumes same-day or next-day based on the 4 AM IST threshold).
 
-**original_problem_statement**: 
-The user requested a series of enhancements and bug fixes across the admin dashboard:
-1. Complete the V2 rework of the Route Summaries matrix report (splitting LR/SR, B&W print, separate driver inputs).
-2. Fix broken login issues across environments (case sensitivity, role enums, password hashes).
-3. Build a new feature: Admin Place Order (allowing admins to place pay later orders on behalf of customers).
-4. Build a new feature: Record Payments (allowing admins to reduce a customer's pending balance).
-5. Fix access control rendering so  access admins (like the OFFICE user) can see the Route Summaries and Place Order buttons.
-6. Generate a new Android production build via EAS.
-7. Customize the Lulu Trip Route Summary PDF to strictly print as a neat, single-page A4 Portrait document.
-
-**User's preferred language**: English (INSTRUCT next agent to respond in English)
+**User's preferred language**: English (INSTRUCT next agent to respond in English only)
 
 **what currently exists?** 
-A React Native (Expo) frontend and FastAPI backend for a wholesale bakery (Divine Cakery). The application supports customer wallets, complex matrix-based logistics reports with HTML-to-PDF generation, role-based access control (RBAC), and admin-override order creation.
+React Native (Expo) frontend and FastAPI backend using Motor (MongoDB Atlas). The app serves as a logistics and ordering dashboard for Divine Cakery, featuring role-based access, comprehensive prep/route reports, and admin-override capabilities.
 
 **Last working item**:
-- **Last item agent was working**: Fixing the Lulu Trip PDF print layout in . The user reported that despite setting  and , the print dialog shows landscape, and the 28-item/2-customer table is spilling over onto two sheets. The agent was preparing to rewrite the HTML generation to be highly compact and force a single-page portrait layout.
+- **Last item agent was working**: Adding a custom delivery date picker to the Admin Place Order screen () and updating the backend to accept this date. This is to replace the  auto-calculation that was incorrectly forcing admin-placed orders (e.g., placed at 12:20 AM for the next day) into the same-day delivery slot.
 - **Status**: IN PROGRESS
 - **Agent Testing Done**: N
-- **Which testing method agent to use?**: screenshot tool (Take a screenshot of the generated HTML/Print modal to visually verify the layout fits within standard A4 aspect ratios).
+- **Which testing method agent to use?**: both (Screenshot tool for UI date picker, curl/python script to verify backend stores the custom date correctly in IST/UTC).
 - **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-  Issue 1: Lulu Trip PDF Formatting (P0)
-     - **Attempted fixes**: Added  and native . It failed to constrain the table to one page and the user claims it's still outputting landscape logic to the print spooler.
-     - **Next debug checklist**: Check  (lines 85-180). Rewrite the HTML structure. You may need to drastically reduce padding/margins, use , and ensure the container width strictly forces portrait dimensions (e.g., ).
-     - **Why fix this issue and what will be achieved with the fix?**: The user relies on physical printouts for drivers. Spilling to two pages ruins logistics efficiency.
+  Issue 1: Admin Place Order Custom Delivery Date (P0)
+     - **Attempted fixes**: Agent identified that  in  forces order dates based on a 4 AM IST threshold. Began adding state and UI in  for manual date selection.
+     - **Next debug checklist**: 
+        1. Finish adding the date picker UI in .
+        2. Ensure the selected date is sent in the payload to .
+        3. Update  in  (around line 2083) to use the provided  (ensuring it properly aligns with IST midnight rules) rather than calling the auto-calculating function.
+     - **Why fix this issue and what will be achieved with the fix?**: Admins are creating orders for future dates, but the system is logging them for the current day, ruining the Prep Report delivery schedules.
      - **Status**: IN PROGRESS
-     - **Is recurring issue?** Y
-     - **Should Test frontend/backend/both after fix?** frontend
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?**: both
      - **Blocked on other issue**: None
 
-  Issue 2: EAS Android Build Limit Reached (P1)
-     - **Attempted fixes**: Tried running 
-⚠️ Detected that your app uses Expo Go for development, this is not recommended when building production apps.
-Learn more: https://expo.fyi/why-not-build-expo-go-for-production
-To suppress this warning, set EAS_BUILD_NO_EXPO_GO_WARNING=true.
+  Issue 2: Multigrain and PVR Sandwich Department Assignments (P1)
+     - **Attempted fixes**: Agent noticed  collection was empty and 142 products had . Attempted to write a DB script to populate these, which caused items to disappear from the Prep Report. The user ordered a full git revert.
+     - **Next debug checklist**: Assess how to map 'Multigrain dough' and 'PVR SANDWICH' products to the correct Prep Report sections without breaking the existing DB relationships. Check  lines 30-60 () to see if frontend string matching can be adjusted instead of running massive DB scripts.
+     - **Why fix this issue and what will be achieved with the fix?**: Kitchen staff needs items organized in the correct physical departments for baking.
+     - **Status**: NOT STARTED (Reverted)
+     - **Is recurring issue?** Y
+     - **Should Test frontend/backend/both after fix?**: both
+     - **Blocked on other issue**: None
 
-The field "cli.appVersionSource" is not set, but it will be required in the future Proceeding with the default "local" value. Learn more: https://docs.expo.dev/build-reference/app-versions/
-✔ Updated eas.json
-Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
-No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
-Environment variables loaded from the "production" build profile "env" configuration: EXPO_NO_CAPABILITY_SYNC.
-
-
-
-✔ Using remote Android credentials (Expo server)
-✔ Using Keystore from configuration: Build Credentials vfSG0qCaOl (default)
-
-Bumping expo.android.versionCode from 137 to 138
-
-Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
-- Compressing project files
-- Uploading to EAS Build (0 / 131 MB)
-✔ Uploaded to EAS 2s
-- Computing project fingerprint
-✔ Computed project fingerprint
-This account has used its Android builds from the Free plan this month, which will reset in 10 hours (on Wed Apr 01 2026). Upgrade your plan for more builds with shorter wait times and longer timeouts, and to run more builds concurrently with a subscription plan. https://expo.dev/accounts/divinecakery/settings/billing.
-     - **Next debug checklist**: Run --platform is required when building in non-interactive mode again. The EAS Free Tier limit was hit and resets on roughly April 1, 2026. 
-     - **Why fix this issue and what will be achieved with the fix?**: User needs the updated  file to upload to the Google Play Store.
-     - **Status**: BLOCKED (Waiting on time constraint).
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** NA
+  Issue 3: Android Play Store Build (P2)
+     - **Attempted fixes**: Ran --platform is required when building in non-interactive mode. A duplicate was accidentally triggered and then canceled.
+     - **Next debug checklist**: Verify if the EAS Android build  successfully completed. If not, trigger a fresh one.
+     - **Status**: TESTING PENDING
 
 **In progress Task List**:
-  None currently. All tasks have transitioned to issues.
+  None (Active work tracked under Issues).
 
 **Upcoming and Future Tasks**:
-    P0: Deploy backend to Render. The frontend is ready, but the production app will crash on new features until the user/agent pushes the backend changes to the production Render server.
-    P2: Refactor . At ~1700 lines, it manages 3 distinct tabs and multiple modals. Break down into smaller components.
+    P0: Deploy backend to Render (Production environment currently lacks recent backend API endpoints).
+    P2: Refactor  (Critically overgrown at >2000 lines. Break into smaller components like PrepReport, RouteSummaries, etc.).
     P2: Report History feature (snapshot daily reports to DB).
     P3: Copy Staff List feature between sections.
 
 **Completed work in this session**:
-- Implemented V2 of Route Summaries (split driver inputs, SR1/SR2 grouping, B&W theme) (DONE)
-- Fixed broken environment variables routing preview traffic to production (DONE)
-- Fixed Login bug: made login case-insensitive, resolved DB schema differences ( vs ), fixed Pydantic enum validation ( to ) (DONE)
-- Implemented Admin Place Order UI and Backend (DONE)
-- Implemented Record Payments UI, Backend, and inline balance updating (DONE)
-- Fixed RBAC bug hiding buttons from 'limited' admin users (DONE)
-- Fixed async race condition where UI balance didn't update post-payment due to  blocking (DONE)
-- Manual Database actions: fixed ajodaya wallet, deleted 4 specific test orders (DONE)
+- Implemented aggressive CSS optimization to strictly constrain Lulu Trip PDF to a single A4 portrait page (DONE)
+- Fixed Prep Report duplicate orders issue by removing conflicting  (UTC vs IST naive) queries (DONE)
+- Added 'Excess Stock' modal popup on Prep Report tab with calculation:  (DONE)
+- Enabled  persistence for user-entered 'prepared' quantities in Prep Report (DONE)
+- Fixed mobile layout scrolling for Prep Report Modals (fixed height, removed conflicting flex views) (DONE)
+- Fixed mobile layout scrolling for Admin Place Order page (increased paddingBottom so Save button is not hidden by cart items) (DONE)
 
 **Earlier issues found/mentioned but not fixed**:
-- None
+   Issue 1: Production DB lacks  architecture
+   - **Debug checklist**: In ,  relies on  to categorize items. Currently, all 142 products have .
+   - **Why to solve this issue and what will be achieved with this?**: Prevents proper categorization of bakery items into departments.
+   - **Should Test frontend/backend/both after fix**: both
+   - **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**:
-  - Issue recurrence in previous fork: The database customer list was wiped out (dropping from 85 to 0) by another Emergent project. 
-  - Recurrence count: 1
-  - Status: RESOLVED. **CRITICAL:** The agent attempted to restore 63 lost customers, but the user explicitly requested they be deleted as the restored data was inaccurate. **DO NOT attempt to restore deleted customers.** The database currently has exactly 21 valid customers and 29 total users. Leave it as is.
+  - Issue recurrence in previous fork: Agent executed a destructive Database script on the Production MongoDB Atlas cluster causing data loss/confusion, resulting in a forced Git Reset/DB revert by the user.
+  - Recurrence count: 2 (Database safety issues keep occurring).
+  - Status: RESOLVED (Reverted). 
+  - **Note:** Next agent MUST NOT run bulk update/delete Python scripts on the production MongoDB Atlas () without explicit, multi-step confirmation from the user.
 
 **Code Architecture**:
 
 
 **Key Technical Concepts**:
-- **Hidden Iframe PDF Printing**: The web app injects a hidden iframe, writes raw HTML to it, and calls  to generate clean PDFs without UI navbars. Native uses .
-- **Admin Pay Later Flow**: Admin bypassing standard payment gateways. Creating an order with  increments a virtual  tied to the customer ID, calculated dynamically on fetch.
+- React Native Expo frontend, Metro bundler.
+- FastAPI + Motor (Async MongoDB).
+- **Timezone Logic**: The system operates on Indian Standard Time (IST). Currently, orders placed before 4 AM IST default to same day, and after 4 AM default to next day. Admin orders must now explicitly bypass this logic with manual UI selection.
 
 **key DB schema**:
   - : 
   - : 
-  - : Log of admin-recorded manual payments.
 
 **changes in tech stack**:
   - None
 
 **All files of reference**:
-- : Contains the  function which is currently failing to output a single-sheet portrait PDF for Lulu.
-- : Contains RBAC checks for routing.
-- : New file for the payment/order override flow.
-- : Houses the new balance/payment endpoints.
+- : Target for the Date Picker.
+- : Target for bypassing .
+- : Modified heavily for Excess Stock popup.
 
 **Areas that need refactoring**: 
--  (Critically overgrown).
+-  (Massive file, desperately needs modularization).
 
 **key api endpoints**:
-- 
-- 
+-  (Requires payload update for ).
 - 
 
 **Critical Info for New Agent**:
-1. **Lulu PDF constraints**: The user specifically wants the Lulu Trip PDF to fit on *one single A4 Portrait page*. Do whatever CSS manipulation is necessary inside the  function in  (shrink fonts to 10px, remove padding, remove borders if necessary) to make it happen.
-2. **Database Integrity**: Do not run any scripts to recover or restore missing users. The user verified the 21 existing customers are the correct state.
+1. **PRODUCTION DATABASE**: You are connected directly to the user's live MongoDB Atlas cluster (). Do not run test scripts that overwrite, wipe, or manipulate , , or  without absolute certainty.
+2. **TIMEZONES**: The user specifically stated, please also ensure that all times are based on IST. When sending the selected  from the new picker to the backend, ensure the backend converts it accurately to a midnight UTC representation of that IST date, matching existing DB format.
+3. **EAS BUILDS**: Do not run overlapping --platform is required when building in non-interactive mode commands. 
 
 **documents and test reports created in this job**:
   - 
   - 
-  - 
-  - 
 
 **Last 10 User Messages and any pending HUMAN messages**:
-1. User: Reported place order tab not visible to limited access users.
-2. User: Reported place order still not visible on the URL preview.
-3. User: Provided password for testing limited admin account ().
-4. User: Reported pending balance UI does not update after a payment is made.
-5. User: Requested a new play store build.
-6. User: Requested another build attempt because the previous one had issues. (Failed due to EAS limits).
-7. User: Requested wallet balance for 'ajodaya' be manually corrected from 804 to 404.
-8. User: Requested Lulu trip route summary PDF be customized as a single sheet A4 size portrait.
-9. User: Requested deletion of specific order numbers (2826, 2823, 2822, 2773).
-10. User: (PENDING) Reported the Lulu PDF is still printing on two sheets instead of one, and print dialog orientation is wrong.
+1. User: reports/prep list and prep report. While placing orders through dashboard by admin, it is noticed that the order items get repeated...
+2. User: the date that these items should appear is the date of delivery. with your change now all items are showing under date of order...
+3. User: for example item biscotti is ordered for 'turf cafe' for 6.4.26. But the item appears in the prep list and prep report on today ( 5.4.26)
+4. Agent: Found the issue. The  function auto-calculates delivery based on the time placed. Would you like me to add a delivery date picker to the admin form and update the backend?
+5. User: **(PENDING)** 1. yes 2. yes 3. please also ensure that all times are based on IST.
 
 **Project Health Check**:
-- Broken: Lulu Trip PDF layout logic.
+- Broken: Admin Place Order  calculation overriding user intent.
 - Mocked: None.
 
 **3rd Party Integrations**:
@@ -152,14 +129,23 @@ This account has used its Android builds from the Free plan this month, which wi
 - EAS (Expo Application Services - Builds)
 
 **Testing status**:
-  - Testing agent used after significant changes: YES (Used for Route Summaries V2 and Admin Place Order).
-  - Troubleshoot agent used after agent stuck in loop: NO
+  - Testing agent used after significant changes: NO (Troubleshoot agent used instead).
+  - Troubleshoot agent used after agent stuck in loop: YES (Used to debug Metro Bundler Cache and Empty DB Dough Types).
   - Test files created: None
-  - Known regressions: None.
+  - Known regressions: Reverting the DB wiped out some temporary dough types, which the user may eventually want back (safely).
 
 **Credentials to test flow**:
 - Full Admin: username=, password=
 - Limited Admin: username=, password=
 
 **What agent forgot to execute**:
-The agent viewed the  file to fix the Lulu PDF but the session ended before any CSS or HTML edits were applied to fix the two-page spillover. Ensure you implement aggressive CSS sizing controls for the  layout condition.</analysis>
+The agent gathered the user's confirmation to build the Delivery Date Picker on the Place Orders screen but the session cut off before any code changes could be made to  or . Start with this implementation immediately.
+
+**Debugging checklist for current issue**
+    Issue: Admin Place Order Custom Delivery Date
+
+    Frontend files to check: 
+    -  (Add a date picker component, manage  state, send it in the  API payload).
+  
+    Backend files to check:
+    -  (Line ~2060,  function. Accept  from the payload. Ensure it accurately reflects IST midnight logic in UTC before saving).</analysis>

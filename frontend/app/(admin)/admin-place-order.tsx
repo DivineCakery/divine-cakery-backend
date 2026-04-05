@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform, ActivityIndicator, Alert, Modal, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -45,6 +45,20 @@ export default function AdminPlaceOrder() {
   const [pendingBalance, setPendingBalance] = useState(0);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [customerPendingBalance, setCustomerPendingBalance] = useState<number | null>(null);
+  const [deliveryDate, setDeliveryDate] = useState<Date>(() => {
+    // Default: use IST-aware logic - before 4AM IST = today, else tomorrow
+    const now = new Date();
+    // IST offset is +5:30 = 330 minutes
+    const istOffsetMs = 330 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffsetMs + now.getTimezoneOffset() * 60 * 1000);
+    const istHour = istNow.getHours();
+    const target = new Date(istNow);
+    if (istHour >= 4) {
+      target.setDate(target.getDate() + 1);
+    }
+    target.setHours(0, 0, 0, 0);
+    return target;
+  });
 
   const showAlert = (title: string, msg: string) => {
     if (Platform.OS === 'web') window.alert(`${title}: ${msg}`);
@@ -107,12 +121,19 @@ export default function AdminPlaceOrder() {
 
     setSubmitting(true);
     try {
+      // Format delivery date as YYYY-MM-DD in IST
+      const y = deliveryDate.getFullYear();
+      const m = String(deliveryDate.getMonth() + 1).padStart(2, '0');
+      const d = String(deliveryDate.getDate()).padStart(2, '0');
+      const deliveryDateStr = `${y}-${m}-${d}`;
+      
       const result = await apiService.adminPlaceOrder({
         customer_id: selectedCustomer.id,
         items: cart,
         subtotal: cartTotal,
         total_amount: cartTotal,
         notes: notes || undefined,
+        delivery_date: deliveryDateStr,
       });
       showAlert('Success', `Order #${result.order_number} placed for ${selectedCustomer.business_name || selectedCustomer.username} (Pay Later)`);
       setCart([]);
@@ -212,6 +233,41 @@ export default function AdminPlaceOrder() {
           )}
           <Ionicons name="chevron-down" size={20} color="#999" />
         </TouchableOpacity>
+
+        {/* Delivery Date Picker */}
+        <Text style={[styles.sectionLabel, { marginTop: 16 }]}>Delivery Date</Text>
+        <View style={styles.datePickerRow} testID="delivery-date-picker">
+          <TouchableOpacity
+            style={styles.dateArrowBtn}
+            onPress={() => {
+              const prev = new Date(deliveryDate);
+              prev.setDate(prev.getDate() - 1);
+              setDeliveryDate(prev);
+            }}
+            testID="delivery-date-prev"
+          >
+            <Ionicons name="chevron-back" size={22} color="#8B4513" />
+          </TouchableOpacity>
+          <View style={styles.dateDisplay}>
+            <Text style={styles.dateDayName}>
+              {deliveryDate.toLocaleDateString('en-IN', { weekday: 'long' })}
+            </Text>
+            <Text style={styles.dateText} testID="delivery-date-value">
+              {deliveryDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.dateArrowBtn}
+            onPress={() => {
+              const next = new Date(deliveryDate);
+              next.setDate(next.getDate() + 1);
+              setDeliveryDate(next);
+            }}
+            testID="delivery-date-next"
+          >
+            <Ionicons name="chevron-forward" size={22} color="#8B4513" />
+          </TouchableOpacity>
+        </View>
 
         {/* Product Search & List */}
         <Text style={[styles.sectionLabel, { marginTop: 16 }]}>Add Products</Text>
@@ -462,4 +518,9 @@ const styles = StyleSheet.create({
   paymentInput: { backgroundColor: '#f8f5f0', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#ddd', fontSize: 15, marginBottom: 10 },
   recordPaymentBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#2E7D32', borderRadius: 10, padding: 14, gap: 8 },
   recordPaymentBtnText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+  datePickerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 8, borderWidth: 1.5, borderColor: '#8B4513' },
+  dateArrowBtn: { padding: 10, borderRadius: 8, backgroundColor: '#faf5ef' },
+  dateDisplay: { flex: 1, alignItems: 'center' },
+  dateDayName: { fontSize: 12, color: '#8B4513', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  dateText: { fontSize: 17, fontWeight: 'bold', color: '#333', marginTop: 2 },
 });

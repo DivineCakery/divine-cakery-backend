@@ -8,7 +8,7 @@ import aiohttp
 import json
 from datetime import datetime
 
-BACKEND_URL = "https://pdf-compact-view.preview.emergentagent.com/api"
+BACKEND_URL = "https://admin-delivery-date.preview.emergentagent.com/api"
 ADMIN_USERNAME = "testadmin"
 ADMIN_PASSWORD = "admin123"
 

@@ -46,7 +46,7 @@ A comprehensive native mobile application built with Expo (React Native) for Div
 ## 🚀 Quick Start
 
 1. **Services**: Backend and Expo are already running
-2. **Access**: https://pdf-compact-view.preview.emergentagent.com
+2. **Access**: https://admin-delivery-date.preview.emergentagent.com
 3. **Scan QR**: Use Expo Go app on mobile to scan QR code
 
 ## 📦 Sample Data

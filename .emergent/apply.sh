@@ -23,9 +23,9 @@ if [ -f "$SUPERVISOR_CONF" ]; then
     log "FIX1: EXPO_TUNNEL_SUBDOMAIN already present in supervisor conf — skipping"
   else
     # Append EXPO_TUNNEL_SUBDOMAIN to the expo program's environment line
-    sed -i "/^\[program:expo\]/,/^\[/ s|^environment=\(.*\)|environment=\1,EXPO_TUNNEL_SUBDOMAIN=pdf-compact-view
-    if grep -q "EXPO_TUNNEL_SUBDOMAIN=pdf-compact-view
-      log "FIX1: Injected EXPO_TUNNEL_SUBDOMAIN=pdf-compact-view
+    sed -i "/^\[program:expo\]/,/^\[/ s|^environment=\(.*\)|environment=\1,EXPO_TUNNEL_SUBDOMAIN=admin-delivery-date
+    if grep -q "EXPO_TUNNEL_SUBDOMAIN=admin-delivery-date
+      log "FIX1: Injected EXPO_TUNNEL_SUBDOMAIN=admin-delivery-date
     else
       log "FIX1: FAILED to inject EXPO_TUNNEL_SUBDOMAIN"
       exit 1
@@ -40,11 +40,11 @@ fi
 # We ensure the line exists so the entrypoint sed is not a no-op.
 ENV_FILE="/app/frontend/.env"
 if [ -f "$ENV_FILE" ]; then
-  if grep -q '^EXPO_TUNNEL_SUBDOMAIN=pdf-compact-view
+  if grep -q '^EXPO_TUNNEL_SUBDOMAIN=admin-delivery-date
     log "FIX2: EXPO_TUNNEL_SUBDOMAIN already in .env — skipping"
   else
-    echo "EXPO_TUNNEL_SUBDOMAIN=pdf-compact-view
-    log "FIX2: Appended EXPO_TUNNEL_SUBDOMAIN=pdf-compact-view
+    echo "EXPO_TUNNEL_SUBDOMAIN=admin-delivery-date
+    log "FIX2: Appended EXPO_TUNNEL_SUBDOMAIN=admin-delivery-date
   fi
 else
   log "FIX2: WARNING — .env not found"

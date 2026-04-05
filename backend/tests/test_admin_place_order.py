@@ -9,7 +9,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://pdf-compact-view.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://admin-delivery-date.preview.emergentagent.com')
 
 # Test data from problem statement
 SAMPLE_CUSTOMER_ID = "cae2a9d4-5e04-402f-8a8d-a0388c4d4079"

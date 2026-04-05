@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 import time
 
-BASE_URL = "https://pdf-compact-view.preview.emergentagent.com/api"
+BASE_URL = "https://admin-delivery-date.preview.emergentagent.com/api"
 
 def log_test(message, status="INFO"):
     timestamp = datetime.now().strftime("%H:%M:%S")

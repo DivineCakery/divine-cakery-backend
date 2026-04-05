@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://pdf-compact-view.preview.emergentagent.com/api"
+BASE_URL = "https://admin-delivery-date.preview.emergentagent.com/api"
 ADMIN_USERNAME = "testadmin"
 ADMIN_PASSWORD = "admin123"  # Assuming default admin password
 TEST_NEW_PASSWORD = "TestNewPass123"

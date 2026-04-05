@@ -2080,7 +2080,23 @@ async def admin_place_order(
     discount_amount = order_data.get("discount_amount", 0)
     total_amount = order_data.get("total_amount", 0)
 
-    delivery_date = calculate_delivery_date()
+    # Use admin-provided delivery_date if present, otherwise auto-calculate
+    provided_delivery_date = order_data.get("delivery_date")
+    if provided_delivery_date:
+        import pytz
+        ist = pytz.timezone('Asia/Kolkata')
+        try:
+            # Parse YYYY-MM-DD string as IST date, convert to UTC midnight for storage
+            parsed_date = datetime.strptime(provided_delivery_date, "%Y-%m-%d").date()
+            delivery_datetime_ist = ist.localize(datetime.combine(parsed_date, datetime.min.time()))
+            delivery_datetime_utc = delivery_datetime_ist.astimezone(pytz.UTC)
+            delivery_date = delivery_datetime_utc.replace(tzinfo=None)
+            logger.info(f"Admin provided delivery date: {provided_delivery_date} → Stored as UTC: {delivery_date}")
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid delivery_date format: {provided_delivery_date}, falling back to auto-calculate")
+            delivery_date = calculate_delivery_date()
+    else:
+        delivery_date = calculate_delivery_date()
 
     order_id = str(uuid.uuid4())
     order_number = await generate_order_number()
