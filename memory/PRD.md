@@ -20,22 +20,41 @@ Logistics and ordering dashboard for Divine Cakery bakery. React Native Expo fro
 - AsyncStorage persistence for prepared quantities
 - Mobile layout fixes (scrolling, button visibility)
 
-### Session 6 (Apr 5, 2026)
+### Session 6 (Apr 5-6, 2026)
 - **Admin Place Order - Custom Delivery Date (P0 DONE)**
   - Added date picker UI with prev/next day navigation in `admin-place-order.tsx`
   - Backend accepts `delivery_date` (YYYY-MM-DD) from admin payload, converts IST midnight to UTC for storage
   - Falls back to auto-calculated date when not provided
-  - All 6 backend tests passed (100%)
+
+- **Prep Report IST/UTC Date Query Bug Fix (P0 DONE)**
+  - Fixed `get_preparation_list_report` in `server.py` — was querying MongoDB with raw IST timestamps instead of UTC-converted values
+  - Now uses proper UTC range: April 5 IST = `2026-04-04T18:30:00Z` to `2026-04-05T18:30:00Z`
+
+- **Wallet Double-Credit Bug Fix (P0 DONE)**
+  - Webhook, callback, AND verify endpoints all incremented wallet without checking if transaction was already processed
+  - Added idempotency check (`status != SUCCESS`) to all 3 handlers
+  - Corrected 3 affected wallets: Bao Tao (-4000), Hungry (-100), Mrs. Anu Koshy (-250)
+  - Fixed WRAP A LOOP balance sync (users vs wallets collection)
+
+- **Render Production Deployment (P0 DONE)**
+  - Auto-deploy confirmed enabled on `divine-cakery-backend` service
+  - All fixes deployed to production: https://divine-cakery-backend.onrender.com
+  - Render API key stored for future use
+
+## Production Infrastructure
+- **Render Service**: `divine-cakery-backend` (srv-d48l3124d50c738rgoo0)
+- **Production URL**: https://divine-cakery-backend.onrender.com
+- **Auto-Deploy**: Enabled from `main` branch of `divine-cakery-backend` GitHub repo
+- **Render API Key**: rnd_wfR7undzBDItXZZp8TCdvwA6BKdv
 
 ## Pending Issues
 - **P1**: Multigrain & PVR Sandwich department assignments in Prep Report
 - **P2**: Android EAS build verification
-- **P0**: Deploy backend to Render (production sync)
 
 ## Backlog
-- P2: Refactor `reports.tsx` (>2000 lines, needs modularization)
+- P2: Refactor `reports.tsx` into smaller components (>2000 lines)
 - P2: Report History feature (snapshot daily reports to DB)
-- P3: Copy Staff List between sections
+- P3: Copy Staff List feature between sections
 
 ## Architecture
 ```
@@ -51,3 +70,5 @@ Logistics and ordering dashboard for Divine Cakery bakery. React Native Expo fro
 - PRODUCTION DB: MongoDB Atlas `divine_cakery` - NO bulk writes without user approval
 - Timezone: All dates IST-based. Stored as UTC midnight IST in DB
 - `delivery_date` format: YYYY-MM-DD (IST) → stored as naive UTC datetime
+- Prep Report queries MUST use UTC-converted ranges for delivery_date filtering
+- Wallet topup: Only credit once per transaction (check status before incrementing)
