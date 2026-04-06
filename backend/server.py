@@ -2975,8 +2975,8 @@ async def add_wallet_balance_by_admin(
     amount: float,
     current_user: User = Depends(get_current_admin)
 ):
-    if amount <= 0:
-        raise HTTPException(status_code=400, detail="Amount must be greater than 0")
+    if amount == 0:
+        raise HTTPException(status_code=400, detail="Amount cannot be zero")
     
     user = await db.users.find_one({"id": user_id})
     if not user:
@@ -2994,8 +2994,13 @@ async def add_wallet_balance_by_admin(
         }
         await db.wallets.insert_one(wallet)
     
+    # Check if deduction would make balance negative
+    current_balance = wallet.get("balance", 0.0)
+    new_balance = current_balance + amount
+    if new_balance < 0:
+        raise HTTPException(status_code=400, detail=f"Insufficient balance. Current: ₹{current_balance:.2f}, cannot deduct ₹{abs(amount):.2f}")
+    
     # Update wallet balance
-    new_balance = wallet.get("balance", 0.0) + amount
     await db.wallets.update_one(
         {"user_id": user_id},
         {
@@ -3003,16 +3008,23 @@ async def add_wallet_balance_by_admin(
         }
     )
     
+    # Also sync users.wallet_balance
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"wallet_balance": new_balance}}
+    )
+    
     # Create transaction record
+    is_deduction = amount < 0
     transaction_id = str(uuid.uuid4())
     transaction_dict = {
         "id": transaction_id,
         "user_id": user_id,
         "amount": amount,
-        "transaction_type": TransactionType.WALLET_TOPUP,
-        "payment_method": "admin_credit",
+        "transaction_type": "wallet_adjustment" if is_deduction else TransactionType.WALLET_TOPUP,
+        "payment_method": "admin_debit" if is_deduction else "admin_credit",
         "status": TransactionStatus.SUCCESS,
-        "notes": {"added_by_admin": current_user.username, "admin_id": current_user.id},
+        "notes": {"adjusted_by_admin": current_user.username, "admin_id": current_user.id},
         "created_at": datetime.utcnow()
     }
     await db.transactions.insert_one(transaction_dict)

@@ -27,6 +27,7 @@ export default function ManageUsersScreen() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [selectedUsername, setSelectedUsername] = useState('');
   const [balanceAmount, setBalanceAmount] = useState('');
+  const [adjustMode, setAdjustMode] = useState<'add' | 'deduct'>('add');
   const [linkedAgents, setLinkedAgents] = useState<any>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'customer'>('all');
@@ -76,6 +77,7 @@ export default function ManageUsersScreen() {
     setSelectedUserId(userId);
     setSelectedUsername(username);
     setBalanceAmount('');
+    setAdjustMode('add');
     setShowAddBalanceModal(true);
   };
 
@@ -86,16 +88,19 @@ export default function ManageUsersScreen() {
       return;
     }
 
+    const finalAmount = adjustMode === 'deduct' ? -amountNum : amountNum;
+
     try {
-      const result = await apiService.addWalletBalanceByAdmin(selectedUserId, amountNum);
+      const result = await apiService.addWalletBalanceByAdmin(selectedUserId, finalAmount);
       setShowAddBalanceModal(false);
       await fetchUsers();
+      const action = adjustMode === 'deduct' ? 'deducted from' : 'added to';
       showAlert(
         'Success',
-        `₹${amountNum.toFixed(2)} added to ${selectedUsername}'s wallet.\n\nNew Balance: ₹${result.new_balance.toFixed(2)}`
+        `₹${amountNum.toFixed(2)} ${action} ${selectedUsername}'s wallet.\n\nNew Balance: ₹${result.new_balance.toFixed(2)}`
       );
     } catch (error: any) {
-      showAlert('Error', error.response?.data?.detail || 'Failed to add wallet balance');
+      showAlert('Error', error.response?.data?.detail || 'Failed to adjust wallet balance');
     }
   };
 
@@ -348,13 +353,13 @@ export default function ManageUsersScreen() {
           <TouchableOpacity
             style={styles.walletButton}
             onPress={() => {
-              console.log('Add Balance clicked for:', item.username);
+              console.log('Adjust Balance clicked for:', item.username);
               handleAddBalance(item.id, item.username);
             }}
             activeOpacity={0.7}
           >
             <Ionicons name="wallet" size={18} color="#fff" />
-            <Text style={styles.walletButtonText}>Add Balance</Text>
+            <Text style={styles.walletButtonText}>Adjust Balance</Text>
           </TouchableOpacity>
         )}
 
@@ -548,7 +553,7 @@ export default function ManageUsersScreen() {
         </View>
       )}
 
-      {/* Add Balance Modal */}
+      {/* Adjust Balance Modal */}
       <Modal
         visible={showAddBalanceModal}
         transparent={true}
@@ -557,10 +562,26 @@ export default function ManageUsersScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add Wallet Balance</Text>
+            <Text style={styles.modalTitle}>Adjust Wallet Balance</Text>
             <Text style={styles.modalSubtitle}>
-              Enter amount to add to {selectedUsername}'s wallet:
+              {selectedUsername}'s wallet:
             </Text>
+
+            {/* Add / Deduct Toggle */}
+            <View style={{ flexDirection: 'row', marginBottom: 12, borderRadius: 8, overflow: 'hidden', borderWidth: 1, borderColor: '#ddd' }}>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 10, backgroundColor: adjustMode === 'add' ? '#2E7D32' : '#f5f5f5', alignItems: 'center' }}
+                onPress={() => setAdjustMode('add')}
+              >
+                <Text style={{ fontWeight: 'bold', color: adjustMode === 'add' ? '#fff' : '#666' }}>+ Add</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 10, backgroundColor: adjustMode === 'deduct' ? '#c62828' : '#f5f5f5', alignItems: 'center' }}
+                onPress={() => setAdjustMode('deduct')}
+              >
+                <Text style={{ fontWeight: 'bold', color: adjustMode === 'deduct' ? '#fff' : '#666' }}>- Deduct</Text>
+              </TouchableOpacity>
+            </View>
             
             <TextInput
               style={styles.modalInput}
@@ -585,14 +606,14 @@ export default function ManageUsersScreen() {
               </TouchableOpacity>
               
               <TouchableOpacity
-                style={styles.modalAddButton}
+                style={[styles.modalAddButton, adjustMode === 'deduct' && { backgroundColor: '#c62828' }]}
                 onPress={() => {
-                  console.log('Add Balance pressed, amount:', balanceAmount);
+                  console.log('Adjust Balance pressed, mode:', adjustMode, 'amount:', balanceAmount);
                   confirmAddBalance();
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={styles.modalAddText}>Add Balance</Text>
+                <Text style={styles.modalAddText}>{adjustMode === 'deduct' ? 'Deduct' : 'Add'} Balance</Text>
               </TouchableOpacity>
             </View>
           </View>
