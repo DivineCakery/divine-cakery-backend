@@ -859,6 +859,38 @@ export default function ReportsScreen() {
         ) : activeTab === 'prepReport' ? (
           /* Preparation Report View */
           <View style={styles.preparationSection}>
+            {/* Date Selector */}
+            <View style={styles.compactControlsRow}>
+              <View style={styles.compactDateSelector}>
+                <TouchableOpacity
+                  style={styles.compactDateButton}
+                  onPress={() => changeDate(-1)}
+                >
+                  <Ionicons name="chevron-back" size={20} color="#8B4513" />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.compactDateDisplay}
+                  onPress={goToToday}
+                >
+                  <Text style={styles.compactDateText}>
+                    {new Date(selectedDate).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </Text>
+                  <Text style={styles.compactDayText}>{new Date(selectedDate).toLocaleDateString('en-IN', { weekday: 'short' })}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.compactDateButton}
+                  onPress={() => changeDate(1)}
+                >
+                  <Ionicons name="chevron-forward" size={20} color="#8B4513" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* Department Dropdown */}
             <View style={styles.prepReportField}>
               <Text style={styles.prepReportLabel}>Department:</Text>
