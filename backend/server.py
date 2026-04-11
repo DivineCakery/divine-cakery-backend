@@ -3680,12 +3680,9 @@ async def get_route_summary(
     if not customer_ids:
         return {"date": report_date.strftime("%Y-%m-%d"), "route_type": route_type, "route_codes": route_codes, "customers": [], "items": [], "matrix": {}}
 
-    # Get orders for these customers on the given date
+    # Get orders for these customers on the given date (using UTC range only)
     orders = await db.orders.find({
-        "$or": [
-            {"delivery_date": {"$gte": date_start, "$lt": date_end}},
-            {"delivery_date": {"$gte": report_date, "$lt": report_date + timedelta(days=1)}}
-        ],
+        "delivery_date": {"$gte": date_start, "$lt": date_end},
         "order_status": {"$nin": ["cancelled", "Cancelled"]},
         "user_id": {"$in": customer_ids}
     }).to_list(10000)
