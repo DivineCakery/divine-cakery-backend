@@ -4725,3 +4725,31 @@ async def download_daily_reports_bundle():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+# Serve web frontend static files (must be AFTER all API routes)
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(STATIC_DIR):
+    # Serve static assets (JS, CSS, images, fonts)
+    app.mount("/_expo", StaticFiles(directory=os.path.join(STATIC_DIR, "_expo")), name="expo_static")
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets_static")
+    
+    @app.get("/favicon.ico")
+    async def favicon():
+        return FileResponse(os.path.join(STATIC_DIR, "favicon.ico"))
+    
+    # Catch-all: serve index.html for any non-API route (SPA routing)
+    @app.get("/{full_path:path}")
+    async def serve_web_app(full_path: str):
+        # Don't intercept API routes
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        # Serve static file if it exists
+        file_path = os.path.join(STATIC_DIR, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        # Default: serve index.html (SPA client-side routing)
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
