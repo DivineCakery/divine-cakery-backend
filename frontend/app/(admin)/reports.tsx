@@ -34,6 +34,7 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
     'Fruity dough', 'Lavash', 'Grissini', 'Bread roll dough', 'Potato bun dough',
     'Red burger dough', 'Black burger dough', 'Ciabatta', 'French baguette',
     'Croissants', 'Puffs dough', 'Cookies/biscotti',
+    'Cakes/Brownies', 'Indian Snacks', // Added per user request
     'Burger Dough', // Burger Dough included for Top Room (only specific items)
   ],
   dough_section: [
