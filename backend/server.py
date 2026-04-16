@@ -3647,7 +3647,7 @@ async def get_route_summary(
 
     ROUTE_MAP = {
         "lulu": ["LFT"],
-        "short": ["SR1", "SR2"],
+        "short": ["SR1", "SR2", "SR 3"],
         "long": ["LR1", "LR2"],
         "onsite": ["ONS"],
     }
