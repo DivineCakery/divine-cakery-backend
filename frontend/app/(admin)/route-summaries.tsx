@@ -7,7 +7,7 @@ import apiService from '../../services/api';
 
 const ROUTE_TYPES = [
   { key: 'lulu', label: 'Lulu Trip', codes: ['LFT'] },
-  { key: 'short', label: 'Short Route', codes: ['SR1', 'SR2'] },
+  { key: 'short', label: 'Short Route', codes: ['SR1', 'SR2', 'SR3'] },
   { key: 'long', label: 'Long Route', codes: ['LR1', 'LR2'] },
   { key: 'onsite', label: 'Onsite', codes: ['ONS'] },
 ];
