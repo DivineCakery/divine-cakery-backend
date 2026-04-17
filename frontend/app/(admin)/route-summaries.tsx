@@ -176,11 +176,11 @@ export default function RouteSummaries() {
       th, td { border: 1px solid #000; }
       th { background: #fff; color: #000; text-align: center; font-weight: bold; }
       th.item-hdr { text-align: left; }
-      th.total-hdr { min-width: 44px; }
+      th.total-hdr { min-width: 44px; border: 2.5px solid #000; }
       ${custHeaderStyle}
       td { }
       td.item { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      td.total-cell { text-align: center; font-weight: bold; background: #ddd; min-width: 44px; }
+      td.total-cell { text-align: center; font-weight: bold; background: #999; color: #000; min-width: 44px; border-left: 2.5px solid #000; border-right: 2.5px solid #000; }
       td.qty { text-align: center; }
       tr { page-break-inside: avoid; }
       thead { display: table-header-group; }
