@@ -49,7 +49,8 @@ const DEPARTMENT_DOUGHS: Record<string, string[]> = {
 const TOP_ROOM_BURGER_ITEMS = [
   'hot hotdog bun*4', 'lul samoon seeded*4', 'hotdog buns- 8in',
   'lul hotdog bun 3s', 'sandwich buns- 6in*4',
-  'pvr sandwich ( hotdog) bun 6in*4', // Added per user request
+  'pvr sandwich ( hotdog) bun 6in*4',
+  'pvr hotdog 6.5in*4',
 ];
 
 // Staff section key mapping for "Reported by" dropdown
