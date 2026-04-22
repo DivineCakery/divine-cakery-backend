@@ -4768,6 +4768,6 @@ if os.path.isdir(STATIC_DIR):
         # Serve static file if it exists
         file_path = os.path.join(STATIC_DIR, full_path)
         if os.path.isfile(file_path):
-            return FileResponse(file_path)
+            return FileResponse(file_path, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
         # Default: serve index.html (SPA client-side routing)
-        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"), headers={"Cache-Control": "no-cache, no-store, must-revalidate"})

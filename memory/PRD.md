@@ -47,6 +47,13 @@ Logistics and ordering dashboard for Divine Cakery bakery. React Native Expo fro
 - **Auto-Deploy**: Enabled from `main` branch of `divine-cakery-backend` GitHub repo
 - **Render API Key**: rnd_wfR7undzBDItXZZp8TCdvwA6BKdv
 
+### Session 7 (Apr 22, 2026)
+- **Delete Button Visibility Fix for Confirmed Orders (P0 DONE)**
+  - Fixed CSS/flexbox issue in `manage-orders.tsx` where Delete button was hidden on non-standing confirmed orders
+  - Root cause: `styles.statusButton` (`flex: 1`) on both Confirmed badge and Delete button caused Delete to be pushed off-screen
+  - Fix: Removed `styles.statusButton` from the Delete button so it auto-sizes to content
+  - Both standing and non-standing confirmed orders now show the Delete button correctly
+
 ## Pending Issues
 - **P1**: Multigrain & PVR Sandwich department assignments in Prep Report
 - **P2**: Android EAS build verification

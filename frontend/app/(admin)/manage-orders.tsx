@@ -672,8 +672,9 @@ export default function ManageOrdersScreen() {
                     <Text style={styles.actionButtonText}>Confirmed</Text>
                   </View>
                   <TouchableOpacity
-                    style={[styles.actionButton, styles.statusButton, styles.cancelButton]}
+                    style={[styles.actionButton, styles.cancelButton]}
                     onPress={() => deleteOrder(item.id, item.order_number || item.id.substring(0, 8))}
+                    data-testid="delete-order-btn"
                   >
                     <Ionicons name="trash" size={20} color="#fff" />
                     <Text style={styles.actionButtonText}>Delete</Text>
