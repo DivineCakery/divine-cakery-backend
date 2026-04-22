@@ -2267,6 +2267,24 @@ async def delete_old_orders(current_user: User = Depends(get_current_admin)):
         "deleted_count": result.deleted_count
     }
 
+@api_router.delete("/admin/orders/{order_id}")
+async def delete_order_by_admin(
+    order_id: str,
+    current_user: User = Depends(get_current_admin)
+):
+    """Admin endpoint to permanently delete a single order."""
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    result = await db.orders.delete_one({"id": order_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to delete order")
+    
+    logger.info(f"Admin {current_user.username} deleted order #{order.get('order_number', order_id)}")
+    return {"success": True, "message": f"Order #{order.get('order_number', order_id)} deleted"}
+
+
 @api_router.get("/orders")
 async def get_orders(
     delivery_date: Optional[str] = None,

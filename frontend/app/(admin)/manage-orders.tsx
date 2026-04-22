@@ -206,6 +206,30 @@ export default function ManageOrdersScreen() {
     );
   };
 
+  const deleteOrder = async (orderId: string, orderNumber: string) => {
+    showAlert(
+      'Delete Order',
+      `Are you sure you want to permanently delete order #${orderNumber}? This action cannot be undone.`,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Yes, Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await apiService.api.delete(`/admin/orders/${orderId}`);
+              await fetchOrders();
+              showAlert('Success', `Order #${orderNumber} deleted`);
+            } catch (error: any) {
+              console.error('Error deleting order:', error);
+              showAlert('Error', error.response?.data?.detail || 'Failed to delete order');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const openDeliveryDateEditor = (order: any) => {
     setEditingOrderId(order.id);
     // Use existing delivery_date or default to current date
@@ -642,10 +666,19 @@ export default function ManageOrdersScreen() {
                 </>
               )}
               {(item.order_status || item.status) === 'confirmed' && (
-                <View style={[styles.actionButton, styles.statusButton, styles.confirmedButton]}>
-                  <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Confirmed</Text>
-                </View>
+                <>
+                  <View style={[styles.actionButton, styles.statusButton, styles.confirmedButton]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                    <Text style={styles.actionButtonText}>Confirmed</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.statusButton, styles.cancelButton]}
+                    onPress={() => deleteOrder(item.id, item.order_number || item.id.substring(0, 8))}
+                  >
+                    <Ionicons name="trash" size={20} color="#fff" />
+                    <Text style={styles.actionButtonText}>Delete</Text>
+                  </TouchableOpacity>
+                </>
               )}
               {(item.order_status || item.status) === 'processing' && (
                 <View style={[styles.actionButton, styles.statusButton, styles.processingButton]}>
