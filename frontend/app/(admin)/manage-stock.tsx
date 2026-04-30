@@ -101,7 +101,7 @@ export default function ManageStockScreen() {
   };
 
   const filterProducts = (productList: any[], category: string | null, search: string = searchQuery) => {
-    let filtered = productList;
+    let filtered = productList.filter((product: any) => product.is_available !== false);
     
     // Category filter
     if (category) {
