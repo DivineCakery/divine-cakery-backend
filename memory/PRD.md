@@ -47,11 +47,30 @@ Logistics and ordering dashboard for Divine Cakery bakery. React Native Expo fro
 - **Auto-Deploy**: Enabled from `main` branch of `divine-cakery-backend` GitHub repo
 - **Render API Key**: rnd_wfR7undzBDItXZZp8TCdvwA6BKdv
 
-### Session 7 (Apr 22, 2026)
+### Session 7 (Apr 22 - May 19, 2026)
 - **Delete Button Visibility Fix for Confirmed Orders (P0 DONE)**
   - Fixed CSS/flexbox issue in `manage-orders.tsx` where Delete button was hidden on non-standing confirmed orders
   - Root cause: `styles.statusButton` (`flex: 1`) on both Confirmed badge and Delete button caused Delete to be pushed off-screen
   - Fix: Removed `styles.statusButton` from the Delete button so it auto-sizes to content
+
+- **PVR Hotdog Prep Report Mapping (P1 DONE)**
+  - Added 'pvr hotdog 6.5in*4' to TOP_ROOM_BURGER_ITEMS in reports.tsx
+  - Now shows under Burger Dough in Top Room, excluded from Dough Section
+
+- **Stock Sheet - Active Products Only (P1 DONE)**
+  - Filtered inactive products (is_available: false) from stock page
+
+- **Expo Web Export Render URL Fix (P0 DONE)**
+  - Fixed static bundle pointing to preview URL instead of Render production URL
+  - Now builds with EXPO_PUBLIC_BACKEND_URL=https://divine-cakery-backend.onrender.com
+
+- **Product Code Grid Stock Entry (P0 DONE)**
+  - Backend: Added `product_code` field to Product model, GET/PUT /api/admin/product-codes endpoints
+  - Frontend: New Product Codes mapping page (/product-codes) for admin to assign codes 1-100
+  - Frontend: Grid View toggle on Stock page with 100 numbered boxes
+  - Assigned boxes show stock, clicking opens modal for quick stock entry
+  - Unassigned boxes are greyed out/disabled
+  - List View preserved via toggle
   - Both standing and non-standing confirmed orders now show the Delete button correctly
 
 ## Pending Issues
