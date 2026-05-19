@@ -265,6 +265,12 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="product-codes"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

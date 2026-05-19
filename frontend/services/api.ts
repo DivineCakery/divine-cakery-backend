@@ -541,6 +541,16 @@ class ApiService {
     return response.data;
   }
 
+  async getProductCodes() {
+    const response = await this.api.get('/admin/product-codes');
+    return response.data;
+  }
+
+  async updateProductCodes(mappings: { product_id: string; product_code: number }[]) {
+    const response = await this.api.put('/admin/product-codes', mappings);
+    return response.data;
+  }
+
   // Product Whitelist Management
   async getUserAllowedProducts(userId: string) {
     const response = await this.api.get(`/admin/users/${userId}/allowed-products`);

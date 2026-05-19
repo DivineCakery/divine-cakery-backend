@@ -1458,6 +1458,40 @@ async def get_stock_reset_history(
         raise HTTPException(status_code=500, detail=f"Failed to fetch history: {str(e)}")
 
 
+# Product Code Mapping Endpoints
+@api_router.get("/admin/product-codes")
+async def get_product_codes(current_user: User = Depends(get_current_admin)):
+    """Get all products with their assigned codes (active products only)"""
+    products = await db.products.find(
+        {"is_available": True},
+        {"_id": 0, "id": 1, "name": 1, "product_code": 1, "closing_stock": 1, "price": 1}
+    ).to_list(1000)
+    return products
+
+
+@api_router.put("/admin/product-codes")
+async def update_product_codes(
+    mappings: List[dict],
+    current_user: User = Depends(get_current_admin)
+):
+    """Bulk update product codes. Each item: {product_id, product_code}"""
+    # Clear all existing codes first
+    await db.products.update_many({}, {"$unset": {"product_code": ""}})
+    
+    updated = 0
+    for m in mappings:
+        pid = m.get("product_id")
+        code = m.get("product_code")
+        if pid and code is not None:
+            await db.products.update_one(
+                {"id": pid},
+                {"$set": {"product_code": int(code)}}
+            )
+            updated += 1
+    
+    return {"message": f"Updated {updated} product codes"}
+
+
 
 # Wallet Routes
 @api_router.get("/wallet", response_model=WalletResponse)

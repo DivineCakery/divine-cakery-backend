@@ -153,6 +153,7 @@ class ProductBase(BaseModel):
     image_base64: Optional[str] = None
     is_available: bool = True
     closing_stock: int = 0  # Inventory count
+    product_code: Optional[int] = None  # Quick-entry code 1-100
     shelf_life: Optional[str] = None  # e.g., "3-5 days", "1 week"
     storage_instructions: Optional[str] = None  # e.g., "Store in cool, dry place"
     food_type: Optional[str] = "veg"  # "veg" or "non-veg" (FSSAI compliance)
@@ -178,6 +179,7 @@ class ProductUpdate(BaseModel):
     image_base64: Optional[str] = None
     is_available: Optional[bool] = None
     closing_stock: Optional[int] = None
+    product_code: Optional[int] = None
     shelf_life: Optional[str] = None
     storage_instructions: Optional[str] = None
     food_type: Optional[str] = None
