@@ -3789,8 +3789,8 @@ async def check_shortages(
     date: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Check shortages for early routes (SR1, SR2, LR1).
-    For each product, if closing_stock < (SR1 qty + SR2 qty + LR1 qty), flag as shortage.
+    """Check shortages for early routes (SR1, LR1).
+    For each product, if closing_stock < (SR1 qty + LR1 qty), flag as shortage.
     Also returns customers on those routes for potential shifting.
     """
     import pytz
@@ -3810,7 +3810,7 @@ async def check_shortages(
     date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
     date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
 
-    early_routes = ["SR1", "SR2", "LR1"]
+    early_routes = ["SR1", "LR1"]
 
     # Get customers on early routes
     customers = await db.users.find(
@@ -3850,7 +3850,7 @@ async def check_shortages(
             pname = item.get("product_name", "Unknown")
             qty = item.get("quantity", 0)
             if pname not in route_demand:
-                route_demand[pname] = {"SR1": 0, "SR2": 0, "LR1": 0}
+                route_demand[pname] = {"SR1": 0, "LR1": 0}
             route_demand[pname][route_code] = route_demand[pname].get(route_code, 0) + qty
             customer_orders[cid]["items"].append({"name": pname, "qty": qty})
 
@@ -3865,22 +3865,21 @@ async def check_shortages(
     # Compute shortages
     shortages = []
     for item_name, demand in route_demand.items():
-        total_demand = demand.get("SR1", 0) + demand.get("SR2", 0) + demand.get("LR1", 0)
+        total_demand = demand.get("SR1", 0) + demand.get("LR1", 0)
         stock = stock_map.get(item_name, 0)
         if stock < total_demand:
             shortages.append({
                 "item": item_name,
                 "stock": stock,
                 "demand_sr1": demand.get("SR1", 0),
-                "demand_sr2": demand.get("SR2", 0),
                 "demand_lr1": demand.get("LR1", 0),
                 "total_demand": total_demand,
                 "short_by": total_demand - stock
             })
 
     # Build shiftable customers list
-    # SR1 -> SR2 or SR3, SR2 -> SR3, LR1 -> LR2
-    shift_options = {"SR1": ["SR2", "SR 3"], "SR2": ["SR 3"], "LR1": ["LR2"]}
+    # SR1 -> SR2 or SR3, LR1 -> LR2
+    shift_options = {"SR1": ["SR2", "SR 3"], "LR1": ["LR2"]}
     shiftable = []
     for cid, cdata in customer_orders.items():
         rc = cdata["route_code"]

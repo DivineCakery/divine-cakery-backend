@@ -439,7 +439,6 @@ export default function RouteSummaries() {
                     <Text style={[ms.stCell, ms.stHeader, { flex: 2 }]}>Item</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>Stock</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>SR1</Text>
-                    <Text style={[ms.stCell, ms.stHeader]}>SR2</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>LR1</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>Total</Text>
                     <Text style={[ms.stCell, ms.stHeader, { color: '#d32f2f' }]}>Short</Text>
@@ -449,7 +448,6 @@ export default function RouteSummaries() {
                       <Text style={[ms.stCell, { flex: 2, fontWeight: '600' }]} numberOfLines={1}>{s.item}</Text>
                       <Text style={[ms.stCell, { color: '#2e7d32' }]}>{s.stock}</Text>
                       <Text style={ms.stCell}>{s.demand_sr1 || '-'}</Text>
-                      <Text style={ms.stCell}>{s.demand_sr2 || '-'}</Text>
                       <Text style={ms.stCell}>{s.demand_lr1 || '-'}</Text>
                       <Text style={[ms.stCell, { fontWeight: '700' }]}>{s.total_demand}</Text>
                       <Text style={[ms.stCell, { color: '#d32f2f', fontWeight: '700' }]}>-{s.short_by}</Text>
@@ -463,7 +461,7 @@ export default function RouteSummaries() {
                 <Ionicons name="swap-horizontal" size={16} color="#1565c0" /> Shift Customers to Later Route
               </Text>
               <Text style={ms.shiftHint}>
-                Move customers from early routes (SR1/SR2/LR1) to later routes for more prep time.
+                Move customers from early routes (SR1/LR1) to later routes for more prep time.
               </Text>
 
               {shiftableCustomers.length === 0 ? (
