@@ -835,15 +835,28 @@ export default function ManageOrdersScreen() {
               <View style={styles.webDatePickerContainer}>
                 <input
                   type="date"
-                  value={editingDeliveryDate.toISOString().split('T')[0]}
+                  value={(() => {
+                    // Convert UTC date to IST date string for display
+                    const d = new Date(editingDeliveryDate);
+                    const istOffset = 5.5 * 60 * 60 * 1000;
+                    const istDate = new Date(d.getTime() + istOffset);
+                    return istDate.toISOString().split('T')[0];
+                  })()}
                   onChange={async (e) => {
-                    const newDate = new Date(e.target.value);
-                    if (!isNaN(newDate.getTime())) {
-                      setEditingDeliveryDate(newDate);
+                    // Parse the selected date as IST midnight, store as UTC
+                    const parts = e.target.value.split('-');
+                    if (parts.length === 3) {
+                      // Create IST midnight: subtract 5:30 to get UTC
+                      const istMidnight = new Date(`${e.target.value}T00:00:00+05:30`);
+                      if (!isNaN(istMidnight.getTime())) {
+                        setEditingDeliveryDate(istMidnight);
+                      }
                     }
                   }}
                   style={{
                     width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box' as any,
                     padding: '16px',
                     fontSize: '18px',
                     border: '2px solid #8B4513',
@@ -1638,7 +1651,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: '85%',
+    maxWidth: 500,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   modalTitle: {
     fontSize: 20,
@@ -1653,6 +1668,7 @@ const styles = StyleSheet.create({
   webDatePickerContainer: {
     width: '100%',
     marginVertical: 20,
+    overflow: 'hidden',
   },
   modalButtons: {
     flexDirection: 'row',
