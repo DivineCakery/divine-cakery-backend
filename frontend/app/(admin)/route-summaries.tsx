@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform, ActivityIndicator, Alert, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Print from 'expo-print';
@@ -23,6 +23,24 @@ interface RouteGroup {
   customers: CustomerData[];
 }
 
+interface ShortageItem {
+  item: string;
+  stock: number;
+  demand_sr1: number;
+  demand_sr2: number;
+  demand_lr1: number;
+  total_demand: number;
+  short_by: number;
+}
+
+interface ShiftableCustomer {
+  customer_id: string;
+  customer_name: string;
+  current_route: string;
+  shift_to_options: string[];
+  item_count: number;
+}
+
 export default function RouteSummaries() {
   const router = useRouter();
   const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
@@ -31,9 +49,64 @@ export default function RouteSummaries() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
 
+  // Shortage popup state
+  const [shortageModal, setShortageModal] = useState(false);
+  const [shortages, setShortages] = useState<ShortageItem[]>([]);
+  const [shiftableCustomers, setShiftableCustomers] = useState<ShiftableCustomer[]>([]);
+  const [shiftSelections, setShiftSelections] = useState<Record<string, string>>({});
+  const [shortageLoading, setShortageLoading] = useState(false);
+  const [shifting, setShifting] = useState<string | null>(null);
+  const [shortageChecked, setShortageChecked] = useState(false);
+
   const showAlert = (title: string, msg: string) => {
     if (Platform.OS === 'web') window.alert(`${title}: ${msg}`);
     else Alert.alert(title, msg);
+  };
+
+  // Auto-check shortages when page loads
+  useEffect(() => {
+    checkShortages();
+  }, [selectedDate]);
+
+  const checkShortages = async () => {
+    setShortageLoading(true);
+    try {
+      const result = await apiService.checkShortages(selectedDate);
+      setShortages(result.shortages || []);
+      setShiftableCustomers(result.shiftable_customers || []);
+      setShiftSelections({});
+      if ((result.shortages || []).length > 0 && !shortageChecked) {
+        setShortageModal(true);
+      }
+      setShortageChecked(true);
+    } catch (error) {
+      console.error('Error checking shortages:', error);
+    } finally {
+      setShortageLoading(false);
+    }
+  };
+
+  const handleShift = async (customer: ShiftableCustomer) => {
+    const newRoute = shiftSelections[customer.customer_id];
+    if (!newRoute) {
+      showAlert('Select Route', 'Please select a route to shift to');
+      return;
+    }
+    setShifting(customer.customer_id);
+    try {
+      await apiService.shiftCustomerRoute(customer.customer_id, selectedDate, newRoute);
+      showAlert('Shifted', `${customer.customer_name} moved from ${customer.current_route} to ${newRoute}`);
+      // Remove from shiftable list
+      setShiftableCustomers(prev => prev.filter(c => c.customer_id !== customer.customer_id));
+      // Refresh current route data if loaded
+      if (selectedRoute) fetchSummary(selectedRoute);
+      // Re-check shortages
+      checkShortages();
+    } catch (error: any) {
+      showAlert('Error', error?.response?.data?.detail || 'Failed to shift customer');
+    } finally {
+      setShifting(null);
+    }
   };
 
   const fetchSummary = useCallback(async (routeType: string) => {
@@ -58,6 +131,7 @@ export default function RouteSummaries() {
     d.setDate(d.getDate() + days);
     const newDate = d.toISOString().split('T')[0];
     setSelectedDate(newDate);
+    setShortageChecked(false);
     if (selectedRoute) {
       setLoading(true);
       setData(null);
@@ -69,7 +143,6 @@ export default function RouteSummaries() {
     setDrivers(prev => ({ ...prev, [code]: name }));
   };
 
-  // Group customers by route_code and compute totals
   const getGroups = (): RouteGroup[] => {
     if (!data) return [];
     const rt = ROUTE_TYPES.find(r => r.key === selectedRoute);
@@ -99,18 +172,12 @@ export default function RouteSummaries() {
     const items: string[] = data.items;
     const groups = getGroups();
     const isLulu = selectedRoute === 'lulu';
-
-    // Calculate max item name length for dynamic column width
     const maxItemLength = Math.max(...items.map(i => i.length), 10);
     const itemColWidth = isLulu ? Math.min(maxItemLength * 8 + 10, 140) : Math.min(maxItemLength * 7 + 10, 160);
-
-    // Driver info line
     const driverLines = (rt?.codes || []).map(code => {
       const d = drivers[code] || '';
       return d ? `${code}: ${d}` : '';
     }).filter(Boolean).join(' &nbsp;|&nbsp; ');
-
-    // Build header columns: for each group -> Total col, then customer cols
     let headerRow = '<th class="item-hdr">Item</th>';
     for (const g of groups) {
       headerRow += `<th class="total-hdr">${g.code}<br/>Total</th>`;
@@ -118,8 +185,6 @@ export default function RouteSummaries() {
         headerRow += `<th class="cust">${c.name}</th>`;
       }
     }
-
-    // Build data rows
     let rows = '';
     for (const item of items) {
       let cells = `<td class="item">${item}</td>`;
@@ -133,17 +198,12 @@ export default function RouteSummaries() {
       }
       rows += `<tr>${cells}</tr>`;
     }
-
-    // Apply compact single-page layout for all routes
     const pageStyle = isLulu
       ? `@page { size: A4 portrait; margin: 8mm; }`
       : `@page { size: A4 landscape; margin: 6mm; }`;
-
     const custHeaderStyle = isLulu
       ? `th.cust { min-width: 50px; max-width: 70px; height: auto; font-size: 11px; padding: 4px 2px; writing-mode: horizontal-tb; text-orientation: initial; transform: none; word-wrap: break-word; }`
       : `th.cust { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); min-width: 28px; max-width: 40px; height: 110px; font-size: 11px; padding: 3px 2px; }`;
-
-    // Compact styling for all routes to fit single page
     const compactStyles = isLulu ? `
       html, body { max-width: 794px; margin: 0 auto; }
       table { table-layout: auto; width: 100%; page-break-inside: avoid; }
@@ -165,7 +225,6 @@ export default function RouteSummaries() {
       .hdr { font-size: 22px; margin: 0 0 2px; }
       .sub { font-size: 14px; margin: 0 0 4px; }
     `;
-
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       ${pageStyle}
       * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -229,26 +288,32 @@ export default function RouteSummaries() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} testID="back-button">
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.title}>Route Summaries</Text>
+        {shortages.length > 0 && (
+          <TouchableOpacity onPress={() => setShortageModal(true)} style={styles.shortageIndicator}>
+            <Ionicons name="warning" size={18} color="#fff" />
+            <Text style={styles.shortageIndicatorText}>{shortages.length}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Date Picker */}
       <View style={styles.dateRow}>
-        <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateArrow} testID="date-prev">
+        <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateArrow}>
           <Ionicons name="chevron-back" size={22} color="#8B4513" />
         </TouchableOpacity>
-        <Text style={styles.dateText} data-testid="date-display">
+        <Text style={styles.dateText}>
           {new Date(selectedDate).toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
         </Text>
-        <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateArrow} testID="date-next">
+        <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateArrow}>
           <Ionicons name="chevron-forward" size={22} color="#8B4513" />
         </TouchableOpacity>
       </View>
 
-      {/* Driver Inputs - one per route sub-code */}
+      {/* Driver Inputs */}
       {rt && (
         <View style={styles.driversSection}>
           {rt.codes.map(code => (
@@ -259,7 +324,6 @@ export default function RouteSummaries() {
                 placeholder={`Enter ${code} driver`}
                 value={drivers[code] || ''}
                 onChangeText={(v) => setDriver(code, v)}
-                testID={`driver-input-${code}`}
               />
             </View>
           ))}
@@ -273,7 +337,6 @@ export default function RouteSummaries() {
             key={r.key}
             style={[styles.routeBtn, selectedRoute === r.key && styles.routeBtnActive]}
             onPress={() => handleRouteSelect(r.key)}
-            testID={`route-btn-${r.key}`}
           >
             <Ionicons name="car-outline" size={20} color={selectedRoute === r.key ? '#fff' : '#8B4513'} />
             <Text style={[styles.routeBtnText, selectedRoute === r.key && styles.routeBtnTextActive]}>{r.label}</Text>
@@ -286,22 +349,16 @@ export default function RouteSummaries() {
       {loading ? (
         <ActivityIndicator size="large" color="#8B4513" style={{ marginTop: 30 }} />
       ) : data ? (
-        <ScrollView 
-          style={styles.tableContainer} 
-          contentContainerStyle={{ paddingBottom: 200 }}
-          showsVerticalScrollIndicator={true}
-        >
+        <ScrollView style={styles.tableContainer} contentContainerStyle={{ paddingBottom: 200 }} showsVerticalScrollIndicator>
           {data.customers.length === 0 ? (
-            <Text style={styles.emptyText} testID="no-data-msg">No orders found for {rt?.label} on this date.</Text>
+            <Text style={styles.emptyText}>No orders found for {rt?.label} on this date.</Text>
           ) : (
             <>
-              <Text style={styles.summaryText} testID="summary-text">
+              <Text style={styles.summaryText}>
                 {rt?.label} - {data.customers.length} customers, {data.items.length} items
               </Text>
-
               <ScrollView horizontal showsHorizontalScrollIndicator>
                 <View>
-                  {/* Table Header with grouped columns */}
                   <View style={styles.tRow}>
                     <View style={[styles.tCell, styles.tItemCell]}>
                       <Text style={styles.tHeaderText}>Item</Text>
@@ -319,8 +376,6 @@ export default function RouteSummaries() {
                       </React.Fragment>
                     ))}
                   </View>
-
-                  {/* Table Body */}
                   {data.items.map((item: string, idx: number) => (
                     <View key={item} style={[styles.tRow, idx % 2 === 0 && styles.tRowAlt]}>
                       <View style={[styles.tCell, styles.tItemCell]}>
@@ -342,9 +397,7 @@ export default function RouteSummaries() {
                   ))}
                 </View>
               </ScrollView>
-
-              {/* Print Button */}
-              <TouchableOpacity style={styles.printBtn} onPress={handlePrint} testID="print-btn">
+              <TouchableOpacity style={styles.printBtn} onPress={handlePrint}>
                 <Ionicons name="print" size={20} color="#fff" />
                 <Text style={styles.printBtnText}>Print / Save PDF</Text>
               </TouchableOpacity>
@@ -354,15 +407,163 @@ export default function RouteSummaries() {
       ) : (
         <Text style={styles.emptyText}>Select a route above to view the summary.</Text>
       )}
+
+      {/* Shortage & Shift Modal */}
+      <Modal visible={shortageModal} transparent animationType="slide">
+        <View style={ms.overlay}>
+          <View style={ms.modal}>
+            <View style={ms.modalHeader}>
+              <View style={ms.modalTitleRow}>
+                <Ionicons name="warning" size={22} color="#e65100" />
+                <Text style={ms.modalTitle}>Shortage & Route Shift</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShortageModal(false)} style={ms.closeBtn}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={ms.scrollBody} showsVerticalScrollIndicator>
+              {/* Part 1: Shortage Warnings */}
+              <Text style={ms.sectionTitle}>
+                <Ionicons name="alert-circle" size={16} color="#d32f2f" /> Shortage Warnings ({shortages.length} items)
+              </Text>
+              {shortages.length === 0 ? (
+                <View style={ms.noShortage}>
+                  <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                  <Text style={ms.noShortageText}>No shortages detected</Text>
+                </View>
+              ) : (
+                <View style={ms.shortageTable}>
+                  {/* Table header */}
+                  <View style={ms.stRow}>
+                    <Text style={[ms.stCell, ms.stHeader, { flex: 2 }]}>Item</Text>
+                    <Text style={[ms.stCell, ms.stHeader]}>Stock</Text>
+                    <Text style={[ms.stCell, ms.stHeader]}>SR1</Text>
+                    <Text style={[ms.stCell, ms.stHeader]}>SR2</Text>
+                    <Text style={[ms.stCell, ms.stHeader]}>LR1</Text>
+                    <Text style={[ms.stCell, ms.stHeader]}>Total</Text>
+                    <Text style={[ms.stCell, ms.stHeader, { color: '#d32f2f' }]}>Short</Text>
+                  </View>
+                  {shortages.map((s, i) => (
+                    <View key={i} style={[ms.stRow, i % 2 === 0 && ms.stRowAlt]}>
+                      <Text style={[ms.stCell, { flex: 2, fontWeight: '600' }]} numberOfLines={1}>{s.item}</Text>
+                      <Text style={[ms.stCell, { color: '#2e7d32' }]}>{s.stock}</Text>
+                      <Text style={ms.stCell}>{s.demand_sr1 || '-'}</Text>
+                      <Text style={ms.stCell}>{s.demand_sr2 || '-'}</Text>
+                      <Text style={ms.stCell}>{s.demand_lr1 || '-'}</Text>
+                      <Text style={[ms.stCell, { fontWeight: '700' }]}>{s.total_demand}</Text>
+                      <Text style={[ms.stCell, { color: '#d32f2f', fontWeight: '700' }]}>-{s.short_by}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Part 2: Route Shifting */}
+              <Text style={[ms.sectionTitle, { marginTop: 20 }]}>
+                <Ionicons name="swap-horizontal" size={16} color="#1565c0" /> Shift Customers to Later Route
+              </Text>
+              <Text style={ms.shiftHint}>
+                Move customers from early routes (SR1/SR2/LR1) to later routes for more prep time.
+              </Text>
+
+              {shiftableCustomers.length === 0 ? (
+                <Text style={ms.noCustomersText}>No customers available to shift.</Text>
+              ) : (
+                shiftableCustomers.map((cust) => (
+                  <View key={cust.customer_id} style={ms.shiftCard}>
+                    <View style={ms.shiftCardTop}>
+                      <View style={ms.shiftCardInfo}>
+                        <Text style={ms.shiftCustName}>{cust.customer_name}</Text>
+                        <View style={ms.routeBadge}>
+                          <Text style={ms.routeBadgeText}>{cust.current_route}</Text>
+                        </View>
+                        <Text style={ms.itemCountText}>{cust.item_count} items</Text>
+                      </View>
+                    </View>
+                    <View style={ms.shiftCardBottom}>
+                      <Text style={ms.shiftToLabel}>Shift to:</Text>
+                      {cust.shift_to_options.map(opt => (
+                        <TouchableOpacity
+                          key={opt}
+                          style={[
+                            ms.shiftOption,
+                            shiftSelections[cust.customer_id] === opt && ms.shiftOptionSelected,
+                          ]}
+                          onPress={() => setShiftSelections(prev => ({ ...prev, [cust.customer_id]: opt }))}
+                        >
+                          <Text style={[
+                            ms.shiftOptionText,
+                            shiftSelections[cust.customer_id] === opt && ms.shiftOptionTextSelected,
+                          ]}>{opt}</Text>
+                        </TouchableOpacity>
+                      ))}
+                      <TouchableOpacity
+                        style={[ms.shiftBtn, !shiftSelections[cust.customer_id] && ms.shiftBtnDisabled]}
+                        onPress={() => handleShift(cust)}
+                        disabled={!shiftSelections[cust.customer_id] || shifting === cust.customer_id}
+                      >
+                        {shifting === cust.customer_id ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                          <Text style={ms.shiftBtnText}>Shift</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+// Modal styles
+const ms = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modal: { backgroundColor: '#fff', borderRadius: 16, width: '92%', maxWidth: 600, maxHeight: '85%', elevation: 10 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  closeBtn: { padding: 4 },
+  scrollBody: { padding: 16 },
+  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#333', marginBottom: 10 },
+  noShortage: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 16, backgroundColor: '#e8f5e9', borderRadius: 8 },
+  noShortageText: { fontSize: 14, color: '#2e7d32', fontWeight: '600' },
+  shortageTable: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, overflow: 'hidden', marginBottom: 8 },
+  stRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee' },
+  stRowAlt: { backgroundColor: '#fafafa' },
+  stCell: { flex: 1, padding: 8, fontSize: 12, textAlign: 'center', color: '#333' },
+  stHeader: { fontWeight: 'bold', backgroundColor: '#f5f5f5', fontSize: 11, color: '#555' },
+  shiftHint: { fontSize: 12, color: '#777', marginBottom: 12, lineHeight: 18 },
+  noCustomersText: { fontSize: 13, color: '#999', textAlign: 'center', padding: 16 },
+  shiftCard: { backgroundColor: '#f9f9f9', borderRadius: 10, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: '#e0e0e0' },
+  shiftCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  shiftCardInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  shiftCustName: { fontSize: 14, fontWeight: '700', color: '#333' },
+  routeBadge: { backgroundColor: '#e65100', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  routeBadgeText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
+  itemCountText: { fontSize: 12, color: '#777' },
+  shiftCardBottom: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  shiftToLabel: { fontSize: 13, color: '#555', fontWeight: '600' },
+  shiftOption: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 6, borderWidth: 1.5, borderColor: '#1565c0', backgroundColor: '#fff' },
+  shiftOptionSelected: { backgroundColor: '#1565c0' },
+  shiftOptionText: { fontSize: 13, fontWeight: '600', color: '#1565c0' },
+  shiftOptionTextSelected: { color: '#fff' },
+  shiftBtn: { backgroundColor: '#4CAF50', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, marginLeft: 'auto' as any },
+  shiftBtnDisabled: { backgroundColor: '#bbb' },
+  shiftBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f5f0', padding: 16 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   backBtn: { padding: 8, marginRight: 8 },
-  title: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  title: { fontSize: 20, fontWeight: 'bold', color: '#333', flex: 1 },
+  shortageIndicator: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e65100', borderRadius: 16, paddingHorizontal: 10, paddingVertical: 5, gap: 4 },
+  shortageIndicatorText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
   dateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   dateArrow: { padding: 8 },
   dateText: { fontSize: 16, fontWeight: '600', color: '#333', marginHorizontal: 12 },

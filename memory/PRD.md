@@ -73,6 +73,14 @@ Logistics and ordering dashboard for Divine Cakery bakery. React Native Expo fro
   - List View preserved via toggle
   - Both standing and non-standing confirmed orders now show the Delete button correctly
 
+- **Shortage Warning & Route Shift Feature (P0 DONE)**
+  - Auto-popup on Route Summaries showing items where stock < SR1+SR2+LR1 demand
+  - Table shows item, stock, per-route demand, total, shortage amount
+  - Customer shift section: move customers from SR1→SR2/SR3, SR2→SR3, LR1→LR2
+  - Shift updates customer's route_code permanently in DB
+  - Route summary auto-refreshes after shift
+  - Orange badge in header shows shortage count, can reopen popup
+
 ## Pending Issues
 - **P1**: Multigrain & PVR Sandwich department assignments in Prep Report
 - **P2**: Android EAS build verification

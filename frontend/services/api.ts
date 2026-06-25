@@ -659,6 +659,22 @@ class ApiService {
     const response = await this.api.get('/admin/reports/route-summary', { params });
     return response.data;
   }
+
+  async checkShortages(date?: string) {
+    const params: any = {};
+    if (date) params.date = date;
+    const response = await this.api.get('/admin/reports/shortage-check', { params });
+    return response.data;
+  }
+
+  async shiftCustomerRoute(customerId: string, date: string, newRouteCode: string) {
+    const response = await this.api.post('/admin/reports/shift-customer-route', {
+      customer_id: customerId,
+      date,
+      new_route_code: newRouteCode,
+    });
+    return response.data;
+  }
 }
 
 export default new ApiService();

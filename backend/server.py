@@ -3784,6 +3784,169 @@ async def get_route_summary(
     }
 
 
+@api_router.get("/admin/reports/shortage-check")
+async def check_shortages(
+    date: str = None,
+    current_user: User = Depends(get_current_admin)
+):
+    """Check shortages for early routes (SR1, SR2, LR1).
+    For each product, if closing_stock < (SR1 qty + SR2 qty + LR1 qty), flag as shortage.
+    Also returns customers on those routes for potential shifting.
+    """
+    import pytz
+    from datetime import datetime as dt, timedelta
+
+    ist = pytz.timezone('Asia/Kolkata')
+    if date:
+        try:
+            report_date = dt.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format")
+    else:
+        report_date = dt.now(ist).replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+
+    ist_start = ist.localize(report_date.replace(hour=0, minute=0, second=0, microsecond=0))
+    ist_end = ist_start + timedelta(days=1)
+    date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
+    date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
+
+    early_routes = ["SR1", "SR2", "LR1"]
+
+    # Get customers on early routes
+    customers = await db.users.find(
+        {"role": "customer", "route_code": {"$in": early_routes}},
+        {"_id": 0, "id": 1, "username": 1, "business_name": 1, "route_code": 1}
+    ).to_list(10000)
+    customer_map = {c["id"]: c for c in customers}
+    customer_ids = list(customer_map.keys())
+
+    if not customer_ids:
+        return {"date": report_date.strftime("%Y-%m-%d"), "shortages": [], "shiftable_customers": []}
+
+    # Get orders for these customers on this date
+    orders = await db.orders.find({
+        "delivery_date": {"$gte": date_start, "$lt": date_end},
+        "order_status": {"$nin": ["cancelled", "Cancelled"]},
+        "user_id": {"$in": customer_ids}
+    }).to_list(10000)
+
+    # Build per-route item demand: { item_name: { SR1: qty, SR2: qty, LR1: qty } }
+    route_demand = {}
+    # Track customers with their items for shifting suggestions
+    customer_orders = {}  # cust_id -> { route_code, name, items: [{name, qty}] }
+
+    for order in orders:
+        cid = order.get("user_id")
+        if cid not in customer_map:
+            continue
+        cust = customer_map[cid]
+        route_code = cust.get("route_code", "")
+        cust_name = cust.get("business_name") or cust.get("username", "")
+
+        if cid not in customer_orders:
+            customer_orders[cid] = {"route_code": route_code, "name": cust_name, "items": []}
+
+        for item in order.get("items", []):
+            pname = item.get("product_name", "Unknown")
+            qty = item.get("quantity", 0)
+            if pname not in route_demand:
+                route_demand[pname] = {"SR1": 0, "SR2": 0, "LR1": 0}
+            route_demand[pname][route_code] = route_demand[pname].get(route_code, 0) + qty
+            customer_orders[cid]["items"].append({"name": pname, "qty": qty})
+
+    # Get closing_stock for all products that appear in orders
+    product_names = list(route_demand.keys())
+    products = await db.products.find(
+        {"name": {"$in": product_names}},
+        {"_id": 0, "name": 1, "closing_stock": 1}
+    ).to_list(1000)
+    stock_map = {p["name"]: p.get("closing_stock", 0) for p in products}
+
+    # Compute shortages
+    shortages = []
+    for item_name, demand in route_demand.items():
+        total_demand = demand.get("SR1", 0) + demand.get("SR2", 0) + demand.get("LR1", 0)
+        stock = stock_map.get(item_name, 0)
+        if stock < total_demand:
+            shortages.append({
+                "item": item_name,
+                "stock": stock,
+                "demand_sr1": demand.get("SR1", 0),
+                "demand_sr2": demand.get("SR2", 0),
+                "demand_lr1": demand.get("LR1", 0),
+                "total_demand": total_demand,
+                "short_by": total_demand - stock
+            })
+
+    # Build shiftable customers list
+    # SR1 -> SR2 or SR3, SR2 -> SR3, LR1 -> LR2
+    shift_options = {"SR1": ["SR2", "SR 3"], "SR2": ["SR 3"], "LR1": ["LR2"]}
+    shiftable = []
+    for cid, cdata in customer_orders.items():
+        rc = cdata["route_code"]
+        if rc in shift_options:
+            shiftable.append({
+                "customer_id": cid,
+                "customer_name": cdata["name"],
+                "current_route": rc,
+                "shift_to_options": shift_options[rc],
+                "item_count": len(cdata["items"])
+            })
+    shiftable.sort(key=lambda x: (x["current_route"], x["customer_name"]))
+
+    return {
+        "date": report_date.strftime("%Y-%m-%d"),
+        "shortages": shortages,
+        "shiftable_customers": shiftable
+    }
+
+
+@api_router.post("/admin/reports/shift-customer-route")
+async def shift_customer_route(
+    data: dict,
+    current_user: User = Depends(get_current_admin)
+):
+    """Temporarily shift a customer's orders to a different route for a specific date.
+    Updates the route_code on orders for today only (not the customer's permanent route).
+    Body: { customer_id, date (YYYY-MM-DD), new_route_code }
+    """
+    import pytz
+    from datetime import datetime as dt, timedelta
+
+    customer_id = data.get("customer_id")
+    date_str = data.get("date")
+    new_route = data.get("new_route_code")
+
+    if not all([customer_id, date_str, new_route]):
+        raise HTTPException(status_code=400, detail="customer_id, date, new_route_code required")
+
+    ist = pytz.timezone('Asia/Kolkata')
+    report_date = dt.strptime(date_str, "%Y-%m-%d")
+    ist_start = ist.localize(report_date.replace(hour=0, minute=0, second=0, microsecond=0))
+    ist_end = ist_start + timedelta(days=1)
+    date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
+    date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
+
+    # Update customer's route_code on their user record (temporary - admin knows this)
+    customer = await db.users.find_one({"id": customer_id}, {"_id": 0, "route_code": 1, "business_name": 1, "username": 1})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    old_route = customer.get("route_code", "")
+    cust_name = customer.get("business_name") or customer.get("username", "")
+
+    # Update the customer's permanent route_code
+    await db.users.update_one({"id": customer_id}, {"$set": {"route_code": new_route}})
+
+    logger.info(f"Admin {current_user.username} shifted customer {cust_name} from {old_route} to {new_route}")
+
+    return {
+        "message": f"Shifted {cust_name} from {old_route} to {new_route}",
+        "customer_name": cust_name,
+        "old_route": old_route,
+        "new_route": new_route
+    }
+
 
 # ==================== WHATSAPP NUMBERS MANAGEMENT ====================
 
