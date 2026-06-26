@@ -3721,45 +3721,66 @@ async def get_route_summary(
     date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
     date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
 
-    # Get customers with matching route codes
+    # Get customers with matching permanent route codes
     customers = await db.users.find(
         {"role": "customer", "route_code": {"$in": route_codes}},
         {"_id": 0, "id": 1, "username": 1, "business_name": 1, "route_code": 1}
     ).to_list(10000)
     customer_map = {c["id"]: c for c in customers}
-    customer_ids = list(customer_map.keys())
+    permanent_customer_ids = list(customer_map.keys())
 
-    if not customer_ids:
+    # Also find orders that were SHIFTED to these route codes (route_code_override)
+    shifted_orders = await db.orders.find({
+        "delivery_date": {"$gte": date_start, "$lt": date_end},
+        "order_status": {"$nin": ["cancelled", "Cancelled"]},
+        "route_code_override": {"$in": route_codes}
+    }).to_list(10000)
+    shifted_customer_ids = list(set(o.get("user_id") for o in shifted_orders if o.get("user_id")))
+    
+    # Load shifted customers' info if not already in map
+    for scid in shifted_customer_ids:
+        if scid not in customer_map:
+            sc = await db.users.find_one({"id": scid}, {"_id": 0, "id": 1, "username": 1, "business_name": 1, "route_code": 1})
+            if sc:
+                customer_map[scid] = sc
+
+    all_customer_ids = list(set(permanent_customer_ids + shifted_customer_ids))
+
+    if not all_customer_ids:
         return {"date": report_date.strftime("%Y-%m-%d"), "route_type": route_type, "route_codes": route_codes, "customers": [], "items": [], "matrix": {}}
 
-    # Get orders for these customers on the given date (using UTC range only)
+    # Get all orders for these customers on this date
     orders = await db.orders.find({
         "delivery_date": {"$gte": date_start, "$lt": date_end},
         "order_status": {"$nin": ["cancelled", "Cancelled"]},
-        "user_id": {"$in": customer_ids}
+        "user_id": {"$in": all_customer_ids}
     }).to_list(10000)
 
-    # Build matrix: item_name -> { order_customer_key: qty }
-    # Each order gets its own column (order_number + customer_id as key)
+    # Build matrix
     item_customer_matrix = {}
     items_order = []
-    order_instances = []  # List of {id: key, name: customer_name, route_code, order_number}
+    order_instances = []
 
     for order in orders:
         cid = order.get("user_id")
         if cid not in customer_map:
             continue
         
+        # Use route_code_override if present, otherwise use customer's permanent route
+        effective_route = order.get("route_code_override") or customer_map[cid].get("route_code", "")
+        
+        # Only include if effective route matches requested route codes
+        if effective_route not in route_codes:
+            continue
+        
         order_number = order.get("order_number", "")
-        # Create unique key for this order instance
         order_key = f"{cid}_{order_number}"
         customer_name = customer_map[cid].get("business_name") or customer_map[cid].get("username", "")
-        route_code = customer_map[cid].get("route_code", "")
         
         order_instances.append({
             "id": order_key,
             "name": customer_name,
-            "route_code": route_code,
+            "route_code": effective_route,
             "order_number": order_number
         })
         
@@ -3839,8 +3860,14 @@ async def check_shortages(
         cid = order.get("user_id")
         if cid not in customer_map:
             continue
+        
+        # If this order was already shifted to a different route, skip it from demand
+        override = order.get("route_code_override")
+        if override and override not in early_routes:
+            continue
+        
         cust = customer_map[cid]
-        route_code = cust.get("route_code", "")
+        route_code = override or cust.get("route_code", "")
         cust_name = cust.get("business_name") or cust.get("username", "")
 
         if cid not in customer_orders:
@@ -3906,7 +3933,7 @@ async def shift_customer_route(
     current_user: User = Depends(get_current_admin)
 ):
     """Temporarily shift a customer's orders to a different route for a specific date.
-    Updates the route_code on orders for today only (not the customer's permanent route).
+    Stamps route_code_override on orders for that day only. Does NOT change the customer's permanent route.
     Body: { customer_id, date (YYYY-MM-DD), new_route_code }
     """
     import pytz
@@ -3926,7 +3953,6 @@ async def shift_customer_route(
     date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
     date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
 
-    # Update customer's route_code on their user record (temporary - admin knows this)
     customer = await db.users.find_one({"id": customer_id}, {"_id": 0, "route_code": 1, "business_name": 1, "username": 1})
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -3934,16 +3960,24 @@ async def shift_customer_route(
     old_route = customer.get("route_code", "")
     cust_name = customer.get("business_name") or customer.get("username", "")
 
-    # Update the customer's permanent route_code
-    await db.users.update_one({"id": customer_id}, {"$set": {"route_code": new_route}})
+    # Stamp route_code_override on this customer's orders for this date ONLY
+    result = await db.orders.update_many(
+        {
+            "user_id": customer_id,
+            "delivery_date": {"$gte": date_start, "$lt": date_end},
+            "order_status": {"$nin": ["cancelled", "Cancelled"]},
+        },
+        {"$set": {"route_code_override": new_route}}
+    )
 
-    logger.info(f"Admin {current_user.username} shifted customer {cust_name} from {old_route} to {new_route}")
+    logger.info(f"Admin {current_user.username} shifted customer {cust_name} from {old_route} to {new_route} for {date_str} ({result.modified_count} orders)")
 
     return {
-        "message": f"Shifted {cust_name} from {old_route} to {new_route}",
+        "message": f"Shifted {cust_name} from {old_route} to {new_route} for {date_str}",
         "customer_name": cust_name,
         "old_route": old_route,
-        "new_route": new_route
+        "new_route": new_route,
+        "orders_updated": result.modified_count
     }
 
 
