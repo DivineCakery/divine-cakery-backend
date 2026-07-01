@@ -438,6 +438,7 @@ export default function RouteSummaries() {
                   <View style={ms.stRow}>
                     <Text style={[ms.stCell, ms.stHeader, { flex: 2 }]}>Item</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>Stock</Text>
+                    <Text style={[ms.stCell, ms.stHeader]}>LFT</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>SR1</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>LR1</Text>
                     <Text style={[ms.stCell, ms.stHeader]}>Total</Text>
@@ -447,6 +448,7 @@ export default function RouteSummaries() {
                     <View key={i} style={[ms.stRow, i % 2 === 0 && ms.stRowAlt]}>
                       <Text style={[ms.stCell, { flex: 2, fontWeight: '600' }]} numberOfLines={1}>{s.item}</Text>
                       <Text style={[ms.stCell, { color: '#2e7d32' }]}>{s.stock}</Text>
+                      <Text style={ms.stCell}>{s.demand_lft || '-'}</Text>
                       <Text style={ms.stCell}>{s.demand_sr1 || '-'}</Text>
                       <Text style={ms.stCell}>{s.demand_lr1 || '-'}</Text>
                       <Text style={[ms.stCell, { fontWeight: '700' }]}>{s.total_demand}</Text>

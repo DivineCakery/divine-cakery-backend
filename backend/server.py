@@ -3810,8 +3810,8 @@ async def check_shortages(
     date: str = None,
     current_user: User = Depends(get_current_admin)
 ):
-    """Check shortages for early routes (SR1, LR1).
-    For each product, if closing_stock < (SR1 qty + LR1 qty), flag as shortage.
+    """Check shortages for early routes (LFT, SR1, LR1).
+    For each product, if closing_stock < (LFT qty + SR1 qty + LR1 qty), flag as shortage.
     Also returns customers on those routes for potential shifting.
     """
     import pytz
@@ -3831,7 +3831,7 @@ async def check_shortages(
     date_start = ist_start.astimezone(pytz.UTC).replace(tzinfo=None)
     date_end = ist_end.astimezone(pytz.UTC).replace(tzinfo=None)
 
-    early_routes = ["SR1", "LR1"]
+    early_routes = ["LFT", "SR1", "LR1"]
 
     # Get customers on early routes
     customers = await db.users.find(
@@ -3877,7 +3877,7 @@ async def check_shortages(
             pname = item.get("product_name", "Unknown")
             qty = item.get("quantity", 0)
             if pname not in route_demand:
-                route_demand[pname] = {"SR1": 0, "LR1": 0}
+                route_demand[pname] = {"LFT": 0, "SR1": 0, "LR1": 0}
             route_demand[pname][route_code] = route_demand[pname].get(route_code, 0) + qty
             customer_orders[cid]["items"].append({"name": pname, "qty": qty})
 
@@ -3892,12 +3892,13 @@ async def check_shortages(
     # Compute shortages
     shortages = []
     for item_name, demand in route_demand.items():
-        total_demand = demand.get("SR1", 0) + demand.get("LR1", 0)
+        total_demand = demand.get("LFT", 0) + demand.get("SR1", 0) + demand.get("LR1", 0)
         stock = stock_map.get(item_name, 0)
         if stock < total_demand:
             shortages.append({
                 "item": item_name,
                 "stock": stock,
+                "demand_lft": demand.get("LFT", 0),
                 "demand_sr1": demand.get("SR1", 0),
                 "demand_lr1": demand.get("LR1", 0),
                 "total_demand": total_demand,
