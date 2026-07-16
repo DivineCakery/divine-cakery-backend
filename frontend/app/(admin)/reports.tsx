@@ -1211,7 +1211,7 @@ export default function ReportsScreen() {
             {/* Scrollable Content */}
             <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ padding: 16 }}>
               <Text style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
-                Formula: Excess = Stock + Prepared - (Today + Tomorrow)
+                Formula: Excess = Stock + Prepared - Today's Orders
               </Text>
               
               {excessStockItems.length > 0 ? (
