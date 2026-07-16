@@ -401,8 +401,7 @@ export default function ReportsScreen() {
           // Get requirements (default to 0 if no orders)
           const requirements = requirementsMap[productName] || { today: 0, tomorrow: 0 };
           const todayReq = requirements.today;
-          const tomorrowReq = requirements.tomorrow;
-          const totalRequired = todayReq + tomorrowReq;
+          const totalRequired = todayReq;
           
           // Get prepared quantity if entered (default to 0)
           const prepared = parseFloat(preparedQuantities[productName] || '0') || 0;
@@ -414,7 +413,6 @@ export default function ReportsScreen() {
             name: productName,
             stock: stock,
             todayReq: todayReq,
-            tomorrowReq: tomorrowReq,
             totalRequired: totalRequired,
             prepared: prepared,
             excess: excess,
