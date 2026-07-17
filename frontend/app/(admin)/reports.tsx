@@ -412,9 +412,10 @@ export default function ReportsScreen() {
           return {
             name: productName,
             stock: stock,
-            todayReq: todayReq,
+            todayOrders: todayReq,
             totalRequired: totalRequired,
             prepared: prepared,
+            needToday: stock - todayReq,
             excess: excess,
             unit: product.unit || 'piece'
           };
@@ -1211,7 +1212,7 @@ export default function ReportsScreen() {
             {/* Scrollable Content */}
             <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ padding: 16 }}>
               <Text style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
-                Formula: Excess = Stock + Prepared - Today's Orders
+                Need = Stock - Today's Orders | Excess = Stock + Prepared - Today's Orders
               </Text>
               
               {excessStockItems.length > 0 ? (
@@ -1220,7 +1221,7 @@ export default function ReportsScreen() {
                   <View style={{ flexDirection: 'row', backgroundColor: '#8B4513', paddingVertical: 10, paddingHorizontal: 4 }}>
                     <Text style={{ flex: 3, color: '#fff', fontSize: 10, fontWeight: 'bold' }}>Item</Text>
                     <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Stock</Text>
-                    <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Prep</Text>
+                    <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Orders</Text>
                     <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Need</Text>
                     <Text style={{ flex: 1, color: '#fff', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>Excess</Text>
                   </View>
@@ -1230,8 +1231,8 @@ export default function ReportsScreen() {
                     <View key={idx} style={{ flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: '#e0e0e0', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
                       <Text style={{ flex: 3, fontSize: 10, color: '#333' }} numberOfLines={2}>{item.name}</Text>
                       <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.stock}</Text>
-                      <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.prepared}</Text>
-                      <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.totalRequired}</Text>
+                      <Text style={{ flex: 1, fontSize: 10, color: '#333', textAlign: 'center' }}>{item.todayOrders}</Text>
+                      <Text style={{ flex: 1, fontSize: 10, color: item.needToday < 0 ? '#f44336' : '#333', textAlign: 'center' }}>{item.needToday}</Text>
                       <Text style={{ flex: 1, fontSize: 11, color: '#f44336', textAlign: 'center', fontWeight: 'bold' }}>{item.excess}</Text>
                     </View>
                   ))}
