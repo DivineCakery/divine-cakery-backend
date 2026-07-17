@@ -415,7 +415,7 @@ export default function ReportsScreen() {
             todayOrders: todayReq,
             totalRequired: totalRequired,
             prepared: prepared,
-            needToday: stock - todayReq,
+            needToday: todayReq - stock,
             excess: excess,
             unit: product.unit || 'piece'
           };
@@ -1212,7 +1212,7 @@ export default function ReportsScreen() {
             {/* Scrollable Content */}
             <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ padding: 16 }}>
               <Text style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
-                Need = Stock - Today's Orders | Excess = Stock + Prepared - Today's Orders
+                Need = Today's Orders - Stock | Excess = Stock + Prepared - Today's Orders
               </Text>
               
               {excessStockItems.length > 0 ? (
